@@ -117,16 +117,22 @@ map.on('style.load', function() {
         'maxzoom': 14
     });
     // add the DEM source as a terrain layer with exaggerated height
-    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.2 });
 
     // add a sky layer that will show when the map is highly pitched
     map.addLayer({
-        'id': 'sky',
+        'id': 'sky-day',
         'type': 'sky',
         'paint': {
-            'sky-type': 'atmosphere',
-            'sky-atmosphere-sun': [0.0, 0.0],
-            'sky-atmosphere-sun-intensity': 15
+            'sky-type': 'gradient',
+            'sky-opacity': [
+                'interpolate',
+                ['exponential', 0.1],
+                ['zoom'],
+                10, 0,
+                12, 1
+            ],
+            'sky-opacity-transition': {'duration': 500}
         }
     });
 
