@@ -21,6 +21,12 @@ var map = new mapboxgl.Map({
     preserveDrawingBuffer: true
 });
 
+map.addControl(
+    new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl
+    })
+);
 map.addControl(new mapboxgl.NavigationControl());
 
 // Authenticate to the Strava API using OAuth
@@ -51,7 +57,7 @@ stravaApi.oauth.getToken(temp_token).then(result => {
         node.appendChild(text_node);
         body.appendChild(node);
 
-        strava.athlete.listActivities({}, function(err, payload, limits) {
+        strava.athlete.listActivities({}, function (err, payload, limits) {
             var activities = payload;
 
             document.getElementById("act_select").style.visibility = "";
@@ -65,7 +71,7 @@ stravaApi.oauth.getToken(temp_token).then(result => {
                 select_lst.appendChild(option);
             }
 
-            select_lst.addEventListener('change', function(e) {
+            select_lst.addEventListener('change', function (e) {
                 console.log(e.target.value);
                 for (const key in activities) {
                     if (activities[key].name == e.target.value) {
@@ -109,7 +115,7 @@ stravaApi.oauth.getToken(temp_token).then(result => {
     }
 });
 
-map.on('style.load', function() {
+map.on('style.load', function () {
     map.addSource('mapbox-dem', {
         'type': 'raster-dem',
         'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
@@ -132,7 +138,7 @@ map.on('style.load', function() {
                 10, 0,
                 12, 1
             ],
-            'sky-opacity-transition': {'duration': 500}
+            'sky-opacity-transition': { 'duration': 500 }
         }
     });
 
@@ -142,21 +148,21 @@ map.on('style.load', function() {
     var ctx = snapshot.getContext('2d');
     var scale = window.devicePixelRatio;
 
-    map.on('load', function() {
+    map.on('load', function () {
         snapshot.height = map_div.offsetHeight * scale;
         snapshot.width = map_div.offsetWidth * scale;
     });
 
-    map.on('resize', function() {
+    map.on('resize', function () {
         snapshot.height = map_div.offsetHeight * scale;
         snapshot.width = map_div.offsetWidth * scale;
     });
 
-    document.getElementById('take_snap').addEventListener('click', function(e) {
+    document.getElementById('take_snap').addEventListener('click', function (e) {
         var png = map.getCanvas().toDataURL();
         var copy = new Image();
         copy.src = png;
-        copy.onload = function() {
+        copy.onload = function () {
             console.log("loaded!")
             ctx.drawImage(copy, 0, 0);
             logo();
@@ -211,7 +217,7 @@ map.on('style.load', function() {
         img.src = logo.image;
 
         // draw the logo in img (when ready)
-        img.onload = function() {
+        img.onload = function () {
             ctx.drawImage(img, 5, snapshot.height - logo.height - 5, logo.width, logo.height);
         };
     }
