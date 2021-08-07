@@ -33,28 +33,29 @@
         ]
     },
     "devDependencies": {
-        "babel-eslint": "^8.2.5",
-        "eslint": "^5.1.0",
-        "eslint-plugin-html": "^4.0.5",
+        "babel-eslint": "^10.1.0",
+        "eslint": "^7.32.0",
+        "eslint-plugin-html": "^6.1.2",
         "eslint-plugin-import": "^2.13.0",
-        "eslint-plugin-node": "^7.0.1",
-        "eslint-plugin-promise": "^3.8.0",
+        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-promise": "^5.1.0",
         "eslint-plugin-react": "^7.10.0",
         "eslint-plugin-xss": "^0.1.9"
     },
     "dependencies": {
         "@babel/core": "^7.10.2",
+        "@mapbox/mapbox-gl-geocoder": "^4.7.2",
         "@mapbox/polyline": "^1.1.1",
         "@turf/bbox": "^6.0.1",
         "@turf/helpers": "^6.1.4",
-        "@turf/turf": "^5.1.6",
+        "analytics-node": "^5.0.0",
         "babel-preset-env": "^1.7.0",
         "babelify": "^10.0.0",
-        "browserify": "^16.5.1",
-        "budo": "^11.6.3",
-        "dotenv": "^8.2.0",
+        "browserify": "^17.0.0",
+        "budo": "^11.6.4",
+        "dotenv": "^10.0.0",
         "geojson-polyline": "^1.0.3",
-        "mapbox-gl": "^2.0.0",
+        "mapbox-gl": "^2.4.0",
         "strava-v3": "^2.0.9"
     }
 }

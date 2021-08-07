@@ -1,8 +1,10 @@
 const mapboxgl = require('mapbox-gl');
 const stravaApi = require('strava-v3');
 var polyline = require('@mapbox/polyline');
-var turf = require('@turf/turf');
-
+var turf_helpers = require('@turf/helpers');
+var turf_bbox = require('@turf/bbox').default;
+var Analytics = require('analytics-node');
+var geocoder = require('@mapbox/mapbox-gl-geocoder');
 
 stravaApi.config({
     "client_id": "1495",
@@ -10,32 +12,59 @@ stravaApi.config({
     "redirect_uri": "localhost:9966"
 });
 
+var analytics = new Analytics('g1EKnYapBZxgZXSfhCTDgDxbMd5SuYcr');
+
 mapboxgl.accessToken = 'pk.eyJ1IjoicnNiYXVtYW5uIiwiYSI6ImNraXcwOWxwMzA2bXgycm02MDFlNnZremMifQ.8GEyTCpTmNMDtAnxoa3egA';
+
 var map = new mapboxgl.Map({
     container: 'map',
     zoom: 5,
     center: [-114.34411, 32.6141],
     pitch: 70,
     bearing: 0,
-    style: 'mapbox://styles/mapbox-map-design/ckhqrf2tz0dt119ny6azh975y',
-    preserveDrawingBuffer: true
+    style: 'mapbox://styles/rsbaumann/ckkeu7v0w1ly117qha6hja6yk?optimize=true',
+    preserveDrawingBuffer: true,
+    optimizeForTerrain: true
 });
 
+map.addControl(
+    new geocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl
+    })
+);
+
+map.addControl(new mapboxgl.FullscreenControl());
 map.addControl(new mapboxgl.NavigationControl());
 
 // Authenticate to the Strava API using OAuth
-
+var userid, actid;
 var queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 var temp_token = urlParams.get('code');
 stravaApi.oauth.getToken(temp_token).then(result => {
     if (result.access_token != undefined) {
         // Hide the auth button
-        document.getElementById('strava_auth').style.visibility = "hidden";
+        document.getElementById('strava_auth').style.display = "none";
         // Get info about athlete
         var strava_access_token = result.access_token;
         var profile_photo_url = result.athlete.profile_medium;
         var strava_username = result.athlete.firstname + " " + result.athlete.lastname;
+        userid = result.athlete.id;
+
+        analytics.identify({
+            userId: result.athlete.id,
+            traits: {
+                name: strava_username,
+                email: result.email,
+                city: result.athlete.city,
+                country: result.athlete.country,
+                state: result.athlete.state,
+                profile_url: profile_photo_url,
+                strava_access_token: strava_access_token,
+                createdAt: new Date()
+            }
+        });
 
         //Initalize API client for querying
         var strava = new stravaApi.client(strava_access_token);
@@ -44,17 +73,17 @@ stravaApi.oauth.getToken(temp_token).then(result => {
         body_el = document.getElementById('body');
         profile_el = document.getElementById('strava_profile');
         profile_el.setAttribute("src", profile_photo_url);
-        profile_el.style.visibility = "";
+        profile_el.style.display = "";
 
         var node = document.createElement("p");
         var text_node = document.createTextNode(strava_username);
         node.appendChild(text_node);
         body.appendChild(node);
 
-        strava.athlete.listActivities({}, function(err, payload, limits) {
+        strava.athlete.listActivities({}, function (err, payload, limits) {
             var activities = payload;
 
-            document.getElementById("act_select").style.visibility = "";
+            document.getElementById("act_select").style.display = "";
             var select_lst = document.getElementById("select_lst");
 
             for (const key in activities) {
@@ -65,12 +94,12 @@ stravaApi.oauth.getToken(temp_token).then(result => {
                 select_lst.appendChild(option);
             }
 
-            select_lst.addEventListener('change', function(e) {
-                console.log(e.target.value);
+            select_lst.addEventListener('change', function (e) {
                 for (const key in activities) {
                     if (activities[key].name == e.target.value) {
-                        let geojson = turf.feature(polyline.toGeoJSON(activities[key].map.summary_polyline));
-                        let bounding_box = turf.bbox(geojson);
+                        let geojson = turf_helpers.feature(polyline.toGeoJSON(activities[key].map.summary_polyline));
+                        actid = activities[key].activity_id
+                        let bounding_box = turf_bbox(geojson);
 
                         map.fitBounds(bounding_box, {
                             padding: 20
@@ -80,8 +109,8 @@ stravaApi.oauth.getToken(temp_token).then(result => {
                 }
             });
 
-            var geojson = turf.feature(polyline.toGeoJSON(activities[0].map.summary_polyline));
-            var bounding_box = turf.bbox(geojson);
+            var geojson = turf_helpers.feature(polyline.toGeoJSON(activities[0].map.summary_polyline));
+            var bounding_box = turf_bbox(geojson);
 
             map.fitBounds(bounding_box, {
                 padding: 20
@@ -102,33 +131,14 @@ stravaApi.oauth.getToken(temp_token).then(result => {
                 "layout": {
                     "line-join": "round"
                 }
-            })
+            }, 'path-pedestrian-label')
 
 
         });
     }
 });
 
-map.on('style.load', function() {
-    map.addSource('mapbox-dem', {
-        'type': 'raster-dem',
-        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        'tileSize': 512,
-        'maxzoom': 14
-    });
-    // add the DEM source as a terrain layer with exaggerated height
-    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-
-    // add a sky layer that will show when the map is highly pitched
-    map.addLayer({
-        'id': 'sky',
-        'type': 'sky',
-        'paint': {
-            'sky-type': 'atmosphere',
-            'sky-atmosphere-sun': [0.0, 0.0],
-            'sky-atmosphere-sun-intensity': 15
-        }
-    });
+map.on('load', function () {
 
     //Trigger a screenshot
     var map_div = document.getElementById('map');
@@ -136,22 +146,28 @@ map.on('style.load', function() {
     var ctx = snapshot.getContext('2d');
     var scale = window.devicePixelRatio;
 
-    map.on('load', function() {
+    snapshot.height = map_div.offsetHeight * scale;
+    snapshot.width = map_div.offsetWidth * scale;
+
+    map.on('resize', function () {
         snapshot.height = map_div.offsetHeight * scale;
         snapshot.width = map_div.offsetWidth * scale;
     });
 
-    map.on('resize', function() {
-        snapshot.height = map_div.offsetHeight * scale;
-        snapshot.width = map_div.offsetWidth * scale;
-    });
-
-    document.getElementById('take_snap').addEventListener('click', function(e) {
+    document.getElementById('take_snap').addEventListener('click', function (e) {
+        analytics.track({
+            userId: userid,
+            event: 'Created Snap',
+            properties: {
+                activity_id: actid,
+                map_center: map.getCenter(),
+                map_zoom: map.getZoom()
+            }
+        });
         var png = map.getCanvas().toDataURL();
         var copy = new Image();
         copy.src = png;
-        copy.onload = function() {
-            console.log("loaded!")
+        copy.onload = function () {
             ctx.drawImage(copy, 0, 0);
             logo();
             textbox();
@@ -205,7 +221,7 @@ map.on('style.load', function() {
         img.src = logo.image;
 
         // draw the logo in img (when ready)
-        img.onload = function() {
+        img.onload = function () {
             ctx.drawImage(img, 5, snapshot.height - logo.height - 5, logo.width, logo.height);
         };
     }
