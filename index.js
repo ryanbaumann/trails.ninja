@@ -28,13 +28,20 @@ var map = new mapboxgl.Map({
 });
 
 map.addControl(
+<<<<<<< HEAD
     new geocoder({
+=======
+    new MapboxGeocoder({
+>>>>>>> ec512616042e511414233cd7d276e45d80781461
         accessToken: mapboxgl.accessToken,
         mapboxgl: mapboxgl
     })
 );
+<<<<<<< HEAD
 
 map.addControl(new mapboxgl.FullscreenControl());
+=======
+>>>>>>> ec512616042e511414233cd7d276e45d80781461
 map.addControl(new mapboxgl.NavigationControl());
 
 // Authenticate to the Strava API using OAuth
