@@ -1,0 +1,61 @@
+{
+    "project": {
+        "authors": [
+            "github-username"
+        ],
+        "title": "my-project",
+        "description": "TBD",
+        "projecttype": "tbd",
+        "internal-notes": "tbd",
+        "privacy": "tbd",
+        "tags": [
+            ""
+        ],
+        "created": "06-01-2020",
+        "published": "",
+        "thumbnail": "",
+        "version": "1.0",
+        "video": "",
+        "blog": "",
+        "directory": "",
+        "link": ""
+    },
+    "main": "index.js",
+    "license": "MIT",
+    "scripts": {
+        "build": "mkdir -p build && cp index.html build/ && browserify index.js > build/bundle.js",
+        "start": "budo index.js:bundle.js --live --open",
+        "test": "eslint . --ext .js,.html -c .eslintrc.js"
+    },
+    "browserify": {
+        "transform": [
+            "babelify"
+        ]
+    },
+    "devDependencies": {
+        "babel-eslint": "^10.1.0",
+        "eslint": "^7.32.0",
+        "eslint-plugin-html": "^6.1.2",
+        "eslint-plugin-import": "^2.13.0",
+        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-promise": "^5.1.0",
+        "eslint-plugin-react": "^7.10.0",
+        "eslint-plugin-xss": "^0.1.9"
+    },
+    "dependencies": {
+        "@babel/core": "^7.10.2",
+        "@mapbox/mapbox-gl-geocoder": "^4.7.2",
+        "@mapbox/polyline": "^1.1.1",
+        "@turf/bbox": "^6.0.1",
+        "@turf/helpers": "^6.1.4",
+        "analytics-node": "^5.0.0",
+        "babel-preset-env": "^1.7.0",
+        "babelify": "^10.0.0",
+        "browserify": "^17.0.0",
+        "budo": "^11.6.4",
+        "dotenv": "^10.0.0",
+        "geojson-polyline": "^1.0.3",
+        "mapbox-gl": "^2.4.0",
+        "strava-v3": "^2.0.9"
+    }
+}

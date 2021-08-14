@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "layers": {
+    "purpleair_combined_1628544495445": {
+      "source": "mapbox://tileset-source/rsbaumann/purpleair_combined_16285444-src",
+      "minzoom": 0,
+      "maxzoom": 10
+    }
+  }
+}
