@@ -45,7 +45,7 @@
     },
     "dependencies": {
         "@babel/core": "^7.10.2",
-        "@mapbox/mapbox-gl-geocoder": "^4.7.2",
+        "@mapbox/mapbox-gl-geocoder": "^4.7.4",
         "@turf/clean-coords": "^6.5.0",
         "@turf/helpers": "^6.5.0",
         "@turf/truncate": "^6.5.0",
@@ -55,6 +55,6 @@
         "d3-delaunay": "^6.0.2",
         "d3-scale": "^4.0.0",
         "d3-tricontour": "^0.1.0",
-        "mapbox-gl": "^2.4.0"
+        "mapbox-gl": "^2.5.1"
     }
 }

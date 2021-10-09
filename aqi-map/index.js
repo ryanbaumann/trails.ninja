@@ -1,3 +1,5 @@
+"use strict";
+
 const mapboxgl = require('mapbox-gl');
 const MapboxGeocoder = require('@mapbox/mapbox-gl-geocoder');
 const turfHelpers = require("@turf/helpers");
@@ -37,14 +39,12 @@ const isLatitude = num => isFinite(num) && Math.abs(num) <= 90 && num != 0;
 const isLongitude = num => isFinite(num) && Math.abs(num) <= 180 && num != 0;
 
 map.on('style.load', function () {
-  let x = 0
-  var all_range = 'https://www.purpleair.com/data.json?opt=1/mAQI/a10/cC5&fetch=true&fields=pm_1,pm_cf_1,humidity'
+  var all_range = 'https://www.purpleair.com/data.json?exclude=true&fields=pm_1,pm_cf_1,humidity'
   fetch(all_range)
     .then(response => response.json())
     .then(mydata => {
       mydata.data.forEach(function (row) {
         let data = {}
-
         data['id'] = row[0];
         data['pm_cf1'] = row[1];
         data['age'] = row[2];
@@ -58,30 +58,30 @@ map.on('style.load', function () {
         data['isOwner'] = row[10];
         data['flags'] = row[11];
         data['CH'] = row[12];
-        data['AQI'] = aqiFromPM(data['pm_1']);
+        data['aqi_raw'] = aqiFromPM(data['pm_1']);
 
         if (
           (data['age'] <= 10) && // only include sensors updating in last 10 mins
           (isLongitude(data['long'])) &&
           (isLatitude(data['lat'])) &&
           (data['flags'] == 0) && // remove sensors with faults
-          (data['type'] == 0) // Only include outdoor sensors
-          //(data['conf'] >= 90)   // only include high confidence sensor readings
+          (data['type'] == 0) && // Only include outdoor sensors
+          (data['conf'] >= 96) // Only include high confidence sensor values
         ) {
           // Contour calculator
-          points_for_contours.push([parseFloat(data['long']), parseFloat(data['lat']), data['AQI']]);
+          points_for_contours.push([parseFloat(data['long']), parseFloat(data['lat']), data['aqi_raw']]);
           geojson_data.features.push(turfTruncate(turfCleanCoords({
             "type": "Feature",
             "id": data['id'],
             "properties": {
-              "aqi": data['AQI'],
+              "aqi_raw": data['aqi_raw'],
               "name": data['label'],
               "pm_1": data['pm_1'],
               "pm_cf1": data['pm_cf1'],
               "conf": data['conf'],
               "humidity": data['humidity'],
-              "description": getAQIDescription(data['AQI']),
-              "message": getAQIMessage(data['AQI'])
+              "description": getAQIDescription(data['aqi_raw']),
+              "message": getAQIMessage(data['aqi_raw'])
             },
             "geometry": {
               "type": "Point",
@@ -96,7 +96,7 @@ map.on('style.load', function () {
         }
       });
 
-      var breaks = [0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300]
+      var breaks = [0, 25, 50, 75, 100, 125, 150, 200, 250, 300, 350]
       const tric = d3.tricontour().thresholds(breaks);
       var contours = tric(points_for_contours)
       var features = [];
@@ -130,19 +130,31 @@ map.on('style.load', function () {
             'interpolate', ['linear'],
             ["get", "value"],
             0,
-            '#00e400',
+            '#8fec74',
+            50,
+            '#77c853',
             51,
             '#ffff00',
+            100,
+            '#dfb743',
             101,
-            '#ff7e00',
+            '#f5ba2a',
+            150,
+            '#d3781c',
             151,
-            '#ff0000',
+            '#da5340',
+            200,
+            '#bc2f26',
             201,
-            '#8f3f97',
+            '#9c2424',
+            300,
+            '#661414',
             301,
-            '#7e0023'
+            '#76205d',
+            400,
+            '#521541'
           ],
-          "fill-opacity": 0.25
+          "fill-opacity": 0.5
         }
       }, 'water')
 
@@ -152,14 +164,12 @@ map.on('style.load', function () {
         cluster: true,
         buffer: 25,
         clusterMaxZoom: 14,
-        clusterRadius: 25,
+        clusterRadius: 28,
         clusterProperties: {
-          "sum": ["+", ["get", "aqi"]],
-          "max": ["max", ["get", "aqi"]]
+          "sum": ["+", ["get", "aqi_raw"]],
+          "max": ["max", ["get", "aqi_raw"]]
         }
       });
-
-      var colors = ['#731525', '#8B1A4A', '#EA3423', '#FEFF54', '#34eb4c'];
 
       map.addLayer({
         id: 'clusters',
@@ -173,17 +183,29 @@ map.on('style.load', function () {
               ["get", "point_count"]
             ],
             0,
-            '#00e400',
+            '#8fec74',
+            50,
+            '#77c853',
             51,
             '#ffff00',
+            100,
+            '#dfb743',
             101,
-            '#ff7e00',
+            '#f5ba2a',
+            150,
+            '#d3781c',
             151,
-            '#ff0000',
+            '#da5340',
+            200,
+            '#bc2f26',
             201,
-            '#8f3f97',
+            '#9c2424',
+            300,
+            '#661414',
             301,
-            '#7e0023'
+            '#76205d',
+            400,
+            '#521541'
           ],
           'circle-stroke-color': "white",
           'circle-stroke-width': 1,
@@ -215,8 +237,15 @@ map.on('style.load', function () {
           'text-size': 12,
         },
         paint: {
-          'text-halo-color': "white",
-          'text-halo-width': 1
+          'text-halo-color': "rgba(255, 255, 255, 1)",
+          'text-halo-width': [
+            'interpolate', ['exponential', 1.2],
+            ["zoom"],
+            0,
+            1,
+            18,
+            3
+          ]
         }
       });
 
@@ -228,21 +257,33 @@ map.on('style.load', function () {
         paint: {
           'circle-color': [
             'interpolate', ['linear'],
-            ["get", "aqi"],
+            ["get", "aqi_raw"],
             0,
-            '#00e400',
+            '#8fec74',
+            50,
+            '#77c853',
             51,
             '#ffff00',
+            100,
+            '#dfb743',
             101,
-            '#ff7e00',
+            '#f5ba2a',
+            150,
+            '#d3781c',
             151,
-            '#ff0000',
+            '#da5340',
+            200,
+            '#bc2f26',
             201,
-            '#8f3f97',
+            '#9c2424',
+            300,
+            '#661414',
             301,
-            '#7e0023'
+            '#76205d',
+            400,
+            '#521541'
           ],
-          'circle-stroke-color': "white",
+          'circle-stroke-color': "rgba(255, 255, 255, 1)",
           'circle-stroke-width': 1,
           'circle-radius': [
             'interpolate', ['exponential', 1.2],
@@ -261,15 +302,22 @@ map.on('style.load', function () {
         source: 'sensors',
         filter: ['!', ['has', 'point_count']],
         layout: {
-          'text-field': ["number-format", ["get", "aqi"], {
+          'text-field': ["number-format", ["get", "aqi_raw"], {
             "max-fraction-digits": 1
           }],
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
           'text-size': 12
         },
         paint: {
-          'text-halo-color': "white",
-          'text-halo-width': 1
+          'text-halo-color': "rgba(255, 255, 255, 1)",
+          'text-halo-width': [
+            'interpolate', ['exponential', 1.2],
+            ["zoom"],
+            0,
+            1,
+            18,
+            3
+          ]
         }
       });
 
@@ -291,10 +339,10 @@ map.on('style.load', function () {
         );
       });
 
-      map.on('click', 'unclustered-point', function (e) {
+      map.on('preclick', 'unclustered-point', function (e) {
         var coordinates = e.features[0].geometry.coordinates.slice();
         var label = e.features[0].properties.name;
-        var aqi = e.features[0].properties.aqi;
+        var aqi_raw = e.features[0].properties.aqi_raw;
         var pm_cf1 = e.features[0].properties.pm_cf1;
         var pm_1 = e.features[0].properties.pm_1;
         var conf = e.features[0].properties.conf;
@@ -310,13 +358,13 @@ map.on('style.load', function () {
           .setHTML(
             "<div class='inline-flex flex--center-cross flex--column'>" +
             "<div class='px6 py6 bg-lighten75 color-black round txt-s'>" +
-            '<li>Name: ' + label + '</li>' +
-            '<li>AQI: ' + aqi + '</li>' +
-            '<li>Description: ' + description + '</li>' +
-            '<li>PM_1: ' + pm_1 + '</li>' +
-            '<li>PM_cf1: ' + pm_cf1 + '</li>' +
-            '<li>Conf: ' + conf + '</li>' +
-            '<li>Humidity: ' + humidity + '</li>' +
+            "<li> <span class='txt-bold'> Name: </span>" + label + "</li>" +
+            "<li> <span class='txt-bold'> AQI: </span>" + aqi_raw + '</li>' +
+            "<li> <span class='txt-bold'> Description: </span>" + description + '</li>' +
+            "<li> <span class='txt-bold'> PM_1: </span>" + pm_1 + '</li>' +
+            "<li> <span class='txt-bold'> PM_cf1: </span>" + pm_cf1 + '</li>' +
+            "<li> <span class='txt-bold'> Conf: </span>" + conf + '</li>' +
+            "<li> <span class='txt-bold'> Humidity: </span>" + humidity + '</li>' +
             "</div>" +
             "</div>"
           )
@@ -331,6 +379,7 @@ map.on('style.load', function () {
       });
     })
 });
+
 function aqiFromPM(pm) {
 
   if (isNaN(pm)) return 0;
