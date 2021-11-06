@@ -14,7 +14,8 @@ var map = new mapboxgl.Map({
   style: 'mapbox://styles/rsbaumann/cks3iz3ka5dag18mljlnfp0xx?optimize=true',
   center: [-103.59179687498357, 40.66995747013945],
   zoom: 3,
-  hash: true
+  hash: true,
+  projection: 'albers'
 });
 
 map.addControl(

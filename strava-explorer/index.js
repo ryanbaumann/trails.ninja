@@ -3,7 +3,6 @@ const stravaApi = require('strava-v3');
 var polyline = require('@mapbox/polyline');
 var turf_helpers = require('@turf/helpers');
 var turf_bbox = require('@turf/bbox').default;
-var Analytics = require('analytics-node');
 var geocoder = require('@mapbox/mapbox-gl-geocoder');
 
 stravaApi.config({
@@ -12,19 +11,18 @@ stravaApi.config({
     "redirect_uri": "localhost:9966"
 });
 
-var analytics = new Analytics('g1EKnYapBZxgZXSfhCTDgDxbMd5SuYcr');
-
 mapboxgl.accessToken = 'pk.eyJ1IjoicnNiYXVtYW5uIiwiYSI6ImNraXcwOWxwMzA2bXgycm02MDFlNnZremMifQ.8GEyTCpTmNMDtAnxoa3egA';
 
 var map = new mapboxgl.Map({
     container: 'map',
     zoom: 5,
     center: [-114.34411, 32.6141],
-    pitch: 70,
+    pitch: 40,
     bearing: 0,
     style: 'mapbox://styles/rsbaumann/ckkeu7v0w1ly117qha6hja6yk?optimize=true',
     preserveDrawingBuffer: true,
-    optimizeForTerrain: true
+    optimizeForTerrain: true,
+    //projection: 'albers'
 });
 
 map.addControl(
@@ -42,8 +40,47 @@ var userid, actid;
 var queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 var temp_token = urlParams.get('code');
+var stravatoken;
+var markers = [];
+
+function getPhotos(stravatoken, activityid, map) {
+    if (markers.length >0) {
+        markers.forEach(function(marker) {
+            marker.remove()
+        });
+        markers = [];
+    }
+
+    let photoURL = 'https://www.strava.com/api/v3/activities/' + activityid + '/photos?photo_sources=true&access_token=' + stravatoken + '&size=1000'
+    fetch(photoURL)
+        .then(response => response.json())
+        .then(photos => {
+            if (photos.length > 0) {
+                photos.forEach(function (photo) {
+
+                    // create DOM element for the marker
+                    const el = document.createElement('div');
+                    const img = document.createElement('img');
+                    img.id = photo.unique_id;
+                    img.src = photo.urls["1000"]
+                    img.style.height = '100px';
+                    img.style.width = '190px';
+                    el.appendChild(img);
+
+                    let popup = new mapboxgl.Popup()
+                    .setLngLat([ photo.location[1], photo.location[0] ])
+                    .setHTML(el.outerHTML)
+                    .addTo(map);
+
+                })
+            }
+        });
+}
+
+
 stravaApi.oauth.getToken(temp_token).then(result => {
     if (result.access_token != undefined) {
+        stravatoken = result.access_token;
         // Hide the auth button
         document.getElementById('strava_auth').style.display = "none";
         // Get info about athlete
@@ -52,26 +89,11 @@ stravaApi.oauth.getToken(temp_token).then(result => {
         var strava_username = result.athlete.firstname + " " + result.athlete.lastname;
         userid = result.athlete.id;
 
-        analytics.identify({
-            userId: result.athlete.id,
-            traits: {
-                name: strava_username,
-                email: result.email,
-                city: result.athlete.city,
-                country: result.athlete.country,
-                state: result.athlete.state,
-                profile_url: profile_photo_url,
-                strava_access_token: strava_access_token,
-                createdAt: new Date()
-            }
-        });
-
         //Initalize API client for querying
         var strava = new stravaApi.client(strava_access_token);
 
         //Update DOM with athlete info
-        body_el = document.getElementById('body');
-        profile_el = document.getElementById('strava_profile');
+        var profile_el = document.getElementById('strava_profile');
         profile_el.setAttribute("src", profile_photo_url);
         profile_el.style.display = "";
 
@@ -98,13 +120,15 @@ stravaApi.oauth.getToken(temp_token).then(result => {
                 for (const key in activities) {
                     if (activities[key].name == e.target.value) {
                         let geojson = turf_helpers.feature(polyline.toGeoJSON(activities[key].map.summary_polyline));
-                        actid = activities[key].activity_id
+
+                        actid = activities[key].id
                         let bounding_box = turf_bbox(geojson);
 
                         map.fitBounds(bounding_box, {
                             padding: 20
                         });
-                        map.getSource('route').setData(geojson)
+                        map.getSource('route').setData(geojson);
+                        getPhotos(stravatoken, actid, map);
                     }
                 }
             });
@@ -115,6 +139,8 @@ stravaApi.oauth.getToken(temp_token).then(result => {
             map.fitBounds(bounding_box, {
                 padding: 20
             });
+
+            getPhotos(stravatoken, activities[0].id, map);
 
             map.addSource("route", {
                 "type": "geojson",
@@ -132,8 +158,6 @@ stravaApi.oauth.getToken(temp_token).then(result => {
                     "line-join": "round"
                 }
             }, 'path-pedestrian-label')
-
-
         });
     }
 });
@@ -155,15 +179,6 @@ map.on('load', function () {
     });
 
     document.getElementById('take_snap').addEventListener('click', function (e) {
-        analytics.track({
-            userId: userid,
-            event: 'Created Snap',
-            properties: {
-                activity_id: actid,
-                map_center: map.getCenter(),
-                map_zoom: map.getZoom()
-            }
-        });
         var png = map.getCanvas().toDataURL();
         var copy = new Image();
         copy.src = png;

@@ -23,28 +23,33 @@
     "main": "index.js",
     "license": "MIT",
     "scripts": {
-        "build": "mkdir -p build && cp index.html build/ && browserify index.js > build/bundle.js",
-        "start": "budo index.js:bundle.js --live --open",
-        "test": "eslint . --ext .js,.html -c .eslintrc.js"
+        "build": "mkdir -p build && cp index.html build/ && browserify -p esmify index.js > build/bundle.js",
+        "start": "budo index.js:bundle.js --live --open "
     },
     "browserify": {
         "transform": [
-            "babelify"
+            [
+                "babelify",
+                {
+                    "presets": [
+                        "@babel/preset-env"
+                    ]
+                }
+            ]
         ]
     },
     "devDependencies": {
+        "@babel/preset-env": "^7.15.0",
         "babel-eslint": "^10.1.0",
-        "eslint": "^7.32.0",
-        "eslint-plugin-html": "^6.1.2",
-        "eslint-plugin-import": "^2.13.0",
-        "eslint-plugin-node": "^11.1.0",
-        "eslint-plugin-promise": "^5.1.0",
-        "eslint-plugin-react": "^7.10.0",
-        "eslint-plugin-xss": "^0.1.9"
+        "babel-preset-env": "^1.7.0",
+        "babel-preset-es2015": "^6.24.1",
+        "babelify": "^10.0.0",
+        "esmify": "^2.1.1",
+        "esminify": "^4.0.1"
     },
     "dependencies": {
         "@babel/core": "^7.10.2",
-        "@mapbox/mapbox-gl-geocoder": "^4.7.2",
+        "@mapbox/mapbox-gl-geocoder": "^4.7.3",
         "@mapbox/polyline": "^1.1.1",
         "@turf/bbox": "^6.0.1",
         "@turf/helpers": "^6.1.4",
@@ -55,7 +60,7 @@
         "budo": "^11.6.4",
         "dotenv": "^10.0.0",
         "geojson-polyline": "^1.0.3",
-        "mapbox-gl": "^2.4.0",
-        "strava-v3": "^2.0.9"
+        "mapbox-gl": "^2.6.0-beta.2",
+        "strava-v3": "^2.0.10"
     }
 }
