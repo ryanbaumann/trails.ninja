@@ -28,8 +28,6 @@ map.addControl(
   })
 );
 
-map.addControl(new mapboxgl.GeolocateControl({}));
-
 var geojson_data = {
   "type": "FeatureCollection",
   "features": []
@@ -41,8 +39,22 @@ const isLongitude = num => isFinite(num) && Math.abs(num) <= 180 && num != 0;
 
 map.on('style.load', function () {
   var all_range = 'https://www.purpleair.com/data.json?exclude=true&fields=pm_1,pm_cf_1,humidity'
+  document.getElementById("error_msg").innerHTML = "Data Loading..."
   fetch(all_range)
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        // get error message from body or default to response status
+        const error = (data && data.message) || response.status;
+        return Promise.reject(error);
+      }
+      else {
+        return response.json()
+      }
+    })
+    .catch(error => {
+      console.error('Refresh too fast; try reloading your page in ~30 seconds!', error);
+      document.getElementById("error_msg").innerHTML = "API Rate Limited: Reload page in ~30 seconds"
+    })
     .then(mydata => {
       mydata.data.forEach(function (row) {
         let data = {}
@@ -221,8 +233,6 @@ map.on('style.load', function () {
         }
       }, 'water-point-label');
 
-
-
       map.addLayer({
         id: 'cluster-count-label',
         type: 'symbol',
@@ -378,6 +388,8 @@ map.on('style.load', function () {
       map.on('mouseleave', 'clusters', function () {
         map.getCanvas().style.cursor = '';
       });
+
+      document.getElementById("error_msg").innerHTML = "Map ready!"
     })
 });
 
