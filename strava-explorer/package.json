@@ -60,7 +60,7 @@
         "budo": "^11.6.4",
         "dotenv": "^10.0.0",
         "geojson-polyline": "^1.0.3",
-        "mapbox-gl": "^2.6.0-beta.2",
+        "mapbox-gl": "^2.9.1",
         "strava-v3": "^2.0.10"
     }
 }

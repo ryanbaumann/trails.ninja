@@ -22,7 +22,7 @@ var map = new mapboxgl.Map({
     style: 'mapbox://styles/rsbaumann/ckkeu7v0w1ly117qha6hja6yk?optimize=true',
     preserveDrawingBuffer: true,
     optimizeForTerrain: true,
-    //projection: 'albers'
+    projection: 'globe'
 });
 
 map.addControl(
