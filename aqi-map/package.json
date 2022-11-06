@@ -20,7 +20,7 @@
     "license": "MIT",
     "scripts": {
         "build": "mkdir -p build && cp index.html build/ && browserify -p esmify index.js > build/bundle.js",
-        "start": "budo index.js:bundle.js --live --open "
+        "start": "budo index.js:bundle.js --live --open"
     },
     "browserify": {
         "transform": [
@@ -45,7 +45,7 @@
     },
     "dependencies": {
         "@babel/core": "^7.10.2",
-        "@mapbox/mapbox-gl-geocoder": "^4.7.2",
+        "@mapbox/mapbox-gl-geocoder": "5.0.1",
         "@turf/clean-coords": "^6.5.0",
         "@turf/helpers": "^6.5.0",
         "@turf/truncate": "^6.5.0",
@@ -55,6 +55,6 @@
         "d3-delaunay": "^6.0.2",
         "d3-scale": "^4.0.0",
         "d3-tricontour": "^0.1.0",
-        "mapbox-gl": "^2.7.0"
+        "mapbox-gl": "v2.11.0-beta.1"
     }
 }
