@@ -15,11 +15,11 @@ mapboxgl.accessToken = 'pk.eyJ1IjoicnNiYXVtYW5uIiwiYSI6ImNraXcwOWxwMzA2bXgycm02M
 
 var map = new mapboxgl.Map({
     container: 'map',
-    zoom: 5,
+    zoom: 1,
     center: [-114.34411, 32.6141],
     pitch: 40,
     bearing: 0,
-    style: 'mapbox://styles/rsbaumann/ckkeu7v0w1ly117qha6hja6yk?optimize=true',
+    style: 'mapbox://styles/rsbaumann/cleubf6qd000701tjhq0tj05a?optimize=true',
     preserveDrawingBuffer: true,
     optimizeForTerrain: true,
     projection: 'globe'
@@ -127,6 +127,7 @@ stravaApi.oauth.getToken(temp_token).then(result => {
                         map.fitBounds(bounding_box, {
                             padding: 20
                         });
+
                         map.getSource('route').setData(geojson);
                         getPhotos(stravatoken, actid, map);
                     }
