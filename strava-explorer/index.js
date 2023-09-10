@@ -11,17 +11,16 @@ stravaApi.config({
     "redirect_uri": "localhost:9966"
 });
 
-mapboxgl.accessToken = 'pk.eyJ1IjoicnNiYXVtYW5uIiwiYSI6ImNraXcwOWxwMzA2bXgycm02MDFlNnZremMifQ.8GEyTCpTmNMDtAnxoa3egA';
+mapboxgl.accessToken = 'pk.eyJ1IjoiYXRobGV0ZWRhdGF2aXoiLCJhIjoiY2xsYXhrd3owMDB0cDNucDJwdzhvbm5wbSJ9.k9ogzVD1KRSExIMs76EsFg';
 
 var map = new mapboxgl.Map({
     container: 'map',
-    zoom: 1,
+    zoom: 3,
     center: [-114.34411, 32.6141],
-    pitch: 40,
+    pitch: 0,
     bearing: 0,
-    style: 'mapbox://styles/rsbaumann/cleubf6qd000701tjhq0tj05a?optimize=true',
+    style: 'mapbox://styles/athletedataviz/clmcnqvtv015j01rc4047129k',
     preserveDrawingBuffer: true,
-    optimizeForTerrain: true,
     projection: 'globe'
 });
 
