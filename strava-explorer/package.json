@@ -23,44 +23,23 @@
     "main": "index.js",
     "license": "MIT",
     "scripts": {
-        "build": "mkdir -p build && cp index.html build/ && browserify -p esmify index.js > build/bundle.js",
-        "start": "budo index.js:bundle.js --live --open "
-    },
-    "browserify": {
-        "transform": [
-            [
-                "babelify",
-                {
-                    "presets": [
-                        "@babel/preset-env"
-                    ]
-                }
-            ]
-        ]
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
     },
     "devDependencies": {
-        "@babel/preset-env": "^7.15.0",
-        "babel-eslint": "^10.1.0",
-        "babel-preset-env": "^1.7.0",
-        "babel-preset-es2015": "^6.24.1",
-        "babelify": "^10.0.0",
-        "esmify": "^2.1.1",
-        "esminify": "^4.0.1"
+        "autoprefixer": "^10.4.21",
+        "postcss": "^8.5.3",
+        "tailwindcss": "^4.1.4",
+        "vite": "^6.3.3"
     },
     "dependencies": {
-        "@babel/core": "^7.10.2",
-        "@mapbox/mapbox-gl-geocoder": "5.0.1",
+        "@mapbox/mapbox-gl-geocoder": "5.0.3",
         "@mapbox/polyline": "^1.1.1",
         "@turf/bbox": "^6.0.1",
         "@turf/helpers": "^6.1.4",
         "analytics-node": "^5.0.0",
-        "babel-preset-env": "^1.7.0",
-        "babelify": "^10.0.0",
-        "browserify": "^17.0.0",
-        "budo": "^11.6.4",
-        "dotenv": "^10.0.0",
         "geojson-polyline": "^1.0.3",
-        "mapbox-gl": "3.0.0-beta.2",
-        "strava-v3": "^2.0.10"
+        "mapbox-gl": "^3.11.1"
     }
 }

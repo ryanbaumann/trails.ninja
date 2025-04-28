@@ -5,57 +5,97 @@
     <meta charset='utf-8' />
     <title>Trails Ninja</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/3.0.0-beta.2/mapbox-gl.min.css" rel="stylesheet" />
-    <link href="https://api.mapbox.com/mapbox-assembly/v1.2.1/assembly.min.css" rel="stylesheet">
-    <script async defer src="https://api.mapbox.com/mapbox-assembly/v1.2.1/assembly.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" /> <!-- Use correct Mapbox version CSS -->
+    <!-- Removed Mapbox Assembly CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; }
+      #map { height: 100%; width: 100%; }
+      /* Ensure Mapbox controls are styled reasonably */
+      .mapboxgl-ctrl-group button { background-color: white; }
+      .mapboxgl-ctrl-attrib { background-color: rgba(255, 255, 255, 0.5) !important; }
+      /* Basic scrollbar styling */
+      .sidebar-content::-webkit-scrollbar { width: 6px; }
+      .sidebar-content::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 3px; }
+    </style>
 </head>
 
 <!-- Load the `mapbox-gl-geocoder` plugin. -->
-<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+<!-- Load Mapbox Geocoder plugin CSS -->
 <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
 
 <body>
-    <div class='h-viewport-full relative overflow-hidden'>
-        <div id='map' class='bg-darken10 h-viewport-2/3 h-viewport-full-ml absolute top left right bottom'></div>
-        <canvas id='snapshot' class='bg-darken10 h-viewport-2/3 h-viewport-full-ml absolute top left right bottom'
-            style="visibility:hidden"></canvas>
-        <div class='absolute top-ml left bottom z1 w-full w240-ml px12 py12-ml events-none'>
-            <div
-                class='flex-parent flex-parent--column viewport-third h-auto-ml hmax-full bg-white round-ml shadow-darken10 events-all'>
-                <div id='body' class='px12 py12 scroll-auto'>
-                    <h3 class='txt-m txt-bold mb6'>Trails Ninja</h3>
-                    <div id="strava_auth">
-                        <p>Connect to your Strava activities and explore them in 3D.</p>
-                        <!-- for production -->
-                        
-                        <a href="http://www.strava.com/oauth/authorize?client_id=1495&response_type=code&redirect_uri=http://trails.ninja&approval_prompt=auto&scope=read_all,activity:read_all">
-                            <img src="./btn_strava_connectwith_orange@2x.png" alt="Connect to Strava">
-                            </a>
-                        
+    <!-- Main Container -->
+    <div class="relative h-screen w-screen">
+        <!-- Map Container -->
+        <div id="map" class="absolute inset-0 z-0"></div>
 
-                        <!-- for development -->
-<!--
-                        <a href="http://www.strava.com/oauth/authorize?client_id=1495&response_type=code&redirect_uri=http://localhost:9966&approval_prompt=auto&scope=read_all,activity:read_all">
-                            <img src="./static/btn_strava_connectwith_orange@2x.png" alt="Connect to Strava">
-                        </a>
-                  -->
-                    </div>
-                    <img id="strava_profile" src="" class="align-center" style="display:none">
-                    <div id="act_select" class='select-container' style="display:none">
-                        <select id="select_lst" class='select'>
-                        </select>
-                        <div class='select-arrow'></div>
+        <!-- Snapshot Canvas (Hidden) -->
+        <canvas id='snapshot' class='absolute top-0 left-0 w-full h-full pointer-events-none' style="visibility:hidden"></canvas>
+
+        <!-- Sidebar Container -->
+        <!-- Removed bottom-3, added max-height constraint -->
+        <aside class="absolute top-3 left-3 z-10 w-80 max-w-[calc(100%-1.5rem)] flex flex-col bg-white rounded-lg shadow-xl overflow-hidden" style="max-height: calc(100vh - 150px - 0.75rem);"> <!-- 0.75rem = top-3 margin -->
+            <!-- Sidebar Header -->
+            <div class='p-4 border-b border-gray-200 flex-shrink-0'>
+                 <h3 class='text-lg font-semibold text-gray-800'>Trails Ninja</h3>
+            </div>
+            <!-- Sidebar Scrollable Content -->
+            <div class='p-4 flex-grow overflow-y-auto sidebar-content'>
+                <!-- Strava Auth Section -->
+                <div id="strava_auth" class="mb-4">
+                    <p class="text-sm text-gray-700 mb-3">Connect to your Strava activities and explore them in 3D.</p>
+                    <!-- Strava Connect Button -->
+                    <a href="http://www.strava.com/oauth/authorize?client_id=1495&response_type=code&redirect_uri=http://localhost:5173/&approval_prompt=auto&scope=read_all,activity:read_all" class="inline-block">
+                        <img src="./static/btn_strava_connectwith_orange@2x.png" alt="Connect to Strava" class="h-10 hover:opacity-80 transition-opacity">
+                    </a>
+                </div>
+                <!-- Athlete Profile Section (Initially Hidden) -->
+                <div id="athlete-info" class="flex items-center mb-4 hidden">
+                     <img id="strava_profile" src="" class="w-10 h-10 rounded-full mr-3 border border-gray-300">
+                     <p id="strava-username" class="text-gray-800 font-medium"></p>
+                </div>
+                <!-- Activity Selection Dropdown (Initially Hidden) -->
+                <div id="act_select" class='relative mb-4 hidden'>
+                    <label for="select_lst" class="block text-sm font-medium text-gray-700 mb-1">Select Activity:</label>
+                    <select id="select_lst" class='block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md appearance-none bg-white'>
+                        <!-- Options populated by JS -->
+                    </select>
+                    <div class='pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700'>
+                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                     </div>
                 </div>
-                <footer class='px12 py12 bg-gray-faint round-b-ml txt-s'>
-                    Print your design
-                    <button class='btn' id='take_snap'>Take Snapshot</button>
-                </footer>
+                <!-- Activity Stats Section (Initially Hidden) -->
+                <div id="activity-stats" class="mt-4 pt-4 border-t border-gray-200 hidden">
+                    <h4 id="activity-name" class="text-base font-semibold mb-3 text-gray-800 truncate">Activity Name</h4>
+                    <div class="grid grid-cols-3 gap-3 text-xs">
+                        <div>
+                            <p class="text-gray-500 uppercase tracking-wider">Distance</p>
+                            <p id="activity-distance" class="font-medium text-gray-800 text-sm">-- km</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 uppercase tracking-wider">Time</p>
+                            <p id="activity-time" class="font-medium text-gray-800 text-sm">--:--:--</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 uppercase tracking-wider">Gain</p>
+                            <p id="activity-elevation" class="font-medium text-gray-800 text-sm">-- m</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+            <!-- Sidebar Footer -->
+            <footer class='p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0'>
+                <button id='take_snap' class='w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>
+                    Take Snapshot
+                </button>
+            </footer>
+        </aside>
     </div>
-</body>
 
-<script src='./bundle.js'></script>
+    <!-- Load Mapbox Geocoder plugin JS -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <!-- Load main JS file as module -->
+    <script type="module" src="/index.js"></script>
 
 </html>

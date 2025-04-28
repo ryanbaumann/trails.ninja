@@ -1,17 +1,16 @@
-const mapboxgl = require('mapbox-gl');
-const stravaApi = require('strava-v3');
-var polyline = require('@mapbox/polyline');
-var turf_helpers = require('@turf/helpers');
-var turf_bbox = require('@turf/bbox').default;
-var geocoder = require('@mapbox/mapbox-gl-geocoder');
+// Removed require('dotenv').config(); - Vite handles .env loading
 
-stravaApi.config({
-    "client_id": "1495",
-    "client_secret": "c6a039194dfd27cca3cfa042cb6beb741dbf6b4b",
-    "redirect_uri": "localhost:9966"
-});
+// Use ES module imports
+import mapboxgl from 'mapbox-gl';
+// Removed: import stravaApi from 'strava-v3';
+import polyline from '@mapbox/polyline';
+import * as turf_helpers from '@turf/helpers';
+import turf_bbox from '@turf/bbox';
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiYXRobGV0ZWRhdGF2aXoiLCJhIjoiY2xsYXhrd3owMDB0cDNucDJwdzhvbm5wbSJ9.k9ogzVD1KRSExIMs76EsFg';
+// Removed: stravaApi.config({...}); - Handled directly in fetch
+
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 var map = new mapboxgl.Map({
     container: 'map',
@@ -19,13 +18,14 @@ var map = new mapboxgl.Map({
     center: [-114.34411, 32.6141],
     pitch: 0,
     bearing: 0,
-    style: 'mapbox://styles/athletedataviz/clmcnqvtv015j01rc4047129k',
+    style: 'mapbox://styles/rsbaumann/ckkeu7v0w1ly117qha6hja6yk',
     preserveDrawingBuffer: true,
     projection: 'globe'
 });
 
+// Ensure geocoder is imported correctly - assuming MapboxGeocoder is the class
 map.addControl(
-    new geocoder({
+    new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
         mapboxgl: mapboxgl
     })
@@ -77,90 +77,257 @@ function getPhotos(stravatoken, activityid, map) {
 }
 
 
-stravaApi.oauth.getToken(temp_token).then(result => {
-    if (result.access_token != undefined) {
-        stravatoken = result.access_token;
+// Function to exchange auth code for token using fetch
+async function exchangeToken(code) {
+    const tokenUrl = 'https://www.strava.com/oauth/token';
+    const params = new URLSearchParams({
+        client_id: import.meta.env.VITE_STRAVA_CLIENT_ID,
+        client_secret: import.meta.env.VITE_STRAVA_CLIENT_SECRET,
+        code: code,
+        grant_type: 'authorization_code'
+    });
+
+    try {
+        const response = await fetch(tokenUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Strava token exchange failed: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+        }
+
+        const data = await response.json();
+        console.log("Strava Auth Response Data:", data); // Log the whole auth response
+        handleSuccessfulAuth(data);
+
+    } catch (error) {
+        console.error('Error exchanging Strava token:', error);
+        // Handle error appropriately, e.g., show message to user
+    }
+}
+
+// Function to handle successful authentication and fetch activities
+function handleSuccessfulAuth(authData) {
+    if (authData.access_token) {
+        stravatoken = authData.access_token; // Store the token globally (or better, manage state)
         // Hide the auth button
         document.getElementById('strava_auth').style.display = "none";
-        // Get info about athlete
-        var strava_access_token = result.access_token;
-        var profile_photo_url = result.athlete.profile_medium;
-        var strava_username = result.athlete.firstname + " " + result.athlete.lastname;
-        userid = result.athlete.id;
 
-        //Initalize API client for querying
-        var strava = new stravaApi.client(strava_access_token);
+        // Get info about athlete from the auth response
+        const profile_photo_url = authData.athlete.profile_medium;
+        const strava_username = `${authData.athlete.firstname} ${authData.athlete.lastname}`;
+        userid = authData.athlete.id;
 
-        //Update DOM with athlete info
-        var profile_el = document.getElementById('strava_profile');
-        profile_el.setAttribute("src", profile_photo_url);
-        profile_el.style.display = "";
+        // Update DOM with athlete info
+        const profileContainer = document.getElementById('athlete-info');
+        const profileImg = document.getElementById('strava_profile');
+        const profileName = document.getElementById('strava-username');
 
-        var node = document.createElement("p");
-        var text_node = document.createTextNode(strava_username);
-        node.appendChild(text_node);
-        body.appendChild(node);
+        if (profileImg) profileImg.src = profile_photo_url;
+        if (profileName) profileName.textContent = strava_username;
+        if (profileContainer) profileContainer.classList.remove('hidden');
 
-        strava.athlete.listActivities({}, function (err, payload, limits) {
-            var activities = payload;
-
-            document.getElementById("act_select").style.display = "";
-            var select_lst = document.getElementById("select_lst");
-
-            for (const key in activities) {
-                let option = document.createElement('option');
-                option.innerHTML += activities[key].name;
-                option.setAttribute('id', activities[key].id);
-                option.setAttribute('index', key);
-                select_lst.appendChild(option);
-            }
-
-            select_lst.addEventListener('change', function (e) {
-                for (const key in activities) {
-                    if (activities[key].name == e.target.value) {
-                        let geojson = turf_helpers.feature(polyline.toGeoJSON(activities[key].map.summary_polyline));
-
-                        actid = activities[key].id
-                        let bounding_box = turf_bbox(geojson);
-
-                        map.fitBounds(bounding_box, {
-                            padding: 20
-                        });
-
-                        map.getSource('route').setData(geojson);
-                        getPhotos(stravatoken, actid, map);
-                    }
-                }
-            });
-
-            var geojson = turf_helpers.feature(polyline.toGeoJSON(activities[0].map.summary_polyline));
-            var bounding_box = turf_bbox(geojson);
-
-            map.fitBounds(bounding_box, {
-                padding: 20
-            });
-
-            getPhotos(stravatoken, activities[0].id, map);
-
-            map.addSource("route", {
-                "type": "geojson",
-                "data": geojson
-            });
-            map.addLayer({
-                "id": "route",
-                "type": "line",
-                "source": "route",
-                "paint": {
-                    "line-color": "red",
-                    "line-width": 5
-                },
-                "layout": {
-                    "line-join": "round"
-                }
-            }, 'path-pedestrian-label')
-        });
+        // Fetch activities using the new token
+        fetchActivities(stravatoken);
+    } else {
+        console.error("Access token not found in Strava auth response:", authData);
     }
-});
+}
+
+// Function to fetch activities using fetch
+async function fetchActivities(accessToken) {
+    console.log("Fetching activities with token:", accessToken);
+    const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
+    // Revert query parameters to fetch latest 30 activities
+    const params = new URLSearchParams({
+        per_page: '30' // Fetch latest 30 activities
+    });
+
+    try {
+        const response = await fetch(`${activitiesUrl}?${params.toString()}`, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Strava activities fetch failed: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+        }
+
+        // Log raw text first
+        const rawResponseText = await response.text();
+        console.log("Raw Activities Response Text:", rawResponseText);
+
+        // Then parse
+        const activities = JSON.parse(rawResponseText); // Parse the logged text
+        console.log("Parsed Activities:", activities); // Log the parsed activities array
+        handleActivitiesResponse(activities);
+
+    } catch (error) {
+        console.error('Error fetching Strava activities:', error);
+        // Handle error appropriately
+    }
+}
+
+// Function to fetch detailed data for a specific activity
+async function fetchDetailedActivity(activityId) {
+    if (!stravatoken) {
+        console.error("No Strava token available to fetch detailed activity.");
+        return;
+    }
+    if (!activityId) {
+        console.error("No Activity ID provided to fetch detailed activity.");
+        return;
+    }
+
+    console.log(`Fetching detailed data for activity ID: ${activityId}`);
+    const detailedActivityUrl = `https://www.strava.com/api/v3/activities/${activityId}`;
+    // include_all_efforts=false is default, so not strictly needed unless overriding
+
+    try {
+        const response = await fetch(detailedActivityUrl, {
+            headers: {
+                'Authorization': `Bearer ${stravatoken}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Strava detailed activity fetch failed: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+        }
+
+        const detailedActivityData = await response.json();
+        console.log("Detailed Activity Data:", detailedActivityData);
+        displayDetailedActivity(detailedActivityData); // Process the detailed data
+
+    } catch (error) {
+        console.error('Error fetching Strava detailed activity:', error);
+        // Handle error appropriately
+    }
+}
+
+// Function to display the detailed activity data (polyline, stats)
+function displayDetailedActivity(activityData) {
+    if (!activityData || !activityData.map || !activityData.map.polyline) {
+        console.error("Detailed activity data is missing map polyline:", activityData);
+        // Handle missing polyline - maybe show summary or error
+        // For now, just log and return
+        return;
+    }
+
+    const detailedPolyline = activityData.map.polyline;
+    actid = activityData.id; // Update global actid if needed
+
+    // Decode polyline and update map
+    let geojson = turf_helpers.feature(polyline.toGeoJSON(detailedPolyline));
+    let bounding_box = turf_bbox(geojson);
+
+    map.fitBounds(bounding_box, {
+        padding: 40 // Increased padding slightly
+    });
+
+    // Ensure 'route' source exists before setting data
+    if (map.getSource('route')) {
+         map.getSource('route').setData(geojson);
+    } else {
+        // Add source and layer if they don't exist yet
+         map.addSource("route", { "type": "geojson", "data": geojson });
+         map.addLayer({
+             "id": "route",
+             "slot": 'middle',
+             "type": "line",
+             "source": "route",
+             "paint": { "line-color": "orange", "line-width": 4 }, // Changed color/width slightly
+             "layout": { "line-join": "round" }
+         });
+    }
+
+    // --- TODO: Update UI with Stats ---
+    const distance = (activityData.distance / 1000).toFixed(2); // meters to km
+    const movingTimeSeconds = activityData.moving_time; // seconds
+    const elevationGain = activityData.total_elevation_gain; // meters
+
+    // Convert moving time to hh:mm:ss (simple example)
+    const hours = Math.floor(movingTimeSeconds / 3600);
+    const minutes = Math.floor((movingTimeSeconds % 3600) / 60);
+    const seconds = movingTimeSeconds % 60;
+    const movingTimeFormatted = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    console.log(`Stats - Distance: ${distance} km, Time: ${movingTimeFormatted}, Elev Gain: ${elevationGain} m`);
+
+    // Populate the new HTML elements
+    const statsContainer = document.getElementById('activity-stats');
+    document.getElementById('activity-name').textContent = activityData.name || 'Unnamed Activity';
+    document.getElementById('activity-distance').textContent = `${distance} km`;
+    document.getElementById('activity-time').textContent = movingTimeFormatted;
+    document.getElementById('activity-elevation').textContent = `${elevationGain} m`;
+
+    // Make the stats container visible
+    if (statsContainer) {
+        statsContainer.classList.remove('hidden');
+    }
+
+    // Fetch photos for the selected activity
+    getPhotos(stravatoken, activityData.id, map);
+}
+
+
+// Function to process the fetched activities and update the UI
+function handleActivitiesResponse(activities) {
+    if (!activities || activities.length === 0) {
+        console.log("No activities found or empty response.");
+        // Handle case with no activities
+        return;
+    }
+
+    const actSelectContainer = document.getElementById("act_select");
+    if (actSelectContainer) actSelectContainer.classList.remove('hidden'); // Unhide dropdown container
+    const select_lst = document.getElementById("select_lst");
+    select_lst.innerHTML = ''; // Clear previous options
+
+    // Add a default option
+    let defaultOption = document.createElement('option');
+    defaultOption.textContent = 'Select an Activity...';
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    select_lst.appendChild(defaultOption);
+
+
+    activities.forEach((activity, index) => {
+        let option = document.createElement('option');
+        option.textContent = activity.name; // Use textContent for safety
+        option.value = activity.id; // Store activity ID in value
+        // Store necessary data directly on the option element for easy access later
+        option.dataset.polyline = activity.map?.summary_polyline || '';
+        option.dataset.index = index; // Keep index if needed elsewhere
+        select_lst.appendChild(option);
+    });
+
+    // --- MODIFIED Event Listener ---
+    select_lst.addEventListener('change', function (e) {
+        const selectedOption = e.target.options[e.target.selectedIndex];
+        const activityId = selectedOption.value;
+
+        if (activityId && activityId !== 'Select an Activity...') {
+             fetchDetailedActivity(activityId); // Call function to fetch detailed data
+        }
+    });
+
+    // --- REMOVED Default loading of first activity's summary polyline ---
+    // We now only load detailed data when an activity is explicitly selected.
+}
+
+// --- Main execution flow ---
+if (temp_token) {
+    exchangeToken(temp_token); // Call the new fetch-based token exchange function
+}
+// The rest of the map initialization code remains below...
 
 map.on('load', function () {
 
