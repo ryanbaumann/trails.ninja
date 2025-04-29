@@ -1,83 +1,176 @@
-// Removed require('dotenv').config(); - Vite handles .env loading
+import { Loader } from '@googlemaps/js-api-loader';
+import polylineDecoder from '@mapbox/polyline'; // Keep as fallback/comparison if needed
 
-// Use ES module imports
-import mapboxgl from 'mapbox-gl';
-// Removed: import stravaApi from 'strava-v3';
-import polyline from '@mapbox/polyline';
-import * as turf_helpers from '@turf/helpers';
-import turf_bbox from '@turf/bbox';
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+// --- Module-Level Variables ---
+let map3d; // For the 3D map instance
+let elevator; // For ElevationService
+// let autocomplete; // REMOVED Autocomplete variable
+let previousPolyline = null; // To store the previous 3D polyline for removal
+let photoMarkers = new Map(); // Use Map to store { marker } pairs, key = photo.unique_id
+let stravatoken;
+let userid, actid;
 
-// Removed: stravaApi.config({...}); - Handled directly in fetch
+// GMP Class variables (populated in initApp)
+let Map3DElement, Marker3DInteractiveElement, Polyline3DElement, AltitudeMode, MapMode, PinElement;
+let ElevationService, Place, LatLng, LatLngBounds, encoding, ElevationElement; // REMOVED Autocomplete class
 
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+// --- DOM Element References ---
+let mapHost, loadingIndicator, loadingText, errorMessageDiv, statsContainer, activityNameEl, activityDistEl, activityTimeEl, activityElevEl, activityAvgSpeedEl, activityMaxSpeedEl, elevationProfileWidget, selectList, activityFilterDiv, startDateInput, endDateInput, activityCountInput, fetchFilteredButton, photoDisplayDiv, selectedPhotoImg, selectedPhotoCaption, footerAthleteInfo, footerProfileImg, footerProfileName, logoutButton; // Added footer elements
 
-var map = new mapboxgl.Map({
-    container: 'map',
-    zoom: 3,
-    center: [-114.34411, 32.6141],
-    pitch: 0,
-    bearing: 0,
-    style: 'mapbox://styles/rsbaumann/ckkeu7v0w1ly117qha6hja6yk',
-    preserveDrawingBuffer: true,
-    projection: 'globe'
-});
+// --- Utility Functions ---
+function showLoading(isLoading, text = "Loading...") {
+    if (!loadingIndicator || !loadingText) return;
+    loadingText.textContent = text;
+    loadingIndicator.style.display = isLoading ? 'flex' : 'none';
+    if (isLoading) showError(''); // Clear errors when loading starts
+}
+function showError(message) {
+    if (!errorMessageDiv) return;
+    errorMessageDiv.textContent = message || '';
+    errorMessageDiv.style.display = message ? 'block' : 'none';
+    if (message) showLoading(false); // Hide loading if error occurs
+}
 
-// Ensure geocoder is imported correctly - assuming MapboxGeocoder is the class
-map.addControl(
-    new MapboxGeocoder({
-        accessToken: mapboxgl.accessToken,
-        mapboxgl: mapboxgl
-    })
-);
+// --- Elevation Helpers ---
+async function getClientElevation(latLng) { // latLng = { lat: number, lng: number }
+    if (!elevator) {
+        console.warn("ElevationService not initialized.");
+        return 10; // Default elevation
+    }
+    try {
+        const { results } = await elevator.getElevationForLocations({ locations: [latLng] });
+        return results?.[0]?.elevation ?? 10; // Return elevation or default
+    } catch (e) {
+        console.error("Elevation lookup failed:", e);
+        showError(`Elevation lookup error: ${e.message}`);
+        return 10; // Default on error
+    }
+}
 
-map.addControl(new mapboxgl.FullscreenControl());
-map.addControl(new mapboxgl.NavigationControl());
+async function getElevationsForPoints(locations) { // locations = [{ lat, lng }, ...]
+    if (!elevator || locations.length === 0) return locations.map(() => 10); // Default if no service/locations
+    const batchSize = 200; // API limit often around 512, use smaller batches
+    let allElevations = [];
+    showLoading(true, `Fetching ${locations.length} elevations...`);
+    try {
+        for (let i = 0; i < locations.length; i += batchSize) {
+            const batchLocations = locations.slice(i, i + batchSize);
+            const { results } = await elevator.getElevationForLocations({ locations: batchLocations });
+            const elevations = results.map(result => result?.elevation ?? 10); // Default to 10 if null
+            allElevations.push(...elevations);
+        }
+    } catch (e) {
+        console.error(`Elevation fetch error:`, e);
+        showError(`Elevation fetch error: ${e.message}`);
+        // Fill remaining with default if error occurred mid-batch
+        const remaining = locations.length - allElevations.length;
+        if (remaining > 0) {
+            allElevations.push(...Array(remaining).fill(10));
+        }
+    } finally {
+        showLoading(false);
+    }
+    return allElevations;
+}
 
-// Authenticate to the Strava API using OAuth
-var userid, actid;
-var queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
-var temp_token = urlParams.get('code');
-var stravatoken;
-var markers = [];
+// --- Camera Helper ---
+async function flyToLocation(targetCoords, range = 1000, tilt = 60, heading = 0, duration = 1500) {
+    if (!map3d || !targetCoords) return;
+    // Ensure targetCoords has altitude if not provided
+    const centerWithAltitude = {
+        lat: targetCoords.lat,
+        lng: targetCoords.lng,
+        altitude: targetCoords.altitude ?? await getClientElevation(targetCoords) // Fetch if missing
+    };
 
-function getPhotos(stravatoken, activityid, map) {
-    if (markers.length >0) {
-        markers.forEach(function(marker) {
-            marker.remove()
+    const endCamera = { center: centerWithAltitude, range, tilt, heading };
+    try {
+        showLoading(true, "Moving camera...");
+        await map3d.flyCameraTo({ endCamera, durationMillis: duration });
+    } catch (error) {
+        if (error.name === 'AbortError' || error.message?.includes('interrupted')) {
+           console.log("Camera animation interrupted.");
+        } else {
+            console.error("flyCameraTo error:", error);
+            showError(`Camera movement error: ${error.message}`);
+        }
+    } finally {
+        showLoading(false);
+    }
+}
+
+// --- Strava Photo Handling (3D) ---
+async function getPhotos(stravatoken, activityid) {
+    // Cleanup previous markers
+    if (photoMarkers.size > 0) {
+        photoMarkers.forEach(marker => {
+            map3d?.removeChild(marker); // Remove from map
         });
-        markers = [];
+        photoMarkers.clear(); // Clear the map
     }
 
-    let photoURL = 'https://www.strava.com/api/v3/activities/' + activityid + '/photos?photo_sources=true&access_token=' + stravatoken + '&size=1000'
-    fetch(photoURL)
-        .then(response => response.json())
-        .then(photos => {
-            if (photos.length > 0) {
-                photos.forEach(function (photo) {
+    let photoURL = `https://www.strava.com/api/v3/activities/${activityid}/photos?photo_sources=true&access_token=${stravatoken}&size=1000`;
+    showLoading(true, "Fetching activity photos...");
+    try {
+        const response = await fetch(photoURL);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const photos = await response.json();
 
-                    // create DOM element for the marker
-                    const el = document.createElement('div');
-                    const img = document.createElement('img');
-                    img.id = photo.unique_id;
-                    img.src = photo.urls["1000"]
-                    img.style.height = '100px';
-                    img.style.width = '190px';
-                    el.appendChild(img);
+        if (photos.length > 0) {
+            showLoading(true, `Processing ${photos.length} photos...`);
+            const photoLocations = photos.map(p => ({ lat: p.location?.[0], lng: p.location?.[1] })).filter(loc => loc.lat != null && loc.lng != null);
+            const elevations = await getElevationsForPoints(photoLocations);
 
-                    let popup = new mapboxgl.Popup()
-                    .setLngLat([ photo.location[1], photo.location[0] ])
-                    .setHTML(el.outerHTML)
-                    .addTo(map);
+            let photoIndex = 0;
+            photos.forEach((photo) => {
+                if (!photo.location || photo.location.length !== 2) return;
 
-                })
-            }
-        });
+                const lat = photo.location[0];
+                const lng = photo.location[1];
+                const baseAltitude = elevations[photoIndex++]; // Get corresponding elevation
+                const position = { lat, lng, altitude: baseAltitude + 10 }; // Position 10m above ground (Reduced offset)
+
+                // Revert back to PinElement
+                const pin = new PinElement({
+                    background: "#FF9900", // Strava Orange
+                    glyphColor: "#FFFFFF",
+                    scale: 1.5 // Increased scale for larger markers
+                });
+
+                const marker = new Marker3DInteractiveElement({
+                    position: position,
+                    altitudeMode: AltitudeMode.RELATIVE_TO_GROUND, // Keep relative for photos
+                    title: photo.caption || `Photo ${photo.unique_id}`
+                });
+                marker.appendChild(pin); // Add pin back to marker
+
+                // Add click listener - Show photo in sidebar display
+                marker.addEventListener('gmp-click', () => {
+                    console.log("Clicked Photo Marker:", photo.unique_id);
+                    showPhotoInSidebar(photo); // Call function to display photo
+                    // Fly closer, but not too close
+                    flyToLocation(marker.position, 1000, 70, map3d.heading); // Increased range to 500m
+                });
+
+                // Add marker to map
+                map3d.appendChild(marker);
+
+                // Store marker reference
+                photoMarkers.set(photo.unique_id, marker);
+            });
+        } else {
+            console.log("No photos found for this activity.");
+        }
+    } catch (error) {
+        console.error("Error fetching or processing Strava photos:", error);
+        showError(`Failed to load photos: ${error.message}`);
+    } finally {
+        showLoading(false);
+    }
 }
 
 
-// Function to exchange auth code for token using fetch
+// --- Strava Auth & Activity Fetching (Mostly Unchanged) ---
 async function exchangeToken(code) {
     const tokenUrl = 'https://www.strava.com/oauth/token';
     const params = new URLSearchParams({
@@ -87,12 +180,11 @@ async function exchangeToken(code) {
         grant_type: 'authorization_code'
     });
 
+    showLoading(true, "Authenticating with Strava...");
     try {
         const response = await fetch(tokenUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params
         });
 
@@ -102,57 +194,88 @@ async function exchangeToken(code) {
         }
 
         const data = await response.json();
-        console.log("Strava Auth Response Data:", data); // Log the whole auth response
+        console.log("Strava Auth Response Data:", data);
         handleSuccessfulAuth(data);
 
     } catch (error) {
         console.error('Error exchanging Strava token:', error);
-        // Handle error appropriately, e.g., show message to user
+        showError(`Strava authentication failed: ${error.message}`);
+    } finally {
+        showLoading(false);
     }
 }
 
-// Function to handle successful authentication and fetch activities
 function handleSuccessfulAuth(authData) {
     if (authData.access_token) {
-        stravatoken = authData.access_token; // Store the token globally (or better, manage state)
-        // Hide the auth button
+        stravatoken = authData.access_token;
         document.getElementById('strava_auth').style.display = "none";
 
-        // Get info about athlete from the auth response
-        const profile_photo_url = authData.athlete.profile_medium;
-        const strava_username = `${authData.athlete.firstname} ${authData.athlete.lastname}`;
-        userid = authData.athlete.id;
-
-        // Update DOM with athlete info
+        // Update main sidebar profile (if still needed)
         const profileContainer = document.getElementById('athlete-info');
         const profileImg = document.getElementById('strava_profile');
         const profileName = document.getElementById('strava-username');
-
-        if (profileImg) profileImg.src = profile_photo_url;
-        if (profileName) profileName.textContent = strava_username;
+        if (profileImg) profileImg.src = authData.athlete.profile_medium;
+        if (profileName) profileName.textContent = `${authData.athlete.firstname} ${authData.athlete.lastname}`;
         if (profileContainer) profileContainer.classList.remove('hidden');
 
-        // Fetch activities using the new token
-        fetchActivities(stravatoken);
+        // Update footer profile info
+        if (footerProfileImg) footerProfileImg.src = authData.athlete.profile_medium;
+        if (footerProfileName) footerProfileName.textContent = `${authData.athlete.firstname} ${authData.athlete.lastname}`;
+        if (footerAthleteInfo) footerAthleteInfo.classList.remove('hidden');
+
+        userid = authData.athlete.id;
+
+        // Show the filter section now that user is authenticated
+        if (activityFilterDiv) activityFilterDiv.classList.remove('hidden');
+
+        // Add listener to the fetch button *after* auth
+        if (fetchFilteredButton) {
+            fetchFilteredButton.addEventListener('click', handleFetchFilteredActivities);
+        } else {
+             console.error("Fetch filtered activities button not found.");
+        }
+
+        // Add listener for logout button and make it visible
+        if (logoutButton) {
+            logoutButton.classList.remove('hidden'); // Show logout button on successful auth
+            logoutButton.addEventListener('click', () => {
+                // Basic logout: Clear token, reload page to show auth button
+                console.log("Logging out...");
+                stravatoken = null;
+                // Hide footer info and logout button immediately
+                if (footerAthleteInfo) footerAthleteInfo.classList.add('hidden');
+                if (logoutButton) logoutButton.classList.add('hidden');
+                // Optionally clear local storage if used
+                window.location.href = window.location.pathname; // Reload without query params
+            });
+        } else {
+            console.error("Logout button not found.");
+        }
+
+        // Trigger initial fetch with default/empty filters
+        handleFetchFilteredActivities();
+
     } else {
         console.error("Access token not found in Strava auth response:", authData);
+        showError("Strava authentication succeeded but no access token was received.");
     }
 }
 
-// Function to fetch activities using fetch
-async function fetchActivities(accessToken) {
-    console.log("Fetching activities with token:", accessToken);
+// Updated fetchActivities to accept date range and count
+async function fetchActivities(accessToken, beforeTimestamp = null, afterTimestamp = null, perPage = 30) {
+    console.log(`Fetching activities with token: ${accessToken}, Before: ${beforeTimestamp}, After: ${afterTimestamp}, Count: ${perPage}`);
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
-    // Revert query parameters to fetch latest 30 activities
-    const params = new URLSearchParams({
-        per_page: '30' // Fetch latest 30 activities
-    });
+    const params = new URLSearchParams();
 
+    // Add parameters if they exist
+    if (beforeTimestamp) params.set('before', beforeTimestamp);
+    if (afterTimestamp) params.set('after', afterTimestamp);
+    params.set('per_page', Math.min(perPage, 100).toString()); // Ensure max 100
+
+    showLoading(true, "Fetching Strava activities...");
     try {
         const response = await fetch(`${activitiesUrl}?${params.toString()}`, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
+            headers: { 'Authorization': `Bearer ${accessToken}` }
         });
 
         if (!response.ok) {
@@ -160,41 +283,35 @@ async function fetchActivities(accessToken) {
             throw new Error(`Strava activities fetch failed: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
         }
 
-        // Log raw text first
-        const rawResponseText = await response.text();
-        console.log("Raw Activities Response Text:", rawResponseText);
-
-        // Then parse
-        const activities = JSON.parse(rawResponseText); // Parse the logged text
-        console.log("Parsed Activities:", activities); // Log the parsed activities array
+        const activities = await response.json();
+        console.log("Parsed Activities:", activities);
         handleActivitiesResponse(activities);
 
     } catch (error) {
         console.error('Error fetching Strava activities:', error);
-        // Handle error appropriately
+        showError(`Failed to fetch activities: ${error.message}`);
+    } finally {
+        showLoading(false);
     }
 }
 
-// Function to fetch detailed data for a specific activity
 async function fetchDetailedActivity(activityId) {
     if (!stravatoken) {
-        console.error("No Strava token available to fetch detailed activity.");
+        showError("Not authenticated with Strava.");
         return;
     }
     if (!activityId) {
-        console.error("No Activity ID provided to fetch detailed activity.");
+        showError("No Activity ID provided.");
         return;
     }
 
     console.log(`Fetching detailed data for activity ID: ${activityId}`);
     const detailedActivityUrl = `https://www.strava.com/api/v3/activities/${activityId}`;
-    // include_all_efforts=false is default, so not strictly needed unless overriding
 
+    showLoading(true, "Fetching activity details...");
     try {
         const response = await fetch(detailedActivityUrl, {
-            headers: {
-                'Authorization': `Bearer ${stravatoken}`
-            }
+            headers: { 'Authorization': `Bearer ${stravatoken}` }
         });
 
         if (!response.ok) {
@@ -204,223 +321,495 @@ async function fetchDetailedActivity(activityId) {
 
         const detailedActivityData = await response.json();
         console.log("Detailed Activity Data:", detailedActivityData);
-        displayDetailedActivity(detailedActivityData); // Process the detailed data
+        await displayDetailedActivity(detailedActivityData); // Make sure this awaits
 
     } catch (error) {
         console.error('Error fetching Strava detailed activity:', error);
-        // Handle error appropriately
+        showError(`Failed to fetch activity details: ${error.message}`);
+    } finally {
+        showLoading(false);
     }
 }
 
-// Function to display the detailed activity data (polyline, stats)
-function displayDetailedActivity(activityData) {
-    if (!activityData || !activityData.map || !activityData.map.polyline) {
-        console.error("Detailed activity data is missing map polyline:", activityData);
-        // Handle missing polyline - maybe show summary or error
-        // For now, just log and return
+// --- Display Detailed Activity (3D) ---
+async function displayDetailedActivity(activityData) {
+    if (!activityData?.map?.polyline) {
+        showError("Detailed activity data is missing map polyline.");
+        console.error("Missing polyline:", activityData);
+        return;
+    }
+    if (!map3d || !Polyline3DElement || !AltitudeMode || !encoding) {
+        showError("Map or necessary 3D components not ready.");
         return;
     }
 
     const detailedPolyline = activityData.map.polyline;
-    actid = activityData.id; // Update global actid if needed
+    actid = activityData.id;
 
-    // Decode polyline and update map
-    let geojson = turf_helpers.feature(polyline.toGeoJSON(detailedPolyline));
-    let bounding_box = turf_bbox(geojson);
+    // Hide photo display when new activity is loaded
+    hidePhotoDisplay(); // Ensure photo display is hidden
 
-    map.fitBounds(bounding_box, {
-        padding: 40 // Increased padding slightly
-    });
-
-    // Ensure 'route' source exists before setting data
-    if (map.getSource('route')) {
-         map.getSource('route').setData(geojson);
-    } else {
-        // Add source and layer if they don't exist yet
-         map.addSource("route", { "type": "geojson", "data": geojson });
-         map.addLayer({
-             "id": "route",
-             "slot": 'middle',
-             "type": "line",
-             "source": "route",
-             "paint": { "line-color": "orange", "line-width": 4 }, // Changed color/width slightly
-             "layout": { "line-join": "round" }
-         });
+    // --- Polyline Display ---
+    showLoading(true, "Processing activity route...");
+    // Remove previous polyline
+    if (previousPolyline) {
+        try {
+            map3d.removeChild(previousPolyline);
+        } catch (e) {
+            console.warn("Could not remove previous polyline:", e); // Might already be removed
+        }
+        previousPolyline = null;
     }
 
-    // --- TODO: Update UI with Stats ---
-    const distance = (activityData.distance / 1000).toFixed(2); // meters to km
-    const movingTimeSeconds = activityData.moving_time; // seconds
-    const elevationGain = activityData.total_elevation_gain; // meters
+    // Decode polyline using GMP library
+    let decodedPathLatLng;
+    try {
+        decodedPathLatLng = encoding.decodePath(detailedPolyline);
+        if (!decodedPathLatLng || decodedPathLatLng.length === 0) {
+            throw new Error("Decoded path is empty or invalid.");
+        }
+    } catch (e) {
+        console.error("GMP polyline decoding failed, trying fallback:", e);
+        // Fallback using @mapbox/polyline (returns [lat, lng] pairs)
+        try {
+            const pairs = polylineDecoder.decode(detailedPolyline);
+            // Ensure LatLng class is available and convert pairs to LatLng objects
+            if (!LatLng) throw new Error("LatLng class not available for fallback decoding.");
+            decodedPathLatLng = pairs.map(p => new LatLng(p[0], p[1]));
+             if (!decodedPathLatLng || decodedPathLatLng.length === 0) {
+                throw new Error("Fallback decoded path is empty or invalid.");
+            }
+        } catch (fallbackError) {
+             console.error("Fallback polyline decoding also failed:", fallbackError);
+             showError(`Failed to decode activity route: ${fallbackError.message}`);
+             showLoading(false);
+             return;
+        }
+    }
 
-    // Convert moving time to hh:mm:ss (simple example)
+
+    // Convert LatLng objects to simple {lat, lng} literals
+    const pathLatLngLiterals = decodedPathLatLng.map(p => ({ lat: p.lat(), lng: p.lng() }));
+
+    // Create new 3D Polyline clamped to ground with custom styling
+    const routePolyline = new Polyline3DElement({
+        coordinates: decodedPathLatLng, // Pass the array of LatLng objects directly
+        strokeColor: 'red',       // Main line color
+        strokeWidth: 20,          // Increased main line width in pixels
+        outerColor: 'white',      // Outline color
+        outerWidth: 0.5,          // Outline width as percentage (0.0 to 1.0) of strokeWidth
+        altitudeMode: AltitudeMode.CLAMP_TO_GROUND, // Clamp directly to ground
+    });
+
+    // Add polyline to map
+    map3d.appendChild(routePolyline);
+    previousPolyline = routePolyline; // Store reference
+
+    // --- Map Camera ---
+    // Calculate bounds and fly camera
+    if (pathLatLngLiterals.length > 0) { // Use pathLatLngLiterals
+        const bounds = new LatLngBounds();
+        decodedPathLatLng.forEach(p => bounds.extend(p)); // Use LatLng objects directly
+ 
+        if (!bounds.isEmpty()) {
+            const center = bounds.getCenter().toJSON(); // Get center {lat, lng}
+            // Estimate range based on diagonal distance (simple approximation)
+            const ne = bounds.getNorthEast().toJSON();
+            const sw = bounds.getSouthWest().toJSON();
+            const diagonalDistance = google.maps.geometry.spherical.computeDistanceBetween(
+                new LatLng(ne.lat, ne.lng),
+                new LatLng(sw.lat, sw.lng)
+            );
+            const range = Math.max(1000, diagonalDistance * 1.5); // Ensure minimum range, add buffer
+
+            await flyToLocation(center, range, 60, 0); // Await camera movement
+        }
+    }
+    showLoading(false); // Hide loading after polyline processing and camera flight start
+
+    // --- Update UI with Stats (Imperial Units) ---
+    const metersToFeet = 3.28084;
+    const kmToMiles = 0.621371;
+    const mpsToMph = 2.23694;
+
+    const distanceMiles = (activityData.distance / 1000 * kmToMiles).toFixed(2);
+    const movingTimeSeconds = activityData.moving_time;
+    const elevationGainFeet = (activityData.total_elevation_gain * metersToFeet).toFixed(0) || 'N/A';
+    const avgSpeedMps = activityData.average_speed || 0;
+    const maxSpeedMps = activityData.max_speed || 0;
+
+    // Convert speeds to mph
+    const avgSpeedMph = (avgSpeedMps * mpsToMph).toFixed(1);
+    const maxSpeedMph = (maxSpeedMps * mpsToMph).toFixed(1);
+
+    // Format time (remains the same)
     const hours = Math.floor(movingTimeSeconds / 3600);
     const minutes = Math.floor((movingTimeSeconds % 3600) / 60);
     const seconds = movingTimeSeconds % 60;
     const movingTimeFormatted = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-    console.log(`Stats - Distance: ${distance} km, Time: ${movingTimeFormatted}, Elev Gain: ${elevationGain} m`);
+    // Populate UI elements with Imperial units
+    if (activityNameEl) activityNameEl.textContent = activityData.name || 'Unnamed Activity';
+    if (activityDistEl) activityDistEl.textContent = `${distanceMiles} mi`; // Use miles
+    if (activityTimeEl) activityTimeEl.textContent = movingTimeFormatted;
+    if (activityElevEl) activityElevEl.textContent = `${elevationGainFeet} ft`; // Use feet
+    if (activityAvgSpeedEl) activityAvgSpeedEl.textContent = `${avgSpeedMph} mph`; // Use mph
+    if (activityMaxSpeedEl) activityMaxSpeedEl.textContent = `${maxSpeedMph} mph`; // Use mph
+    if (statsContainer) statsContainer.classList.remove('hidden');
 
-    // Populate the new HTML elements
-    const statsContainer = document.getElementById('activity-stats');
-    document.getElementById('activity-name').textContent = activityData.name || 'Unnamed Activity';
-    document.getElementById('activity-distance').textContent = `${distance} km`;
-    document.getElementById('activity-time').textContent = movingTimeFormatted;
-    document.getElementById('activity-elevation').textContent = `${elevationGain} m`;
+    // Configure Elevation Profile Widget (already set to imperial in HTML)
 
-    // Make the stats container visible
-    if (statsContainer) {
-        statsContainer.classList.remove('hidden');
+    // Clear path first - We found commenting this out fixes the error.
+    // if (elevationProfileWidget) {
+    //     elevationProfileWidget.path = [];
+    // }
+    if (elevationProfileWidget && pathLatLngLiterals.length > 0) { // Check the length of the *literals* array
+        try {
+            // Ensure the component is defined
+            await customElements.whenDefined('gmp-elevation');
+
+            // Downsample the path if it's too long
+            const maxPoints = 300; // Target maximum points for the profile
+            const downsampledPath = downsamplePath(decodedPathLatLng, maxPoints); // Pass LatLng array
+            console.log(`Original path points: ${decodedPathLatLng.length}, Downsampled to: ${downsampledPath.length}`); // Keep this log
+
+
+            // Check if path is valid *before* assignment
+            if (Array.isArray(downsampledPath) && downsampledPath.length > 0) { // Keep check as > 0 based on error msg
+                // Log the first point's lat/lng for verification
+                const firstPoint = downsampledPath[0];
+                console.log(`Attempting to set elevation path with ${downsampledPath.length} LatLng points. First point: {lat: ${firstPoint.lat()}, lng: ${firstPoint.lng()}}`); // Keep this log
+                try {
+                    elevationProfileWidget.path = downsampledPath; // Pass array of LatLng objects
+                    console.log("Successfully set downsampled elevation path.");
+                } catch (elevationError) {
+                    console.error("Error directly setting elevation path:", elevationError);
+                    console.error("Path data that caused error:", JSON.stringify(downsampledPath)); // Log the problematic data
+                    showError(`Failed to display elevation profile: ${elevationError.message}`);
+                }
+            } else {
+                console.warn("Downsampled path is empty or invalid (length <= 0), not setting elevation path.");
+                // Explicitly clear path here if needed, maybe differently?
+                // elevationProfileWidget.path = null; // Or some other valid empty state?
+                // For now, just log that we are not setting it.
+            }
+
+        } catch (e) {
+            console.error("Error setting elevation path:", e);
+            showError("Could not display elevation profile.");
+        }
+    } else if (elevationProfileWidget) {
+         // If pathLatLngLiterals is empty, ensure the path is cleared.
+         // Since setting path = [] caused issues, maybe setting to null or undefined is safer?
+         // Let's try null. If that fails, we might need to leave it uncleared or find another way.
+         elevationProfileWidget.path = null; // Clear path if no data using null instead of []
     }
 
+
     // Fetch photos for the selected activity
-    getPhotos(stravatoken, activityData.id, map);
+    await getPhotos(stravatoken, activityData.id);
+}
+
+// --- Downsampling Function (Handles LatLng objects) ---
+function downsamplePath(path, maxPoints) {
+    if (!path || path.length <= maxPoints) {
+        return path; // No need to downsample
+    }
+
+    const originalLength = path.length;
+    const keepEvery = Math.ceil(originalLength / maxPoints);
+    const newPath = [];
+
+    for (let i = 0; i < originalLength; i += keepEvery) {
+        newPath.push(path[i]);
+    }
+
+    // Ensure the last point is always included
+    if (newPath[newPath.length - 1] !== path[originalLength - 1]) {
+        newPath.push(path[originalLength - 1]);
+    }
+
+    return newPath;
 }
 
 
-// Function to process the fetched activities and update the UI
+// --- UI Handlers ---
 function handleActivitiesResponse(activities) {
     if (!activities || activities.length === 0) {
-        console.log("No activities found or empty response.");
-        // Handle case with no activities
+        console.log("No activities found.");
+        showError("No recent Strava activities found.");
         return;
     }
 
     const actSelectContainer = document.getElementById("act_select");
-    if (actSelectContainer) actSelectContainer.classList.remove('hidden'); // Unhide dropdown container
-    const select_lst = document.getElementById("select_lst");
-    select_lst.innerHTML = ''; // Clear previous options
+    selectList = document.getElementById("select_lst"); // Assign to module var
+    if (!selectList || !actSelectContainer) {
+        showError("Activity selection UI elements not found.");
+        return;
+    }
 
-    // Add a default option
+    actSelectContainer.classList.remove('hidden');
+    selectList.innerHTML = ''; // Clear previous options
+
     let defaultOption = document.createElement('option');
     defaultOption.textContent = 'Select an Activity...';
     defaultOption.disabled = true;
     defaultOption.selected = true;
-    select_lst.appendChild(defaultOption);
+    selectList.appendChild(defaultOption);
 
-
-    activities.forEach((activity, index) => {
+    activities.forEach((activity) => {
         let option = document.createElement('option');
-        option.textContent = activity.name; // Use textContent for safety
-        option.value = activity.id; // Store activity ID in value
-        // Store necessary data directly on the option element for easy access later
-        option.dataset.polyline = activity.map?.summary_polyline || '';
-        option.dataset.index = index; // Keep index if needed elsewhere
-        select_lst.appendChild(option);
+        option.textContent = activity.name;
+        option.value = activity.id;
+        selectList.appendChild(option);
     });
 
-    // --- MODIFIED Event Listener ---
-    select_lst.addEventListener('change', function (e) {
+    // Add event listener (only once)
+    selectList.onchange = (e) => { // Use onchange to avoid multiple listeners
         const selectedOption = e.target.options[e.target.selectedIndex];
         const activityId = selectedOption.value;
 
         if (activityId && activityId !== 'Select an Activity...') {
-             fetchDetailedActivity(activityId); // Call function to fetch detailed data
+             // Clear existing stats and photo display when changing selection
+             if (statsContainer) statsContainer.classList.add('hidden');
+             hidePhotoDisplay();
+             // DO NOT Clear elevation widget path here - let displayDetailedActivity handle it
+             // Remove previous polyline and markers
+             if (previousPolyline) {
+                 try { map3d.removeChild(previousPolyline); } catch (e) { console.warn("Error removing previous polyline:", e); }
+                 previousPolyline = null;
+             }
+             if (photoMarkers.size > 0) {
+                 photoMarkers.forEach(marker => { try { map3d.removeChild(marker); } catch (e) { console.warn("Error removing photo marker:", e); } });
+                 photoMarkers.clear();
+             }
+
+             fetchDetailedActivity(activityId);
         }
-    });
+    };
 
-    // --- REMOVED Default loading of first activity's summary polyline ---
-    // We now only load detailed data when an activity is explicitly selected.
+    // Add a visual cue after fetching activities
+    if (selectList && activities.length > 0) {
+        selectList.focus(); // Focus the dropdown
+        // Optionally add a temporary highlight or message
+        const selectLabel = document.querySelector('label[for="select_lst"]');
+        if (selectLabel) {
+            const originalText = selectLabel.textContent;
+            selectLabel.textContent = "Select an Activity to View!";
+            selectLabel.classList.add('text-indigo-600', 'font-semibold');
+            setTimeout(() => {
+                selectLabel.textContent = originalText;
+                selectLabel.classList.remove('text-indigo-600', 'font-semibold');
+            }, 3000); // Revert after 3 seconds
+        }
+    }
+
+    // Auto-select and trigger the first activity if available
+    if (selectList.options.length > 1) { // Check if there's more than the placeholder
+        selectList.selectedIndex = 1; // Select the first actual activity
+        // Trigger the change event to load the activity
+        const event = new Event('change', { bubbles: true });
+        selectList.dispatchEvent(event);
+        console.log(`Auto-selected first activity: ${selectList.options[1].textContent}`);
+    }
 }
 
-// --- Main execution flow ---
-if (temp_token) {
-    exchangeToken(temp_token); // Call the new fetch-based token exchange function
+// --- Photo Display Handlers ---
+function showPhotoInSidebar(photo) {
+    if (!photoDisplayDiv || !selectedPhotoImg || !selectedPhotoCaption) {
+        console.warn("Photo display elements not found.");
+        return;
+    }
+    const imageUrl = photo.urls?.["1000"] || photo.urls?.["600"]; // Prefer larger size
+    if (!imageUrl) {
+        showError("Selected photo has no valid image URL.");
+        hidePhotoDisplay();
+        return;
+    }
+
+    selectedPhotoImg.src = imageUrl;
+    selectedPhotoCaption.textContent = photo.caption || `Photo ID: ${photo.unique_id}`;
+    photoDisplayDiv.classList.remove('hidden');
+
+    // Scroll the photo into view within the sidebar
+    photoDisplayDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
-// The rest of the map initialization code remains below...
 
-map.on('load', function () {
+function hidePhotoDisplay() {
+     if (photoDisplayDiv) {
+        photoDisplayDiv.classList.add('hidden');
+     }
+     if (selectedPhotoImg) {
+        selectedPhotoImg.src = ''; // Clear image source
+     }
+      if (selectedPhotoCaption) {
+        selectedPhotoCaption.textContent = ''; // Clear caption
+     }
+}
 
-    //Trigger a screenshot
-    var map_div = document.getElementById('map');
-    var snapshot = document.getElementById('snapshot');
-    var ctx = snapshot.getContext('2d');
-    var scale = window.devicePixelRatio;
 
-    snapshot.height = map_div.offsetHeight * scale;
-    snapshot.width = map_div.offsetWidth * scale;
+// --- New Handler for Filtered Fetch ---
+function handleFetchFilteredActivities() {
+    if (!stravatoken) {
+        showError("Not authenticated with Strava.");
+        return;
+    }
+    if (!startDateInput || !endDateInput || !activityCountInput) {
+         showError("Filter input elements not found.");
+         return;
+    }
 
-    map.on('resize', function () {
-        snapshot.height = map_div.offsetHeight * scale;
-        snapshot.width = map_div.offsetWidth * scale;
+    const startDate = startDateInput.value; // YYYY-MM-DD
+    const endDate = endDateInput.value;     // YYYY-MM-DD
+    const count = parseInt(activityCountInput.value, 10) || 30;
+
+    // Convert dates to Unix timestamps (seconds) for Strava API
+    // 'before' is the end date (set to end of day)
+    // 'after' is the start date (set to start of day)
+    let beforeTimestamp = null;
+    if (endDate) {
+        const endOfDay = new Date(endDate);
+        endOfDay.setHours(23, 59, 59, 999); // Set to end of the selected day
+        beforeTimestamp = Math.floor(endOfDay.getTime() / 1000);
+    }
+
+    let afterTimestamp = null;
+    if (startDate) {
+        const startOfDay = new Date(startDate);
+        startOfDay.setHours(0, 0, 0, 0); // Set to start of the selected day
+        afterTimestamp = Math.floor(startOfDay.getTime() / 1000);
+    }
+
+    // Call the updated fetchActivities function
+    fetchActivities(stravatoken, beforeTimestamp, afterTimestamp, count);
+}
+
+// --- Set Initial Date Inputs ---
+function setInitialDateInputs() {
+    const today = new Date();
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(today.getDate() - 90);
+
+    // Format YYYY-MM-DD
+    const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    if (startDateInput) {
+        startDateInput.value = formatDate(ninetyDaysAgo);
+    }
+    if (endDateInput) {
+        endDateInput.value = formatDate(today);
+    }
+}
+
+// --- Main Initialization ---
+async function initApp() {
+    console.log("Initializing App...");
+    // Get DOM elements needed early
+    mapHost = document.getElementById("map3d-host");
+    // pacInput = document.getElementById("pac-input"); // REMOVED reference
+    loadingIndicator = document.getElementById('loading-indicator');
+    loadingText = document.getElementById('loading-text');
+    errorMessageDiv = document.getElementById('error-message');
+    statsContainer = document.getElementById('activity-stats');
+    activityNameEl = document.getElementById('activity-name');
+    activityDistEl = document.getElementById('activity-distance');
+    activityTimeEl = document.getElementById('activity-time');
+    activityElevEl = document.getElementById('activity-elevation');
+    activityAvgSpeedEl = document.getElementById('activity-avg-speed'); // Get new elements
+    activityMaxSpeedEl = document.getElementById('activity-max-speed');
+    elevationProfileWidget = document.getElementById('elevation-profile'); // Get widget element
+    activityAvgSpeedEl = document.getElementById('activity-avg-speed');
+    activityMaxSpeedEl = document.getElementById('activity-max-speed');
+    elevationProfileWidget = document.getElementById('elevation-profile');
+    // Get filter elements
+    activityFilterDiv = document.getElementById('activity-filter');
+    startDateInput = document.getElementById('start-date');
+    endDateInput = document.getElementById('end-date');
+    activityCountInput = document.getElementById('activity-count');
+    fetchFilteredButton = document.getElementById('fetch-filtered-activities');
+    // Get photo display elements
+    photoDisplayDiv = document.getElementById('photo-display');
+    selectedPhotoImg = document.getElementById('selected-photo-img');
+    selectedPhotoCaption = document.getElementById('selected-photo-caption');
+    // Get footer elements
+    footerAthleteInfo = document.getElementById('footer-athlete-info');
+    footerProfileImg = document.getElementById('footer-strava_profile');
+    footerProfileName = document.getElementById('footer-strava-username');
+    logoutButton = document.getElementById('logout-button');
+
+
+    if (!mapHost || !activityFilterDiv || !fetchFilteredButton || !photoDisplayDiv || !footerAthleteInfo || !logoutButton) { // Added checks for footer elements
+        showError("Essential HTML elements (#map3d-host, filter, photo display, footer) are missing.");
+        return;
+    }
+
+    // Set initial date inputs
+    setInitialDateInputs();
+
+    showLoading(true, "Loading Google Maps...");
+    const loader = new Loader({
+        apiKey: import.meta.env.VITE_GMP_API_KEY,
+        version: "alpha", // Required for 3D Maps
+        libraries: ["maps3d", "marker", "elevation", "places", "geometry", "core"]
     });
 
-    document.getElementById('take_snap').addEventListener('click', function (e) {
-        var png = map.getCanvas().toDataURL();
-        var copy = new Image();
-        copy.src = png;
-        copy.onload = function () {
-            ctx.drawImage(copy, 0, 0);
-            logo();
-            textbox();
-            var a = document.createElement("a"); //Create <a>
-            a.href = snapshot.toDataURL('image/jpeg', 1.0); //Image Base64 Goes here
-            a.download = "snapshot.jpeg"; //File name Here
-            a.click(); //Downloaded file
-        };
-    });
+    try {
+        await loader.load();
+        console.log("Google Maps API loaded.");
 
-    function textbox() {
-        // OpenStreetMap and Mapbox attribution are required by
-        // the Mapbox terms of service: https://www.mapbox.com/tos/#[YmdMYmdM]
+        // Import necessary classes *after* API is loaded
+        ({ Map3DElement, Marker3DInteractiveElement, Polyline3DElement, AltitudeMode, MapMode } = await google.maps.importLibrary("maps3d"));
+        ({ PinElement } = await google.maps.importLibrary("marker"));
+        ({ ElevationService, ElevationElement } = await google.maps.importLibrary("elevation")); // Import ElevationElement
+        ({ Place } = await google.maps.importLibrary("places")); // Autocomplete already removed
+        ({ LatLng, LatLngBounds } = await google.maps.importLibrary("core"));
+        ({ encoding } = await google.maps.importLibrary("geometry"));
 
-        // set text sizing
-        var text = '© Mapbox © OpenStreetMap';
-        if (snapshot.width < 300) text = '© OSM';
-        var fontsize = 14;
-        var height = (fontsize + 6) * scale;
-        var width = ((text.length + 3) / fontsize * 100) * scale;
+        // Instantiate services
+        elevator = new ElevationService();
 
-        // draw attribution to canvas
-        ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        ctx.fillRect(snapshot.width - width, snapshot.height - height, width, height);
-        ctx.font = (fontsize * scale) + 'px Arial';
-        ctx.fillStyle = 'black';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(text, snapshot.width - width + 5, snapshot.height - 5);
+        // Instantiate the 3D Map
+        map3d = new Map3DElement({
+            center: { lat: 32.6141, lng: -114.34411, altitude: 1000000 }, // Start high up
+            range: 1000000, // Wide initial range
+            tilt: 0, // Start looking straight down
+            heading: 0,
+            mode: MapMode.HYBRID, // Or SATELLITE
+            defaultUIDisabled: true, // Disable default controls initially
+        });
+        mapHost.appendChild(map3d);
+        console.log("3D Map initialized.");
+
+        // Add basic controls (optional)
+        // map3d.compassEnabled = true;
+        // map3d.zoomControlEnabled = true;
+
+        // Ensure Autocomplete setup is removed
+
+        // --- Strava Auth Flow ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const temp_token = urlParams.get('code');
+        if (temp_token) {
+            // Clear the code from the URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            await exchangeToken(temp_token);
+        } else {
+            // Show auth button if no code present
+            document.getElementById('strava_auth').style.display = 'block';
+            showLoading(false); // Hide loading if waiting for auth
+        }
+
+    } catch (error) {
+        console.error("Initialization failed:", error);
+        showError(`Map initialization failed: ${error.message}. Check API key or network connection.`);
+        showLoading(false);
     }
+}
 
-    function logo() {
-        // OpenStreetMap and Mapbox attribution are required by
-        // the Mapbox terms of service: https://www.mapbox.com/tos/#[YmdMYmdM]
-        var img = new Image();
-
-        // use the Mapbox logo within the LogoControl as the source image
-        var a = document.querySelector('a.mapboxgl-ctrl-logo');
-        console.log(a)
-        var style = window.getComputedStyle(a, false);
-
-        // remove "url('')" from the background-image property
-        var dataURL = style.backgroundImage.slice(5, -2);
-
-        // logo size
-        var logoHeight = style.height.replace('px', '');
-        var logoWidth = style.width.replace('px', '');
-        var logoSVG = firefoxBugFix(dataURL, logoHeight * scale, logoWidth * scale);
-
-        var logo = { 'image': logoSVG, 'height': logoHeight * scale, 'width': logoWidth * scale };
-        img.src = logo.image;
-
-        // draw the logo in img (when ready)
-        img.onload = function () {
-            ctx.drawImage(img, 5, snapshot.height - logo.height - 5, logo.width, logo.height);
-        };
-    }
-
-
-    function firefoxBugFix(dataURL, height, width) {
-        // Firefox requires SVG to have height and width specified
-        // in the root SVG object when drawing to canvas
-
-        // get raw SVG markup by removing the data type, charset, and escaped quotes
-        var svg = unescape(dataURL.replace('data:image/svg+xml;charset=utf-8,', '').replace(/\\'/g, '"'));
-        var newHeader = "height= \"" + height + "px\" width= \"" + width + "px\"";
-        var newSvg = svg.replace('<svg', '<svg ' + newHeader);
-        var newBase64 = btoa(newSvg);
-        var newDataURL = 'data:image/svg+xml;base64,' + newBase64;
-
-        return newDataURL;
-    }
-
-});
+// Start the application
+initApp();

@@ -28,18 +28,18 @@
         "preview": "vite preview"
     },
     "devDependencies": {
+        "@types/google.maps": "^3.58.1",
         "autoprefixer": "^10.4.21",
         "postcss": "^8.5.3",
         "tailwindcss": "^4.1.4",
         "vite": "^6.3.3"
     },
     "dependencies": {
-        "@mapbox/mapbox-gl-geocoder": "5.0.3",
+        "@googlemaps/js-api-loader": "^1.16.8",
         "@mapbox/polyline": "^1.1.1",
         "@turf/bbox": "^6.0.1",
         "@turf/helpers": "^6.1.4",
         "analytics-node": "^5.0.0",
-        "geojson-polyline": "^1.0.3",
-        "mapbox-gl": "^3.11.1"
+        "geojson-polyline": "^1.0.3"
     }
 }

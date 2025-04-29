@@ -3,60 +3,79 @@
 
 <head>
     <meta charset='utf-8' />
-    <title>Trails Ninja</title>
+    <title>Trails Ninja - 3D Strava Explorer</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" /> <!-- Use correct Mapbox version CSS -->
-    <!-- Removed Mapbox Assembly CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; }
-      #map { height: 100%; width: 100%; }
-      /* Ensure Mapbox controls are styled reasonably */
-      .mapboxgl-ctrl-group button { background-color: white; }
-      .mapboxgl-ctrl-attrib { background-color: rgba(255, 255, 255, 0.5) !important; }
+      /* Container for the 3D map web component */
+      #map3d-host { height: 100%; width: 100%; background-color: #333; }
+      /* Target the 3D map element itself */
+      gmp-map-3d { display: block; height: 100%; width: 100%; }
       /* Basic scrollbar styling */
       .sidebar-content::-webkit-scrollbar { width: 6px; }
       .sidebar-content::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 3px; }
+      /* Style Autocomplete dropdown */
+      .pac-container { z-index: 1051 !important; }
     </style>
 </head>
-
-<!-- Load the `mapbox-gl-geocoder` plugin. -->
-<!-- Load Mapbox Geocoder plugin CSS -->
-<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
 
 <body>
     <!-- Main Container -->
     <div class="relative h-screen w-screen">
         <!-- Map Container -->
-        <div id="map" class="absolute inset-0 z-0"></div>
+        <div id="map3d-host" class="absolute inset-0 z-0"></div>
 
-        <!-- Snapshot Canvas (Hidden) -->
-        <canvas id='snapshot' class='absolute top-0 left-0 w-full h-full pointer-events-none' style="visibility:hidden"></canvas>
+        <!-- Snapshot Canvas (Hidden - Functionality Removed) -->
+        <!-- <canvas id='snapshot' class='absolute top-0 left-0 w-full h-full pointer-events-none' style="visibility:hidden"></canvas> -->
 
-        <!-- Sidebar Container -->
-        <!-- Removed bottom-3, added max-height constraint -->
-        <aside class="absolute top-3 left-3 z-10 w-80 max-w-[calc(100%-1.5rem)] flex flex-col bg-white rounded-lg shadow-xl overflow-hidden" style="max-height: calc(100vh - 150px - 0.75rem);"> <!-- 0.75rem = top-3 margin -->
+        <!-- Sidebar Container - Added top-16, responsive classes -->
+        <aside class="absolute top-16 left-3 z-10 w-[450px] max-w-[calc(100%-1.5rem)] flex flex-col bg-white rounded-lg shadow-xl overflow-hidden md:bottom-auto md:max-h-[calc(100vh-5rem)] max-md:bottom-0 max-md:left-0 max-md:right-0 max-md:top-auto max-md:w-full max-md:max-w-full max-md:max-h-[45vh] max-md:rounded-none max-md:rounded-t-lg max-md:border-t">
             <!-- Sidebar Header -->
             <div class='p-4 border-b border-gray-200 flex-shrink-0'>
-                 <h3 class='text-lg font-semibold text-gray-800'>Trails Ninja</h3>
+                 <h3 class='text-lg font-semibold text-gray-800'>Strava 3D Activity Explorer</h3> <!-- Updated Title -->
             </div>
             <!-- Sidebar Scrollable Content -->
-            <div class='p-4 flex-grow overflow-y-auto sidebar-content'>
+            <div class='p-4 flex-grow overflow-y-auto sidebar-content space-y-4'> <!-- Added space-y-4 for vertical spacing -->
                 <!-- Strava Auth Section -->
-                <div id="strava_auth" class="mb-4">
-                    <p class="text-sm text-gray-700 mb-3">Connect to your Strava activities and explore them in 3D.</p>
+                <div id="strava_auth" class="flex flex-col items-center">
+                    <p class="text-sm text-gray-700 mb-3 text-center">Connect to your Strava activities and explore them in 3D.</p>
                     <!-- Strava Connect Button -->
-                    <a href="http://www.strava.com/oauth/authorize?client_id=1495&response_type=code&redirect_uri=http://localhost:5173/&approval_prompt=auto&scope=read_all,activity:read_all" class="inline-block">
+                    <a href="http://www.strava.com/oauth/authorize?client_id=1495&response_type=code&redirect_uri=https://serve-dot-zipline.googleplex.com/asset/1f36aa09-5981-5344-afa0-6eae2553ce80/&approval_prompt=auto&scope=read_all,activity:read_all" class="inline-block">
                         <img src="./static/btn_strava_connectwith_orange@2x.png" alt="Connect to Strava" class="h-10 hover:opacity-80 transition-opacity">
                     </a>
                 </div>
                 <!-- Athlete Profile Section (Initially Hidden) -->
-                <div id="athlete-info" class="flex items-center mb-4 hidden">
+                <div id="athlete-info" class="flex items-center hidden"> <!-- Removed mb-4 -->
                      <img id="strava_profile" src="" class="w-10 h-10 rounded-full mr-3 border border-gray-300">
                      <p id="strava-username" class="text-gray-800 font-medium"></p>
                 </div>
+                <!-- Place Search Input (REMOVED) -->
+
+                 <!-- Activity Filtering Section (Initially Hidden until Auth) -->
+                 <div id="activity-filter" class="border-t pt-4 hidden"> <!-- Removed mb-4, mt-4 -->
+                     <p class="text-sm font-medium text-gray-700 mb-2">Filter Activities:</p>
+                     <div class="grid grid-cols-2 gap-3 mb-2">
+                        <div>
+                            <label for="start-date" class="block text-xs font-medium text-gray-600 mb-1">Start Date:</label>
+                            <input type="date" id="start-date" class="w-full text-xs p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="end-date" class="block text-xs font-medium text-gray-600 mb-1">End Date:</label>
+                            <input type="date" id="end-date" class="w-full text-xs p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="activity-count" class="block text-xs font-medium text-gray-600 mb-1">Max Activities (1-100):</label>
+                        <input type="number" id="activity-count" value="30" min="1" max="100" class="w-24 text-xs p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <button id="fetch-filtered-activities" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Fetch Activities
+                    </button>
+                </div>
+
                 <!-- Activity Selection Dropdown (Initially Hidden) -->
-                <div id="act_select" class='relative mb-4 hidden'>
+                <div id="act_select" class='relative hidden'> <!-- Removed mb-4 -->
                     <label for="select_lst" class="block text-sm font-medium text-gray-700 mb-1">Select Activity:</label>
                     <select id="select_lst" class='block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md appearance-none bg-white'>
                         <!-- Options populated by JS -->
@@ -66,12 +85,12 @@
                     </div>
                 </div>
                 <!-- Activity Stats Section (Initially Hidden) -->
-                <div id="activity-stats" class="mt-4 pt-4 border-t border-gray-200 hidden">
+                <div id="activity-stats" class="pt-4 border-t border-gray-200 hidden"> <!-- Removed mt-4 -->
                     <h4 id="activity-name" class="text-base font-semibold mb-3 text-gray-800 truncate">Activity Name</h4>
-                    <div class="grid grid-cols-3 gap-3 text-xs">
+                    <div class="grid grid-cols-3 gap-x-3 gap-y-2 text-xs mb-4">
                         <div>
                             <p class="text-gray-500 uppercase tracking-wider">Distance</p>
-                            <p id="activity-distance" class="font-medium text-gray-800 text-sm">-- km</p>
+                            <p id="activity-distance" class="font-medium text-gray-800 text-sm">-- mi</p> <!-- Changed unit -->
                         </div>
                         <div>
                             <p class="text-gray-500 uppercase tracking-wider">Time</p>
@@ -79,23 +98,59 @@
                         </div>
                         <div>
                             <p class="text-gray-500 uppercase tracking-wider">Gain</p>
-                            <p id="activity-elevation" class="font-medium text-gray-800 text-sm">-- m</p>
+                            <p id="activity-elevation" class="font-medium text-gray-800 text-sm">-- ft</p> <!-- Changed unit -->
+                        </div>
+                         <div>
+                            <p class="text-gray-500 uppercase tracking-wider">Avg Speed</p>
+                            <p id="activity-avg-speed" class="font-medium text-gray-800 text-sm">-- mph</p> <!-- Changed unit -->
+                        </div>
+                         <div>
+                            <p class="text-gray-500 uppercase tracking-wider">Max Speed</p>
+                            <p id="activity-max-speed" class="font-medium text-gray-800 text-sm">-- mph</p> <!-- Changed unit -->
                         </div>
                     </div>
+                    <!-- Elevation Profile Widget -->
+                    <div class="border-t pt-3"> <!-- Removed mt-4 -->
+                         <label class="block text-sm font-medium text-gray-700 mb-1">Elevation Profile:</label>
+                         <gmp-elevation id="elevation-profile" resolution="high" unit-system="imperial"></gmp-elevation>
+                    </div>
                 </div>
+                <!-- Photo Display Section (Initially Hidden) -->
+                <div id="photo-display" class="border-t pt-4 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Selected Photo:</label>
+                    <img id="selected-photo-img" src="" alt="Selected activity photo" class="w-full h-auto rounded-md mb-2 border">
+                    <p id="selected-photo-caption" class="text-xs text-gray-600 italic"></p>
+                </div>
+                 <!-- Loading/Error Indicators -->
+                 <div id="loading-indicator" class="text-xs text-blue-600 italic hidden items-center gap-2"> <!-- Removed mt-4 -->
+                    <svg class="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"> <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle> <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path> </svg>
+                    <span id="loading-text">Loading...</span>
+                </div>
+                <div id="error-message" class="mt-2 text-xs text-red-600 font-medium"></div>
             </div>
             <!-- Sidebar Footer -->
-            <footer class='p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0'>
-                <button id='take_snap' class='w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>
+            <footer class='p-3 border-t border-gray-200 bg-gray-50 flex-shrink-0 flex items-center justify-between'>
+                 <!-- Footer Athlete Info (Initially Hidden) -->
+                 <div id="footer-athlete-info" class="flex items-center hidden text-xs">
+                     <img id="footer-strava_profile" src="" class="w-6 h-6 rounded-full mr-2 border border-gray-300">
+                     <span id="footer-strava-username" class="text-gray-700 font-medium"></span>
+                 </div>
+                 <!-- Logout Button (Initially Hidden) -->
+                 <button id="logout-button" class="hidden text-xs bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500"> 
+                    Logout
+                 </button>
+                 <!-- Original Snapshot Button Code (Commented Out)
+                 <button id='take_snap' class='w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>
                     Take Snapshot
                 </button>
             </footer>
+             -->
         </aside>
     </div>
 
-    <!-- Load Mapbox Geocoder plugin JS -->
-    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
-    <!-- Load main JS file as module -->
+    <!-- Load main JS file -->
     <script type="module" src="/index.js"></script>
+
+</body>
 
 </html>
