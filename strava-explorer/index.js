@@ -1,17 +1,17 @@
 import { Loader } from '@googlemaps/js-api-loader';
-import polylineDecoder from '@mapbox/polyline'; // Keep as fallback/comparison if needed
+// Removed Mapbox polyline import
 
 // --- Module-Level Variables ---
 let map3d; // For the 3D map instance
 let elevator; // For ElevationService
 // let autocomplete; // REMOVED Autocomplete variable
 let previousPolyline = null; // To store the previous 3D polyline for removal
-let photoMarkers = new Map(); // Use Map to store { marker } pairs, key = photo.unique_id
+let photoMarkers = new Map(); // Use Map to store { marker, popover } pairs, key = photo.unique_id
 let stravatoken;
 let userid, actid;
 
 // GMP Class variables (populated in initApp)
-let Map3DElement, Marker3DInteractiveElement, Polyline3DElement, AltitudeMode, MapMode, PinElement;
+let Map3DElement, Marker3DInteractiveElement, Polyline3DElement, AltitudeMode, MapMode, PinElement, PopoverElement; // Added PopoverElement here
 let ElevationService, Place, LatLng, LatLngBounds, encoding, ElevationElement; // REMOVED Autocomplete class
 
 // --- DOM Element References ---
@@ -101,10 +101,14 @@ async function flyToLocation(targetCoords, range = 1000, tilt = 60, heading = 0,
 
 // --- Strava Photo Handling (3D) ---
 async function getPhotos(stravatoken, activityid) {
+console.log(`[getPhotos] Called for activity ID: ${activityid}`); // Log entry point
     // Cleanup previous markers
+    // Cleanup previous markers and popovers
+    // Cleanup previous markers and popovers
     if (photoMarkers.size > 0) {
-        photoMarkers.forEach(marker => {
-            map3d?.removeChild(marker); // Remove from map
+        photoMarkers.forEach(({ marker, popover }) => {
+            try { map3d?.removeChild(marker); } catch(e) { console.warn("Error removing marker", e); }
+            try { map3d?.removeChild(popover); } catch(e) { console.warn("Error removing popover", e); }
         });
         photoMarkers.clear(); // Clear the map
     }
@@ -116,6 +120,7 @@ async function getPhotos(stravatoken, activityid) {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const photos = await response.json();
 
+console.log(`[getPhotos] Received ${photos.length} photos from Strava:`, photos); // Log raw photo data
         if (photos.length > 0) {
             showLoading(true, `Processing ${photos.length} photos...`);
             const photoLocations = photos.map(p => ({ lat: p.location?.[0], lng: p.location?.[1] })).filter(loc => loc.lat != null && loc.lng != null);
@@ -123,40 +128,74 @@ async function getPhotos(stravatoken, activityid) {
 
             let photoIndex = 0;
             photos.forEach((photo) => {
+console.log(`[getPhotos] Processing photo ${photoIndex + 1}/${photos.length}: ID ${photo.unique_id}`, photo); // Log before processing each photo
                 if (!photo.location || photo.location.length !== 2) return;
 
                 const lat = photo.location[0];
                 const lng = photo.location[1];
                 const baseAltitude = elevations[photoIndex++]; // Get corresponding elevation
-                const position = { lat, lng, altitude: baseAltitude + 10 }; // Position 10m above ground (Reduced offset)
+                const position = { lat, lng, altitude: baseAltitude + 1 }; // Position 1m above ground
 
-                // Revert back to PinElement
-                const pin = new PinElement({
-                    background: "#FF9900", // Strava Orange
-                    glyphColor: "#FFFFFF",
-                    scale: 1.5 // Increased scale for larger markers
-                });
-
+                // --- Create Interactive Marker with Default Pin ---
                 const marker = new Marker3DInteractiveElement({
                     position: position,
-                    altitudeMode: AltitudeMode.RELATIVE_TO_GROUND, // Keep relative for photos
-                    title: photo.caption || `Photo ${photo.unique_id}`
+                    altitudeMode: AltitudeMode.RELATIVE_TO_GROUND,
+                    title: photo.caption || `Photo ${photo.unique_id}`,
+                    extruded: true, 
+                    drawsWhenOccluded: true,
+                    // sizePreserved: true // Pin size is generally managed differently
                 });
-                marker.appendChild(pin); // Add pin back to marker
 
-                // Add click listener - Show photo in sidebar display
+                // Removed PinElement creation and appendChild call, relying on default rendering
+
+                // --- Create Popover ---
+                const popover = new PopoverElement({
+                    positionAnchor: marker, // Anchor to the marker
+                    open: false, // Start closed
+                    // Optional: Style popover via CSS variables if needed
+                    // style: "--gmp-popover-max-width: 320px;"
+                });
+
+                // --- Populate Popover Content ---
+                const popoverImageUrl = photo.urls?.["1000"] || photo.urls?.["600"] || markerImageUrl; // Use larger image for popover
+                const popoverImage = document.createElement('img');
+                popoverImage.src = popoverImageUrl;
+                popoverImage.style.maxWidth = '300px'; // Limit popover image size
+                popoverImage.style.maxHeight = '300px';
+                popoverImage.style.display = 'block';
+                popoverImage.style.marginBottom = '8px';
+                popoverImage.onerror = () => { popoverImage.alt = 'Image failed to load'; };
+
+                const popoverCaption = document.createElement('p');
+                popoverCaption.textContent = photo.caption || 'No caption';
+                popoverCaption.style.fontSize = '12px';
+                popoverCaption.style.color = '#555';
+
+                popover.append(popoverImage);
+                popover.append(popoverCaption);
+
+                // --- Add Click Listener to Toggle Popover ---
                 marker.addEventListener('gmp-click', () => {
                     console.log("Clicked Photo Marker:", photo.unique_id);
-                    showPhotoInSidebar(photo); // Call function to display photo
-                    // Fly closer, but not too close
-                    flyToLocation(marker.position, 1000, 70, map3d.heading); // Increased range to 500m
+                    // Close other open popovers (optional, good UX)
+                    photoMarkers.forEach(({ popover: otherPopover }, key) => {
+                        if (key !== photo.unique_id) {
+                            otherPopover.open = false;
+                        }
+                    });
+                    // Toggle this popover
+                    popover.open = !popover.open;
+                    // Fly closer, adjust range/tilt if needed
+                    flyToLocation(marker.position, 1000, 70, map3d.heading); // Fly closer (e.g., 500m)
                 });
 
-                // Add marker to map
-                map3d.appendChild(marker);
+                // --- Add Marker and Popover to Map ---
+                map3d.append(marker);
+                map3d.append(popover);
 
-                // Store marker reference
-                photoMarkers.set(photo.unique_id, marker);
+                // --- Store Marker and Popover References ---
+                photoMarkers.set(photo.unique_id, { marker, popover });
+                console.log(`[getPhotos] Appended marker and popover for photo ${photo.unique_id} at position:`, position); // Moved log inside loop
             });
         } else {
             console.log("No photos found for this activity.");
@@ -166,6 +205,7 @@ async function getPhotos(stravatoken, activityid) {
         showError(`Failed to load photos: ${error.message}`);
     } finally {
         showLoading(false);
+        // Removed misplaced log from here
     }
 }
 
@@ -313,6 +353,7 @@ async function fetchDetailedActivity(activityId) {
         const response = await fetch(detailedActivityUrl, {
             headers: { 'Authorization': `Bearer ${stravatoken}` }
         });
+console.log(`[fetchDetailedActivity] Called for activity ID: ${activityId}`);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -328,6 +369,7 @@ async function fetchDetailedActivity(activityId) {
         showError(`Failed to fetch activity details: ${error.message}`);
     } finally {
         showLoading(false);
+console.log(`[fetchDetailedActivity] Successfully fetched data, about to call displayDetailedActivity.`);
     }
 }
 
@@ -338,55 +380,58 @@ async function displayDetailedActivity(activityData) {
         console.error("Missing polyline:", activityData);
         return;
     }
+console.log(`[displayDetailedActivity] Called with data:`, activityData);
     if (!map3d || !Polyline3DElement || !AltitudeMode || !encoding) {
         showError("Map or necessary 3D components not ready.");
         return;
     }
 
-    const detailedPolyline = activityData.map.polyline;
     actid = activityData.id;
 
-    // Hide photo display when new activity is loaded
-    hidePhotoDisplay(); // Ensure photo display is hidden
+console.log(`[displayDetailedActivity] Passed initial polyline and map component checks.`);
+    // Hide photo display when new activity is loaded - REMOVED as popovers are used now
 
     // --- Polyline Display ---
     showLoading(true, "Processing activity route...");
+
     // Remove previous polyline
+    console.log(`[displayDetailedActivity] Checking for previous polyline. previousPolyline exists: ${!!previousPolyline}`); // Log check
     if (previousPolyline) {
         try {
+            console.log(`[displayDetailedActivity] Attempting to remove previous polyline.`); // Log attempt
             map3d.removeChild(previousPolyline);
+            console.log(`[displayDetailedActivity] Successfully removed previous polyline.`); // Log success
         } catch (e) {
-            console.warn("Could not remove previous polyline:", e); // Might already be removed
+            console.warn("[displayDetailedActivity] Could not remove previous polyline:", e); // Log warning on error
         }
         previousPolyline = null;
     }
 
+    // Check and define detailedPolyline *after* removal logic
+    console.log(`[displayDetailedActivity] Checking activityData.map.polyline:`, activityData?.map?.polyline); // Log check
+    if (!activityData?.map?.polyline || typeof activityData.map.polyline !== 'string' || activityData.map.polyline.trim() === '') {
+        showError("Detailed activity data is missing a valid map polyline string.");
+        console.error("[displayDetailedActivity] Missing or invalid polyline:", activityData?.map?.polyline); // Log error
+        showLoading(false); // Ensure loading indicator is hidden
+        return; // Stop execution if polyline is invalid
+    }
+    const detailedPolyline = activityData.map.polyline; // Define it here
+
     // Decode polyline using GMP library
     let decodedPathLatLng;
+    console.log(`[displayDetailedActivity] Attempting to decode polyline: ${detailedPolyline}`); // Log before try
     try {
         decodedPathLatLng = encoding.decodePath(detailedPolyline);
         if (!decodedPathLatLng || decodedPathLatLng.length === 0) {
             throw new Error("Decoded path is empty or invalid.");
         }
+        console.log(`[displayDetailedActivity] Successfully decoded polyline. Path length: ${decodedPathLatLng.length}`); // Log success
     } catch (e) {
-        console.error("GMP polyline decoding failed, trying fallback:", e);
-        // Fallback using @mapbox/polyline (returns [lat, lng] pairs)
-        try {
-            const pairs = polylineDecoder.decode(detailedPolyline);
-            // Ensure LatLng class is available and convert pairs to LatLng objects
-            if (!LatLng) throw new Error("LatLng class not available for fallback decoding.");
-            decodedPathLatLng = pairs.map(p => new LatLng(p[0], p[1]));
-             if (!decodedPathLatLng || decodedPathLatLng.length === 0) {
-                throw new Error("Fallback decoded path is empty or invalid.");
-            }
-        } catch (fallbackError) {
-             console.error("Fallback polyline decoding also failed:", fallbackError);
-             showError(`Failed to decode activity route: ${fallbackError.message}`);
-             showLoading(false);
-             return;
-        }
+        console.error("[displayDetailedActivity] GMP polyline decoding failed:", e); // Log error
+        showError(`Failed to decode activity route: ${e.message}`);
+        showLoading(false);
+        return; // Exit if decoding fails
     }
-
 
     // Convert LatLng objects to simple {lat, lng} literals
     const pathLatLngLiterals = decodedPathLatLng.map(p => ({ lat: p.lat(), lng: p.lng() }));
@@ -401,6 +446,7 @@ async function displayDetailedActivity(activityData) {
         altitudeMode: AltitudeMode.CLAMP_TO_GROUND, // Clamp directly to ground
     });
 
+console.log(`[displayDetailedActivity] Appended routePolyline to map.`);
     // Add polyline to map
     map3d.appendChild(routePolyline);
     previousPolyline = routePolyline; // Store reference
@@ -422,7 +468,9 @@ async function displayDetailedActivity(activityData) {
             );
             const range = Math.max(1000, diagonalDistance * 1.5); // Ensure minimum range, add buffer
 
+            console.log(`[displayDetailedActivity] About to call flyToLocation. Center:`, { center, range }); // Log before call
             await flyToLocation(center, range, 60, 0); // Await camera movement
+            console.log(`[displayDetailedActivity] flyToLocation call completed.`); // Log after call
         }
     }
     showLoading(false); // Hide loading after polyline processing and camera flight start
@@ -443,6 +491,7 @@ async function displayDetailedActivity(activityData) {
     const maxSpeedMph = (maxSpeedMps * mpsToMph).toFixed(1);
 
     // Format time (remains the same)
+console.log(`[displayDetailedActivity] UI stats updated.`);
     const hours = Math.floor(movingTimeSeconds / 3600);
     const minutes = Math.floor((movingTimeSeconds % 3600) / 60);
     const seconds = movingTimeSeconds % 60;
@@ -450,28 +499,43 @@ async function displayDetailedActivity(activityData) {
 
     // Populate UI elements with Imperial units
     if (activityNameEl) activityNameEl.textContent = activityData.name || 'Unnamed Activity';
+console.log(`[displayDetailedActivity] Attempting to configure elevation profile widget.`);
     if (activityDistEl) activityDistEl.textContent = `${distanceMiles} mi`; // Use miles
     if (activityTimeEl) activityTimeEl.textContent = movingTimeFormatted;
+console.log(`[displayDetailedActivity] gmp-elevation element is defined.`);
+console.log(`[displayDetailedActivity] Checking activityElevEl:`, activityElevEl);
     if (activityElevEl) activityElevEl.textContent = `${elevationGainFeet} ft`; // Use feet
+console.log(`[displayDetailedActivity] Checking activityAvgSpeedEl:`, activityAvgSpeedEl);
     if (activityAvgSpeedEl) activityAvgSpeedEl.textContent = `${avgSpeedMph} mph`; // Use mph
+console.log(`[displayDetailedActivity] Checking activityMaxSpeedEl:`, activityMaxSpeedEl);
     if (activityMaxSpeedEl) activityMaxSpeedEl.textContent = `${maxSpeedMph} mph`; // Use mph
+console.log(`[displayDetailedActivity] Checking statsContainer:`, statsContainer);
     if (statsContainer) statsContainer.classList.remove('hidden');
+    // Removed misplaced log statement from here
 
     // Configure Elevation Profile Widget (already set to imperial in HTML)
 
     // Clear path first - We found commenting this out fixes the error.
     // if (elevationProfileWidget) {
     //     elevationProfileWidget.path = [];
+console.log(`[displayDetailedActivity] Checking elevationProfileWidget before if:`, elevationProfileWidget);
+console.log(`[displayDetailedActivity] Checking pathLatLngLiterals.length before if:`, pathLatLngLiterals?.length);
+    // Removed misplaced log from here
     // }
     if (elevationProfileWidget && pathLatLngLiterals.length > 0) { // Check the length of the *literals* array
+    // Removed misplaced log from here
         try {
             // Ensure the component is defined
-            await customElements.whenDefined('gmp-elevation');
+console.log(`[displayDetailedActivity] Awaiting customElements.whenDefined('gmp-elevation')...`);
+            await customElements.whenDefined('gmp-elevation'); // Re-enabled await
+            console.log(`[displayDetailedActivity] customElements.whenDefined('gmp-elevation') resolved.`);
 
-            // Downsample the path if it's too long
+// Downsample the path if it's too long
             const maxPoints = 300; // Target maximum points for the profile
+console.log(`[displayDetailedActivity] Calling downsamplePath with decodedPathLatLng (length: ${decodedPathLatLng?.length}) and maxPoints: ${maxPoints}`);
             const downsampledPath = downsamplePath(decodedPathLatLng, maxPoints); // Pass LatLng array
-            console.log(`Original path points: ${decodedPathLatLng.length}, Downsampled to: ${downsampledPath.length}`); // Keep this log
+            console.log(`[displayDetailedActivity] Downsampled path created. Length: ${downsampledPath?.length}`); // Added log correctly here
+            // console.log(`Original path points: ${decodedPathLatLng.length}, Downsampled to: ${downsampledPath.length}`); // Temporarily comment out this log
 
 
             // Check if path is valid *before* assignment
@@ -480,17 +544,20 @@ async function displayDetailedActivity(activityData) {
                 const firstPoint = downsampledPath[0];
                 console.log(`Attempting to set elevation path with ${downsampledPath.length} LatLng points. First point: {lat: ${firstPoint.lat()}, lng: ${firstPoint.lng()}}`); // Keep this log
                 try {
+                    console.log(`[displayDetailedActivity] Attempting to assign downsampled path to elevation widget.`); // Added log before assignment
                     elevationProfileWidget.path = downsampledPath; // Pass array of LatLng objects
-                    console.log("Successfully set downsampled elevation path.");
+                    console.log("[displayDetailedActivity] Successfully assigned path to elevation widget."); // Corrected log after assignment
                 } catch (elevationError) {
-                    console.error("Error directly setting elevation path:", elevationError);
+                    console.error("[displayDetailedActivity] Error directly setting elevation path:", elevationError); // Added prefix
                     console.error("Path data that caused error:", JSON.stringify(downsampledPath)); // Log the problematic data
                     showError(`Failed to display elevation profile: ${elevationError.message}`);
                 }
             } else {
+console.log(`[displayDetailedActivity] Finished elevation profile widget configuration.`);
                 console.warn("Downsampled path is empty or invalid (length <= 0), not setting elevation path.");
                 // Explicitly clear path here if needed, maybe differently?
                 // elevationProfileWidget.path = null; // Or some other valid empty state?
+console.log(`[downsamplePath] Called with path length: ${path?.length}, maxPoints: ${maxPoints}`);
                 // For now, just log that we are not setting it.
             }
 
@@ -507,6 +574,7 @@ async function displayDetailedActivity(activityData) {
 
 
     // Fetch photos for the selected activity
+    // Removed misplaced log statement from here
     await getPhotos(stravatoken, activityData.id);
 }
 
@@ -514,6 +582,7 @@ async function displayDetailedActivity(activityData) {
 function downsamplePath(path, maxPoints) {
     if (!path || path.length <= maxPoints) {
         return path; // No need to downsample
+console.log(`[displayDetailedActivity] About to call getPhotos for activity ID: ${activityData.id}`);
     }
 
     const originalLength = path.length;
@@ -528,6 +597,7 @@ function downsamplePath(path, maxPoints) {
     if (newPath[newPath.length - 1] !== path[originalLength - 1]) {
         newPath.push(path[originalLength - 1]);
     }
+console.log(`[downsamplePath] Returning new path. Length: ${newPath?.length}`); // Log before returning
 
     return newPath;
 }
@@ -570,9 +640,9 @@ function handleActivitiesResponse(activities) {
         const activityId = selectedOption.value;
 
         if (activityId && activityId !== 'Select an Activity...') {
-             // Clear existing stats and photo display when changing selection
+             // Clear existing stats when changing selection
              if (statsContainer) statsContainer.classList.add('hidden');
-             hidePhotoDisplay();
+             // hidePhotoDisplay(); // REMOVED - Popovers handle photo display
              // DO NOT Clear elevation widget path here - let displayDetailedActivity handle it
              // Remove previous polyline and markers
              if (previousPolyline) {
@@ -614,39 +684,7 @@ function handleActivitiesResponse(activities) {
     }
 }
 
-// --- Photo Display Handlers ---
-function showPhotoInSidebar(photo) {
-    if (!photoDisplayDiv || !selectedPhotoImg || !selectedPhotoCaption) {
-        console.warn("Photo display elements not found.");
-        return;
-    }
-    const imageUrl = photo.urls?.["1000"] || photo.urls?.["600"]; // Prefer larger size
-    if (!imageUrl) {
-        showError("Selected photo has no valid image URL.");
-        hidePhotoDisplay();
-        return;
-    }
-
-    selectedPhotoImg.src = imageUrl;
-    selectedPhotoCaption.textContent = photo.caption || `Photo ID: ${photo.unique_id}`;
-    photoDisplayDiv.classList.remove('hidden');
-
-    // Scroll the photo into view within the sidebar
-    photoDisplayDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function hidePhotoDisplay() {
-     if (photoDisplayDiv) {
-        photoDisplayDiv.classList.add('hidden');
-     }
-     if (selectedPhotoImg) {
-        selectedPhotoImg.src = ''; // Clear image source
-     }
-      if (selectedPhotoCaption) {
-        selectedPhotoCaption.textContent = ''; // Clear caption
-     }
-}
-
+// --- Photo Display Handlers --- (REMOVED - Handled by Popovers)
 
 // --- New Handler for Filtered Fetch ---
 function handleFetchFilteredActivities() {
@@ -711,6 +749,7 @@ async function initApp() {
     console.log("Initializing App...");
     // Get DOM elements needed early
     mapHost = document.getElementById("map3d-host");
+    const stravaConnectButton = document.getElementById('strava-connect-button'); // Get the new button
     // pacInput = document.getElementById("pac-input"); // REMOVED reference
     loadingIndicator = document.getElementById('loading-indicator');
     loadingText = document.getElementById('loading-text');
@@ -732,10 +771,10 @@ async function initApp() {
     endDateInput = document.getElementById('end-date');
     activityCountInput = document.getElementById('activity-count');
     fetchFilteredButton = document.getElementById('fetch-filtered-activities');
-    // Get photo display elements
-    photoDisplayDiv = document.getElementById('photo-display');
-    selectedPhotoImg = document.getElementById('selected-photo-img');
-    selectedPhotoCaption = document.getElementById('selected-photo-caption');
+    // Get photo display elements - REMOVED
+    // photoDisplayDiv = document.getElementById('photo-display');
+    // selectedPhotoImg = document.getElementById('selected-photo-img');
+    // selectedPhotoCaption = document.getElementById('selected-photo-caption');
     // Get footer elements
     footerAthleteInfo = document.getElementById('footer-athlete-info');
     footerProfileImg = document.getElementById('footer-strava_profile');
@@ -743,8 +782,8 @@ async function initApp() {
     logoutButton = document.getElementById('logout-button');
 
 
-    if (!mapHost || !activityFilterDiv || !fetchFilteredButton || !photoDisplayDiv || !footerAthleteInfo || !logoutButton) { // Added checks for footer elements
-        showError("Essential HTML elements (#map3d-host, filter, photo display, footer) are missing.");
+    if (!mapHost || !activityFilterDiv || !fetchFilteredButton /*|| !photoDisplayDiv*/ || !footerAthleteInfo || !logoutButton) { // Removed photoDisplayDiv check
+        showError("Essential HTML elements (#map3d-host, filter, footer) are missing.");
         return;
     }
 
@@ -754,7 +793,7 @@ async function initApp() {
     showLoading(true, "Loading Google Maps...");
     const loader = new Loader({
         apiKey: import.meta.env.VITE_GMP_API_KEY,
-        version: "alpha", // Required for 3D Maps
+        version: "alpha", // Reverting to alpha channel as requested
         libraries: ["maps3d", "marker", "elevation", "places", "geometry", "core"]
     });
 
@@ -763,7 +802,7 @@ async function initApp() {
         console.log("Google Maps API loaded.");
 
         // Import necessary classes *after* API is loaded
-        ({ Map3DElement, Marker3DInteractiveElement, Polyline3DElement, AltitudeMode, MapMode } = await google.maps.importLibrary("maps3d"));
+        ({ Map3DElement, Marker3DInteractiveElement, Polyline3DElement, AltitudeMode, MapMode, PopoverElement } = await google.maps.importLibrary("maps3d")); // Added PopoverElement
         ({ PinElement } = await google.maps.importLibrary("marker"));
         ({ ElevationService, ElevationElement } = await google.maps.importLibrary("elevation")); // Import ElevationElement
         ({ Place } = await google.maps.importLibrary("places")); // Autocomplete already removed
@@ -799,8 +838,32 @@ async function initApp() {
             window.history.replaceState({}, document.title, window.location.pathname);
             await exchangeToken(temp_token);
         } else {
-            // Show auth button if no code present
-            document.getElementById('strava_auth').style.display = 'block';
+            // Show auth button and set up dynamic link if no code present
+            const stravaAuthDiv = document.getElementById('strava_auth');
+            if (stravaAuthDiv) stravaAuthDiv.style.display = 'flex'; // Use flex to maintain centering
+
+            if (stravaConnectButton) {
+                const clientId = import.meta.env.VITE_STRAVA_CLIENT_ID;
+                const redirectUri = import.meta.env.VITE_STRAVA_REDIRECT_URI; // Read from .env.*
+                const stravaAuthScope = 'read_all,activity:read_all'; // Keep scope consistent
+
+                if (!clientId || !redirectUri) {
+                    console.error("Strava Client ID or Redirect URI missing from environment variables.");
+                    showError("Configuration error: Cannot initiate Strava connection.");
+                } else {
+                    const stravaAuthUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&approval_prompt=auto&scope=${stravaAuthScope}`;
+                    console.log("Strava Auth URL constructed:", stravaAuthUrl); // Log for debugging
+
+                    stravaConnectButton.addEventListener('click', () => {
+                        showLoading(true, "Redirecting to Strava..."); // Show loading indicator
+                        window.location.href = stravaAuthUrl;
+                    });
+                }
+            } else {
+                console.error("Strava connect button not found.");
+                showError("UI Error: Strava connect button missing.");
+            }
+
             showLoading(false); // Hide loading if waiting for auth
         }
 

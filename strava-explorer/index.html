@@ -30,7 +30,7 @@
         <!-- <canvas id='snapshot' class='absolute top-0 left-0 w-full h-full pointer-events-none' style="visibility:hidden"></canvas> -->
 
         <!-- Sidebar Container - Added top-16, responsive classes -->
-        <aside class="absolute top-16 left-3 z-10 w-[450px] max-w-[calc(100%-1.5rem)] flex flex-col bg-white rounded-lg shadow-xl overflow-hidden md:bottom-auto md:max-h-[calc(100vh-5rem)] max-md:bottom-0 max-md:left-0 max-md:right-0 max-md:top-auto max-md:w-full max-md:max-w-full max-md:max-h-[45vh] max-md:rounded-none max-md:rounded-t-lg max-md:border-t">
+        <aside class="absolute top-[20px] left-3 z-10 w-[450px] max-w-[calc(100%-1.5rem)] flex flex-col bg-white rounded-lg shadow-xl overflow-hidden md:bottom-auto md:max-h-[calc(100vh-5rem)] max-md:bottom-0 max-md:left-0 max-md:right-0 max-md:top-auto max-md:w-full max-md:max-w-full max-md:max-h-[45vh] max-md:rounded-none max-md:rounded-t-lg max-md:border-t">
             <!-- Sidebar Header -->
             <div class='p-4 border-b border-gray-200 flex-shrink-0'>
                  <h3 class='text-lg font-semibold text-gray-800'>Strava 3D Activity Explorer</h3> <!-- Updated Title -->
@@ -41,9 +41,9 @@
                 <div id="strava_auth" class="flex flex-col items-center">
                     <p class="text-sm text-gray-700 mb-3 text-center">Connect to your Strava activities and explore them in 3D.</p>
                     <!-- Strava Connect Button -->
-                    <a href="http://www.strava.com/oauth/authorize?client_id=1495&response_type=code&redirect_uri=https://serve-dot-zipline.googleplex.com/asset/1f36aa09-5981-5344-afa0-6eae2553ce80/&approval_prompt=auto&scope=read_all,activity:read_all" class="inline-block">
+                    <button id="strava-connect-button" class="mx-auto"> <!-- Added mx-auto for explicit centering -->
                         <img src="./static/btn_strava_connectwith_orange@2x.png" alt="Connect to Strava" class="h-10 hover:opacity-80 transition-opacity">
-                    </a>
+                    </button>
                 </div>
                 <!-- Athlete Profile Section (Initially Hidden) -->
                 <div id="athlete-info" class="flex items-center hidden"> <!-- Removed mb-4 -->
@@ -139,12 +139,6 @@
                  <button id="logout-button" class="hidden text-xs bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500"> 
                     Logout
                  </button>
-                 <!-- Original Snapshot Button Code (Commented Out)
-                 <button id='take_snap' class='w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>
-                    Take Snapshot
-                </button>
-            </footer>
-             -->
         </aside>
     </div>
 
