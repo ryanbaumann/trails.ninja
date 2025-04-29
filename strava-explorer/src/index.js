@@ -2,12 +2,14 @@
 
 import * as strava from './strava.js';
 import * as gmp from './gmp.js';
+import { setFollowCameraState, stopFollowCamera } from './followCamera.js'; // Import specific functions
 
 // --- Module-Level Variables ---
 let currentActivityId = null; // Keep track of the currently displayed activity ID
+let currentRouteCoords = null; // Store the LatLng array for the current route
 
 // --- DOM Element References ---
-let mapHost, loadingIndicator, loadingText, errorMessageDiv, statsContainer, activityNameEl, activityDistEl, activityTimeEl, activityElevEl, activityAvgSpeedEl, activityMaxSpeedEl, elevationProfileWidget, selectList, activityFilterDiv, startDateInput, endDateInput, activityCountInput, fetchFilteredButton, footerAthleteInfo, footerProfileImg, footerProfileName, logoutButton, stravaConnectButton, stravaAuthDiv;
+let mapHost, loadingIndicator, loadingText, errorMessageDiv, statsContainer, activityNameEl, activityDistEl, activityTimeEl, activityElevEl, activityAvgSpeedEl, activityMaxSpeedEl, elevationProfileWidget, selectList, activityFilterDiv, startDateInput, endDateInput, activityCountInput, fetchFilteredButton, footerAthleteInfo, footerProfileImg, footerProfileName, logoutButton, stravaConnectButton, stravaAuthDiv, followCameraToggle;
 
 // --- Utility Functions (Passed to Modules) ---
 function showLoading(isLoading, text = "Loading...") {
@@ -50,8 +52,9 @@ async function initApp() {
     footerProfileImg = document.getElementById('footer-strava_profile');
     footerProfileName = document.getElementById('footer-strava-username');
     logoutButton = document.getElementById('logout-button');
+    followCameraToggle = document.getElementById('follow-camera-toggle');
 
-    if (!mapHost || !activityFilterDiv || !fetchFilteredButton || !footerAthleteInfo || !logoutButton || !stravaConnectButton || !stravaAuthDiv) {
+    if (!mapHost || !activityFilterDiv || !fetchFilteredButton || !footerAthleteInfo || !logoutButton || !stravaConnectButton || !stravaAuthDiv || !followCameraToggle) {
         showError("Essential HTML elements are missing. Cannot initialize.");
         return;
     }
@@ -97,6 +100,19 @@ async function initApp() {
         // Error should have been shown by the module that failed (gmp.initMap or strava.exchangeToken)
         showLoading(false);
     }
+
+    // Add listener for the follow camera toggle
+    followCameraToggle.addEventListener('change', (event) => {
+        const isChecked = event.target.checked;
+        console.log(`Follow camera toggled: ${isChecked}`);
+        if (isChecked && !currentRouteCoords) {
+            showError("Cannot enable follow camera: No activity route loaded.");
+            event.target.checked = false; // Revert toggle if no route
+            return;
+        }
+        // Start immediately when toggled manually, no delay
+        setFollowCameraState(isChecked, currentRouteCoords, false); // Use direct import
+    });
 }
 
 // --- Authentication Handling ---
@@ -265,9 +281,11 @@ function handleActivitySelectionChange(event) {
 // --- Detailed Activity Display ---
 function clearActivityDisplay() {
     console.log("Clearing previous activity display (map elements, stats)...");
-    // Clear map elements using GMP module functions
+    // Clear map elements using GMP module functions and direct followCamera import
+    stopFollowCamera(); // Stop any active animation (Use direct import)
     gmp.removePreviousPolyline();
     gmp.clearPhotoMarkers();
+    currentRouteCoords = null; // Clear stored coordinates
 
     // Clear UI stats
     if (statsContainer) statsContainer.classList.add('hidden');
@@ -291,6 +309,8 @@ function clearActivityDisplay() {
         });
     }
     currentActivityId = null;
+    // Ensure toggle is off when activity cleared
+    if (followCameraToggle) followCameraToggle.checked = false;
 }
 
 
@@ -364,8 +384,15 @@ async function displayDetailedActivity(activityData) {
     } else {
         showError("Failed to decode or process activity route.");
         showLoading(false);
+        showLoading(false);
         return; // Stop if polyline is bad
     }
+
+    // Store coordinates for toggle use and start follow camera
+    currentRouteCoords = decodedPathLatLng;
+    if (followCameraToggle) followCameraToggle.checked = true; // Ensure toggle is ON by default for new route
+    setFollowCameraState(true, currentRouteCoords, true); // Start with 5-second delay (Use direct import)
+
     showLoading(false); // Hide loading after polyline processing and camera flight start
 
     // --- Update UI Stats (Imperial Units) ---

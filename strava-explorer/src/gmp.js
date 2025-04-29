@@ -1,5 +1,6 @@
 // strava-explorer/gmp.js
 import { Loader } from '@googlemaps/js-api-loader';
+import { initializeFollowCamera } from './followCamera.js'; // Import initializer
 
 // --- Module-Level Variables ---
 let map3d = null;
@@ -7,6 +8,7 @@ let elevator = null;
 let previousPolyline = null;
 let photoMarkers = new Map(); // Stores { marker, popover } pairs, key = photo.unique_id
 
+// Follow Camera state moved to followCamera.js
 // GMP Class variables (populated in initMap)
 let Map3DElement, Marker3DInteractiveElement, Polyline3DElement, AltitudeMode, MapMode, PinElement, PopoverElement;
 let ElevationService, ElevationElement; // Removed Place
@@ -60,6 +62,11 @@ export async function initMap(mapHostElement, apiKey) {
         });
         mapHostElement.appendChild(map3d);
         console.log("3D Map initialized.");
+
+        // Initialize Follow Camera module after map and dependencies are ready
+        // Pass the module-level showError, which might be updated by setHelpers
+        initializeFollowCamera(map3d, LatLng, getClientElevation, showError);
+
         showLoading(false);
         return map3d; // Return the map instance
 
@@ -335,6 +342,7 @@ export function getLatLngClass() {
     return LatLng;
 }
 
+// --- Follow Camera Implementation (Moved to followCamera.js) ---
 export function getLatLngBoundsClass() {
     return LatLngBounds;
 }

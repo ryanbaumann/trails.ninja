@@ -1,3 +1,11 @@
-node_modules
+aqi-map/node_modules
+strava-explorer/node_modules
+node_modules/
 
+strava-explorer/.env.development
+strava-explorer/.env.production
 strava-explorer/.env
+
+# Ignore build artifacts
+strava-explorer/build
+strava-explorer/dist
