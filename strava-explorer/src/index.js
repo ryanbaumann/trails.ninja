@@ -2,14 +2,14 @@
 
 import * as strava from './strava.js';
 import * as gmp from './gmp.js';
-import { setFollowCameraState, stopFollowCamera } from './followCamera.js'; // Import specific functions
+import { setFollowCameraState, stopFollowCamera, setFollowCameraSpeed } from './followCamera.js'; // Import specific functions
 
 // --- Module-Level Variables ---
 let currentActivityId = null; // Keep track of the currently displayed activity ID
 let currentRouteCoords = null; // Store the LatLng array for the current route
 
 // --- DOM Element References ---
-let mapHost, loadingIndicator, loadingText, errorMessageDiv, statsContainer, activityNameEl, activityDistEl, activityTimeEl, activityElevEl, activityAvgSpeedEl, activityMaxSpeedEl, elevationProfileWidget, selectList, activityFilterDiv, startDateInput, endDateInput, activityCountInput, fetchFilteredButton, footerAthleteInfo, footerProfileImg, footerProfileName, logoutButton, stravaConnectButton, stravaAuthDiv, followCameraToggle;
+let mapHost, loadingIndicator, loadingText, errorMessageDiv, statsContainer, activityNameEl, activityDistEl, activityTimeEl, activityElevEl, activityAvgSpeedEl, activityMaxSpeedEl, elevationProfileWidget, selectList, activityFilterDiv, startDateInput, endDateInput, activityCountInput, fetchFilteredButton, footerAthleteInfo, footerProfileImg, footerProfileName, logoutButton, stravaConnectButton, stravaAuthDiv, followCameraToggle, followCameraSpeedSlider, followCameraSpeedValue;
 
 // --- Utility Functions (Passed to Modules) ---
 function showLoading(isLoading, text = "Loading...") {
@@ -53,8 +53,11 @@ async function initApp() {
     footerProfileName = document.getElementById('footer-strava-username');
     logoutButton = document.getElementById('logout-button');
     followCameraToggle = document.getElementById('follow-camera-toggle');
+    followCameraSpeedSlider = document.getElementById('follow-camera-speed-slider');
+    followCameraSpeedValue = document.getElementById('follow-camera-speed-value');
 
-    if (!mapHost || !activityFilterDiv || !fetchFilteredButton || !footerAthleteInfo || !logoutButton || !stravaConnectButton || !stravaAuthDiv || !followCameraToggle) {
+
+    if (!mapHost || !activityFilterDiv || !fetchFilteredButton || !footerAthleteInfo || !logoutButton || !stravaConnectButton || !stravaAuthDiv || !followCameraToggle || !followCameraSpeedSlider || !followCameraSpeedValue) {
         showError("Essential HTML elements are missing. Cannot initialize.");
         return;
     }
@@ -112,6 +115,13 @@ async function initApp() {
         }
         // Start immediately when toggled manually, no delay
         setFollowCameraState(isChecked, currentRouteCoords, false); // Use direct import
+    });
+
+    // Add listener for the follow camera speed slider
+    followCameraSpeedSlider.addEventListener('input', (event) => {
+        const speed = parseFloat(event.target.value);
+        followCameraSpeedValue.textContent = `${speed.toFixed(1)}x`;
+        setFollowCameraSpeed(speed); // Use direct import
     });
 }
 
@@ -309,7 +319,7 @@ function clearActivityDisplay() {
         });
     }
     currentActivityId = null;
-    // Ensure toggle is off when activity cleared
+    // Ensure toggle is explicitly off when activity cleared
     if (followCameraToggle) followCameraToggle.checked = false;
 }
 
@@ -388,10 +398,12 @@ async function displayDetailedActivity(activityData) {
         return; // Stop if polyline is bad
     }
 
-    // Store coordinates for toggle use and start follow camera
+    // Store coordinates for toggle use
     currentRouteCoords = decodedPathLatLng;
-    if (followCameraToggle) followCameraToggle.checked = true; // Ensure toggle is ON by default for new route
-    setFollowCameraState(true, currentRouteCoords, true); // Start with 5-second delay (Use direct import)
+    // // Ensure toggle is ON by default for new route - REMOVED: Keep follow camera off by default
+    // if (followCameraToggle) followCameraToggle.checked = true;
+    // // Start with 5-second delay (Use direct import) - REMOVED: Keep follow camera off by default
+    // setFollowCameraState(true, currentRouteCoords, true);
 
     showLoading(false); // Hide loading after polyline processing and camera flight start
 

@@ -1,4 +1,4 @@
-// strava-explorer/followCamera.js
+// strava-explorer/src/followCamera.js
 
 // --- Module-Level Variables ---
 let map3d = null;
@@ -11,9 +11,13 @@ let followCameraActive = false; // Is the feature currently active?
 let followCameraTimeoutId = null; // Timeout ID for the initial 5-second delay
 let followCameraAnimationId = null; // requestAnimationFrame ID
 let followCameraCoords = []; // Coordinates of the current route for animation
-let followCameraStartTime = null; // Timestamp when animation started
-let followCameraDuration = 60000; // Default duration (ms), adjust as needed
+let followCameraStartTime = null; // Timestamp when animation started (raw time)
+let followCameraBaseDuration = 60000; // Base duration (ms) before speed adjustment
 let followCameraPathDistance = 0; // Total distance of the path
+let followCameraSpeedMultiplier = 1.0; // Current speed multiplier
+const BASE_INTERPOLATION_FACTOR = 0.02; // Base smoothness factor at 1x speed
+const MAX_INTERPOLATION_FACTOR = 0.5; // Max responsiveness factor at high speeds
+const MIN_INTERPOLATION_FACTOR = 0.01; // Min responsiveness factor at low speeds
 
 /**
  * Initializes the follow camera module with necessary dependencies.
@@ -30,8 +34,48 @@ export function initializeFollowCamera(mapInstance, latLngClass, elevationGetter
     console.log("Follow Camera module initialized.");
 }
 
+/**
+ * Updates the speed multiplier for the follow camera animation.
+ * @param {number} multiplier The new speed multiplier (e.g., 1.0 for normal, 2.0 for double speed).
+ */
+export function setFollowCameraSpeed(multiplier) {
+    if (typeof multiplier === 'number' && multiplier > 0) {
+        followCameraSpeedMultiplier = multiplier;
+        console.log(`Follow camera speed set to: ${multiplier}x`);
+        // No need to restart animation, the frame function will pick up the new speed
+    } else {
+        console.warn(`Invalid speed multiplier provided: ${multiplier}`);
+    }
+}
+
 
 // --- Helper Functions ---
+
+/** Linear interpolation */
+function lerp(start, end, amt) {
+  // Clamp amt to avoid overshooting/undershooting due to floating point issues
+  amt = Math.max(0, Math.min(1, amt));
+  return (1 - amt) * start + amt * end;
+}
+
+/** Shortest angle interpolation (degrees) */
+function lerpAngle(start, end, amt) {
+    // Clamp amt
+    amt = Math.max(0, Math.min(1, amt));
+    const difference = Math.abs(end - start);
+    if (difference > 180) {
+        // We need to wrap around
+        if (end > start) {
+            start += 360;
+        } else {
+            end += 360;
+        }
+    }
+    let value = lerp(start, end, amt);
+    // Normalize back to 0-360
+    return (value + 360) % 360;
+}
+
 
 /**
  * Calculates the Haversine distance between two points in kilometers.
@@ -94,8 +138,11 @@ function samplePointAlongLine(coords, distance) {
             continue; // Move to the next segment
         }
 
-        if (cumulativeDistance + segmentDistance >= distance) {
-            const fraction = (distance - cumulativeDistance) / segmentDistance;
+        // Use a small epsilon to handle floating point comparisons near segment end
+        const epsilon = 1e-9;
+        if (cumulativeDistance + segmentDistance >= distance - epsilon) {
+            // Ensure fraction is between 0 and 1
+            const fraction = Math.max(0, Math.min(1, (distance - cumulativeDistance) / segmentDistance));
             const bearing = calculateBearing(p1, p2);
             const lat = p1.lat() + (p2.lat() - p1.lat()) * fraction;
             const lng = p1.lng() + (p2.lng() - p1.lng()) * fraction;
@@ -123,20 +170,7 @@ function samplePointAlongLine(coords, distance) {
     return null; // Should not happen if checks pass
 }
 
-/**
- * Moves the map camera instantly to the specified position.
- * @param {{center: {lat: number, lng: number, altitude: number}, heading: number, range: number, tilt: number}} position Camera parameters.
- */
-function moveCamera(position) {
-    if (map3d && position?.center && !isNaN(position.center.lat) && !isNaN(position.center.lng) && !isNaN(position.center.altitude)) {
-        map3d.center = position.center;
-        map3d.heading = position.heading;
-        map3d.range = position.range;
-        map3d.tilt = position.tilt;
-    } else {
-        console.warn("moveCamera skipped: Invalid map or position.", { map3d: !!map3d, position });
-    }
-}
+// Note: moveCamera function is removed as we now directly set interpolated values in frame()
 
 /**
  * The animation frame function for the follow camera.
@@ -149,13 +183,20 @@ async function frame(time) {
     }
     if (!followCameraStartTime) followCameraStartTime = time;
 
-    const elapsedTime = time - followCameraStartTime;
-    let animationPhase = elapsedTime / followCameraDuration;
+    // Calculate effective elapsed time based on speed multiplier
+    const rawElapsedTime = time - followCameraStartTime;
+    const effectiveElapsedTime = rawElapsedTime * followCameraSpeedMultiplier;
 
-    if (animationPhase > 1) {
+    // Calculate animation phase based on base duration and effective elapsed time
+    const effectiveDuration = followCameraBaseDuration; // Duration remains constant, speed affects elapsed time
+    let animationPhase = effectiveElapsedTime / effectiveDuration;
+
+    if (animationPhase >= 1) {
         animationPhase = 1; // Clamp to end
         followCameraActive = false; // Stop animation after completion
         console.log("Follow camera animation finished.");
+        // Set final position directly
+        // (Optional: could calculate final point and set it for precision)
     }
 
     const distanceAlongPath = followCameraPathDistance * animationPhase;
@@ -174,36 +215,67 @@ async function frame(time) {
     // Fetch ground elevation for the sampled point to adjust camera altitude
     let groundElevation = 10; // Default
     try {
+        // Use the non-interpolated target point for elevation query
         groundElevation = await getClientElevation(alongCoords.point);
     } catch (e) {
         console.error("Error fetching elevation during animation:", e);
         // Use default elevation
     }
 
-    const cameraAltitude = groundElevation + 50; // Camera 50m above the sampled point's ground elevation
+    const targetCameraAltitude = groundElevation + 50; // Target: 50m above the sampled point's ground elevation
 
-    const cameraPosition = {
-        center: { lat: alongCoords.point.lat(), lng: alongCoords.point.lng(), altitude: cameraAltitude },
+    const targetCameraPosition = {
+        center: { lat: alongCoords.point.lat(), lng: alongCoords.point.lng(), altitude: targetCameraAltitude },
         heading: alongCoords.bearing,
         range: 500, // How far the camera looks (meters)
         tilt: 75,   // Camera angle (degrees from vertical)
     };
 
+    // --- Dynamic Interpolation Factor (Revised) ---
+    // Adjust responsiveness based on speed, using sqrt for non-linear scaling.
+    let currentInterpolationFactor = BASE_INTERPOLATION_FACTOR * Math.sqrt(followCameraSpeedMultiplier);
+    // Clamp the factor between min and max responsiveness values.
+    currentInterpolationFactor = Math.max(MIN_INTERPOLATION_FACTOR, Math.min(MAX_INTERPOLATION_FACTOR, currentInterpolationFactor));
+
+
+    // --- Interpolation Step ---
+    const currentCamera = {
+        center: map3d.center,
+        heading: map3d.heading,
+        range: map3d.range,
+        tilt: map3d.tilt
+    };
+
+    const interpolatedCamera = {
+        center: {
+            lat: lerp(currentCamera.center.lat, targetCameraPosition.center.lat, currentInterpolationFactor),
+            lng: lerp(currentCamera.center.lng, targetCameraPosition.center.lng, currentInterpolationFactor),
+            altitude: lerp(currentCamera.center.altitude, targetCameraPosition.center.altitude, currentInterpolationFactor)
+        },
+        heading: lerpAngle(currentCamera.heading, targetCameraPosition.heading, currentInterpolationFactor),
+        range: lerp(currentCamera.range, targetCameraPosition.range, currentInterpolationFactor),
+        tilt: lerp(currentCamera.tilt, targetCameraPosition.tilt, currentInterpolationFactor)
+    };
+
     // Validate coordinates before moving camera
-    if (isNaN(cameraPosition.center.lat) || isNaN(cameraPosition.center.lng) || isNaN(cameraPosition.center.altitude) || isNaN(cameraPosition.heading)) {
-        console.error('frame ERROR: Invalid coordinates detected before moveCamera!', {
-             pointLat: alongCoords?.point?.lat(),
-             pointLng: alongCoords?.point?.lng(),
-             cameraAltitude: cameraAltitude,
-             bearing: alongCoords?.bearing,
+    if (isNaN(interpolatedCamera.center.lat) || isNaN(interpolatedCamera.center.lng) || isNaN(interpolatedCamera.center.altitude) || isNaN(interpolatedCamera.heading)) {
+        console.error('frame ERROR: Invalid interpolated coordinates detected!', {
+             current: currentCamera,
+             target: targetCameraPosition,
+             interpolated: interpolatedCamera,
              distanceAlongPath: distanceAlongPath,
-             animationPhase: animationPhase
+             animationPhase: animationPhase,
+             currentInterpolationFactor: currentInterpolationFactor
             });
         // Stop animation on error to prevent further issues
         stopFollowCamera();
         return;
     } else {
-        moveCamera(cameraPosition); // Only move if valid
+        // Directly set map properties with interpolated values
+        map3d.center = interpolatedCamera.center;
+        map3d.heading = interpolatedCamera.heading;
+        map3d.range = interpolatedCamera.range;
+        map3d.tilt = interpolatedCamera.tilt;
     }
 
     // Request next frame if still active
@@ -218,7 +290,7 @@ async function frame(time) {
 /**
  * Starts the follow camera animation.
  * @param {google.maps.LatLng[]} routeCoords Coordinates of the route.
- * @param {number} [durationMs=60000] Optional duration for the animation.
+ * @param {number} [durationMs=60000] Optional base duration for the animation.
  */
 function startFollowCamera(routeCoords, durationMs) {
     if (!map3d) {
@@ -236,8 +308,8 @@ function startFollowCamera(routeCoords, durationMs) {
 
     console.log("Starting follow camera animation.");
     followCameraCoords = routeCoords;
-    followCameraDuration = durationMs || 60000; // Use provided duration or default
-    followCameraStartTime = null; // Reset start time
+    followCameraBaseDuration = durationMs || 60000; // Store the base duration
+    followCameraStartTime = null; // Reset start time (will be set on first frame)
     followCameraActive = true;
 
     // Calculate total path distance
@@ -307,12 +379,12 @@ export function setFollowCameraState(isActive, routeCoords, useDelay = false) {
         if (useDelay) {
             console.log("Scheduling follow camera start in 5 seconds...");
             followCameraTimeoutId = setTimeout(() => {
-                startFollowCamera(routeCoords);
+                startFollowCamera(routeCoords); // Uses default base duration
                 followCameraTimeoutId = null; // Clear the ID after execution
             }, 5000);
         } else {
             // Start immediately
-            startFollowCamera(routeCoords);
+            startFollowCamera(routeCoords); // Uses default base duration
         }
     } else {
         stopFollowCamera();
