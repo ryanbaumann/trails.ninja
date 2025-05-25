@@ -9,7 +9,7 @@ let currentActivityId = null; // Keep track of the currently displayed activity 
 let currentRouteCoords = null; // Store the LatLng array for the current route
 
 // --- DOM Element References ---
-let mapHost, loadingIndicator, loadingText, errorMessageDiv, statsContainer, activityNameEl, activityDistEl, activityTimeEl, activityElevEl, activityAvgSpeedEl, activityMaxSpeedEl, elevationProfileWidget, selectList, activityFilterDiv, startDateInput, endDateInput, activityCountInput, fetchFilteredButton, footerAthleteInfo, footerProfileImg, footerProfileName, logoutButton, stravaConnectButton, stravaAuthDiv, followCameraToggle, followCameraSpeedSlider, followCameraSpeedValue;
+let mapHost, loadingIndicator, loadingText, errorMessageDiv, statsContainer, activityNameEl, activityDistEl, activityTimeEl, activityElevEl, activityAvgSpeedEl, activityMaxSpeedEl, activityTotalLossEl, elevationProfileWidget, selectList, activityFilterDiv, startDateInput, endDateInput, activityCountInput, fetchFilteredButton, footerAthleteInfo, footerProfileImg, footerProfileName, logoutButton, stravaConnectButton, stravaAuthDiv, followCameraToggle, followCameraSpeedSlider, followCameraSpeedValue;
 
 // --- Utility Functions (Passed to Modules) ---
 function showLoading(isLoading, text = "Loading...") {
@@ -42,6 +42,7 @@ async function initApp() {
     activityElevEl = document.getElementById('activity-elevation');
     activityAvgSpeedEl = document.getElementById('activity-avg-speed');
     activityMaxSpeedEl = document.getElementById('activity-max-speed');
+    activityTotalLossEl = document.getElementById('activity-total-loss'); // Added
     elevationProfileWidget = document.getElementById('elevation-profile');
     activityFilterDiv = document.getElementById('activity-filter');
     startDateInput = document.getElementById('start-date');
@@ -57,7 +58,7 @@ async function initApp() {
     followCameraSpeedValue = document.getElementById('follow-camera-speed-value');
 
 
-    if (!mapHost || !activityFilterDiv || !fetchFilteredButton || !footerAthleteInfo || !logoutButton || !stravaConnectButton || !stravaAuthDiv || !followCameraToggle || !followCameraSpeedSlider || !followCameraSpeedValue) {
+    if (!mapHost || !activityFilterDiv || !fetchFilteredButton || !footerAthleteInfo || !logoutButton || !stravaConnectButton || !stravaAuthDiv || !followCameraToggle || !followCameraSpeedSlider || !followCameraSpeedValue || !activityTotalLossEl) { // Added activityTotalLossEl
         showError("Essential HTML elements are missing. Cannot initialize.");
         return;
     }
@@ -305,6 +306,7 @@ function clearActivityDisplay() {
     if (activityElevEl) activityElevEl.textContent = '';
     if (activityAvgSpeedEl) activityAvgSpeedEl.textContent = '';
     if (activityMaxSpeedEl) activityMaxSpeedEl.textContent = '';
+    if (activityTotalLossEl) activityTotalLossEl.textContent = ''; // Added
 
     // Clear elevation widget path
     if (elevationProfileWidget) {
@@ -338,7 +340,22 @@ async function fetchAndDisplayDetailedActivity(activityId) {
 
     try {
         const detailedActivityData = await strava.fetchDetailedActivityData(activityId, token);
-        await displayDetailedActivity(detailedActivityData); // Pass data to display function
+        // Fetch altitude stream
+        // Assuming strava.js will have fetchActivityStreams(activityId, token, streamTypesArray)
+        // and it returns an object like { altitude: { data: [...] }, ... }
+        let altitudeStream = null;
+        try {
+            const streams = await strava.fetchActivityStreams(activityId, token, ['altitude']);
+            if (streams && streams.altitude) {
+                altitudeStream = streams.altitude;
+            } else {
+                console.warn(`Altitude stream not found for activity ${activityId}`);
+            }
+        } catch (streamError) {
+            console.error(`Failed to fetch altitude stream for activity ${activityId}:`, streamError);
+            // Continue without elevation loss if streams fail, or show specific error part
+        }
+        await displayDetailedActivity(detailedActivityData, altitudeStream); // Pass data and stream to display function
     } catch (error) {
         console.error(`Failed to fetch or display detailed activity ${activityId}:`, error);
         // Error should have been shown by strava.fetchDetailedActivityData or displayDetailedActivity
@@ -347,7 +364,7 @@ async function fetchAndDisplayDetailedActivity(activityId) {
     }
 }
 
-async function displayDetailedActivity(activityData) {
+async function displayDetailedActivity(activityData, altitudeStream) { // Added altitudeStream parameter
     console.log(`[displayDetailedActivity] Called with data for activity ID: ${activityData?.id}`);
     if (!activityData?.map?.polyline) {
         showError("Detailed activity data is missing map polyline.");
@@ -408,7 +425,7 @@ async function displayDetailedActivity(activityData) {
     showLoading(false); // Hide loading after polyline processing and camera flight start
 
     // --- Update UI Stats (Imperial Units) ---
-    updateStatsUI(activityData);
+    updateStatsUI(activityData, altitudeStream); // Pass altitudeStream
 
     // --- Configure Elevation Profile Widget ---
     configureElevationWidget(decodedPathLatLng); // Pass the LatLng array
@@ -431,7 +448,22 @@ async function displayDetailedActivity(activityData) {
     }
 }
 
-function updateStatsUI(activityData) {
+// Helper function to calculate total elevation loss from altitude stream data
+function calculateElevationLossFromStream(altitudeData) {
+    if (!altitudeData || altitudeData.length < 2) {
+        return 0;
+    }
+    let totalLoss = 0;
+    for (let i = 1; i < altitudeData.length; i++) {
+        const diff = altitudeData[i] - altitudeData[i-1];
+        if (diff < 0) {
+            totalLoss -= diff; // Add the absolute difference for loss
+        }
+    }
+    return totalLoss;
+}
+
+function updateStatsUI(activityData, altitudeStream) { // Added altitudeStream parameter
     const metersToFeet = 3.28084;
     const kmToMiles = 0.621371;
     const mpsToMph = 2.23694;
@@ -449,12 +481,19 @@ function updateStatsUI(activityData) {
     const seconds = movingTimeSeconds % 60;
     const movingTimeFormatted = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
+    let totalLossFeet = 'N/A';
+    if (altitudeStream && altitudeStream.data) {
+        const calculatedLossMeters = calculateElevationLossFromStream(altitudeStream.data);
+        totalLossFeet = (calculatedLossMeters * metersToFeet).toFixed(0);
+    }
+
     if (activityNameEl) activityNameEl.textContent = activityData.name || 'Unnamed Activity';
     if (activityDistEl) activityDistEl.textContent = `${distanceMiles} mi`;
     if (activityTimeEl) activityTimeEl.textContent = movingTimeFormatted;
     if (activityElevEl) activityElevEl.textContent = `${elevationGainFeet} ft`;
     if (activityAvgSpeedEl) activityAvgSpeedEl.textContent = `${avgSpeedMph} mph`;
     if (activityMaxSpeedEl) activityMaxSpeedEl.textContent = `${maxSpeedMph} mph`;
+    if (activityTotalLossEl) activityTotalLossEl.textContent = `${totalLossFeet} ft`; // Added
     if (statsContainer) statsContainer.classList.remove('hidden');
     console.log("[updateStatsUI] UI stats updated.");
 }
@@ -503,6 +542,9 @@ async function configureElevationWidget(decodedPathLatLng) { // Expects array of
 // --- UI Helpers ---
 function setInitialDateInputs() {
     const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1); // Set to tomorrow
+
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(today.getDate() - 90);
 
@@ -514,7 +556,7 @@ function setInitialDateInputs() {
     };
 
     if (startDateInput) startDateInput.value = formatDate(ninetyDaysAgo);
-    if (endDateInput) endDateInput.value = formatDate(today);
+    if (endDateInput) endDateInput.value = formatDate(tomorrow); // Changed from today to tomorrow
 }
 
 

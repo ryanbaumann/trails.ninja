@@ -63,6 +63,39 @@ export async function exchangeToken(code) {
     }
 }
 
+export async function fetchActivityStreams(activityId, token, streamTypes) {
+    if (!activityId || !token || !streamTypes || !streamTypes.length) {
+        console.error("Missing parameters for fetchActivityStreams");
+        // helpers are globally available in this module after setHelpers is called
+        showError("Cannot fetch activity streams: Missing required info.");
+        throw new Error("Missing parameters for fetchActivityStreams");
+    }
+    showLoading(true, "Fetching activity streams...");
+    try {
+        const keys = streamTypes.join(',');
+        const response = await fetch(`https://www.strava.com/api/v3/activities/${activityId}/streams?keys=${keys}&key_by_type=true`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Strava API error (streams):", errorData);
+            showError(`Error fetching streams: ${errorData.message || response.statusText}`);
+            throw new Error(`Strava API Error: ${response.status} ${response.statusText}`);
+        }
+        const streamsData = await response.json();
+        showLoading(false);
+        return streamsData;
+    } catch (error) {
+        console.error("Error in fetchActivityStreams:", error);
+        showError("Failed to fetch activity streams.");
+        showLoading(false);
+        throw error;
+    }
+}
+
 export function getStravaToken() {
     return stravatoken;
 }
