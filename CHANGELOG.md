@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - Cleaned up `.agents/skills/` by removing redundant or globally available skills (`geocoding-api-web-api`, `google-maps-environment-apis`, `google-maps-js-2d`, `google-maps-js-3d`, `maps-javascript-api-javascript`, `places-api-web-api`, `pollen-api-web-api`, `setup-local-environment`, `weather-api-web-api`).
 
 ### Added
+- Added the private Field Note “The Power File Is Not the Race,” grounding the human leadership choices around AI productivity in a 2009 time trial, two leadership studies, and three original visuals.
 - Added the Field Note “The Model That Picks Your Platform Doesn't Write the Code” on tiered coding agents and where a developer platform's DevX strategy should focus, with a header flow diagram, an inline two-readers diagram, and a generated social card.
 - Added OAuth-admin staging of editable, unpublished LinkedIn and X drafts beside each Field Note, plus first-attempt merge staging for newly added drafts, with tracked starter copy, opt-out metadata, side-effect-free workflow reruns, and secret-safe configuration.
 - Completed the Writer edit flow with focused direct-branch saves, in-dashboard errors, and a GitHub merge link when a protected workflow uses a separate publishing branch.

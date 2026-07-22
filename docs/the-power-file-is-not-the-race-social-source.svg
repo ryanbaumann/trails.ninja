@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="627" viewBox="0 0 1200 627">
+  <rect width="1200" height="627" fill="#faf9f6"/>
+  <rect width="1200" height="9" fill="#3b82f6"/>
+  <rect x="1" y="1" width="1198" height="625" fill="none" stroke="#d9dde5" stroke-width="2"/>
+  <text x="68" y="89" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="25" font-weight="700" letter-spacing="2.5" fill="#2563eb">FIELD NOTE</text>
+  <text x="68" y="171" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="65" font-weight="800" letter-spacing="-2" fill="#111827">AI is not the race</text>
+  <rect x="68" y="229" width="482" height="278" rx="22" fill="#111827"/>
+  <text x="108" y="282" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="22" font-weight="700" letter-spacing="2" fill="#faf9f6" opacity=".7">POWER FILE</text>
+  <text x="309" y="405" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="108" font-weight="800" letter-spacing="-4" fill="#faf9f6">400 W</text>
+  <text x="309" y="463" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="27" fill="#faf9f6" opacity=".76">FOR ONE HOUR</text>
+  <rect x="594" y="229" width="538" height="278" rx="22" fill="#ffffff" stroke="#d9dde5" stroke-width="3"/>
+  <text x="634" y="282" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="22" font-weight="700" letter-spacing="2" fill="#5f6875">RACE RESULT</text>
+  <text x="863" y="405" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="103" font-weight="800" letter-spacing="-4" fill="#111827">&gt;2:00</text>
+  <text x="863" y="463" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="27" fill="#5f6875">BEHIND</text>
+  <text x="68" y="575" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="25" fill="#5f6875">the harder question is what we do with the gain</text>
+</svg>

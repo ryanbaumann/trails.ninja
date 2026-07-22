@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">What happens to the hour AI saves</title>
+  <desc id="desc">An hour saved by AI branches toward more requested output or toward customers, harder problems, feedback, and judgment.</desc>
+  <style>
+    :root { --bg:#faf9f6; --surface:#fff; --ink:#111827; --muted:#5f6875; --line:#d9dde5; --accent:#3b82f6; --accent-ink:#2563eb; --soft:#eaf2ff; }
+    @media (prefers-color-scheme:dark) { :root { --bg:#030712; --surface:#111827; --ink:#f9fafb; --muted:#aeb7c4; --line:#334155; --accent:#60a5fa; --accent-ink:#93c5fd; --soft:#12213b; } }
+    .sans { font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    .mono { font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 10 5 0 10Z" fill="var(--accent)"/></marker>
+  </defs>
+  <rect width="1200" height="675" fill="var(--bg)"/>
+  <rect width="1200" height="8" fill="var(--accent)"/>
+  <rect x="1" y="1" width="1198" height="673" fill="none" stroke="var(--line)" stroke-width="2"/>
+  <text x="70" y="82" class="mono" font-size="25" font-weight="700" letter-spacing="2.5" fill="var(--accent-ink)">WHAT HAPPENS TO THE GAIN?</text>
+  <text x="70" y="145" class="sans" font-size="50" font-weight="750" letter-spacing="-1.4" fill="var(--ink)">Saving time creates a choice</text>
+
+  <g aria-label="One hour saved">
+    <circle cx="215" cy="365" r="118" fill="var(--ink)"/>
+    <text x="215" y="347" text-anchor="middle" class="sans" font-size="72" font-weight="800" fill="var(--bg)">1 HR</text>
+    <text x="215" y="402" text-anchor="middle" class="mono" font-size="25" fill="var(--bg)" opacity=".78">SAVED BY AI</text>
+  </g>
+
+  <path d="M347 365H440C478 365 478 285 516 285H580" fill="none" stroke="var(--line)" stroke-width="5" marker-end="url(#arrow)"/>
+  <path d="M347 365H440C478 365 478 470 516 470H580" fill="none" stroke="var(--accent)" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <g aria-label="More requested output">
+    <rect x="610" y="205" width="510" height="160" rx="22" fill="var(--surface)" stroke="var(--line)" stroke-width="3"/>
+    <text x="652" y="270" class="mono" font-size="23" font-weight="700" letter-spacing="1.8" fill="var(--muted)">DEFAULT</text>
+    <text x="652" y="325" class="sans" font-size="43" font-weight="750" fill="var(--ink)">More requested output</text>
+  </g>
+
+  <g aria-label="More capability">
+    <rect x="610" y="390" width="510" height="192" rx="22" fill="var(--soft)" stroke="var(--accent)" stroke-width="3"/>
+    <text x="652" y="448" class="mono" font-size="23" font-weight="700" letter-spacing="1.8" fill="var(--accent-ink)">REINVEST</text>
+    <text x="652" y="503" class="sans" font-size="43" font-weight="750" fill="var(--ink)">More capability</text>
+    <text x="652" y="552" class="mono" font-size="24" fill="var(--muted)">customers · hard problems · feedback · judgment</text>
+  </g>
+
+  <text x="70" y="632" class="mono" font-size="26" fill="var(--muted)">the time savings are automatic · the investment is a leadership choice</text>
+</svg>
