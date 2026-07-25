@@ -2,6 +2,13 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-07-25 - A hover state that borrows the focus ring's language removes an accessibility affordance
+
+Context: `.card:hover` had grown to a 4px lift, a transparent border, a 2px accent ring, and two hardcoded `rgba(0,0,0,...)` shadow layers, against a design skill that specifies border accent plus a 2px lift and nothing more.
+Learning: Judge a hover change against the other states it has to coexist with, not against its own screenshot. This ring was `2px solid` in the accent color at the same visual weight as `:focus-visible`, so a hovered card and a focused card became indistinguishable and the focus affordance stopped carrying information. Separately, a hardcoded black shadow is not scheme-neutral: it did real work on the warm light background and disappeared against the dark one, so the two schemes shipped different hover states, which is the concrete reason the skill bans hardcoded color in components.
+Evidence: A rendered audit measured the focus ring at `2px solid rgb(59,130,246)` with `outline-offset: 3px` and reported the hovered card indistinguishable from the focused card in light mode. The same pass found `.card-thumb` cropping 16:9 art at `aspect-ratio: 16/10` and dark `--faint` (9.94:1) rendering brighter than `--muted` (7.93:1), inverting the three-step hierarchy.
+Use next time: When changing an interaction state, render hover, focus, and active together in both schemes before keeping it. If a new state needs a shadow, add a token; a component that hardcodes black has already decided it only cares about one scheme.
+
 ## 2026-07-25 - The prose rules that held were the ones a regex could decide
 
 Context: An audit graded `portfolio-writing` against every published entry. Rules that ban a pattern held at 100 percent across 22 files. Rules needing judgment did not, and the corpus was clean only because a person had been careful, with nothing to catch the next lapse.
