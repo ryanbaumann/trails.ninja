@@ -843,7 +843,7 @@ function featuredNote(entry) {
 
 function sectionHeader(eyebrow, title, moreHref, moreLabel) {
   return `<div class="section-header">
-  <div><p class="eyebrow">${escapeHtml(eyebrow)}</p>${title ? `<h2>${escapeHtml(title)}</h2>` : ''}</div>
+  <div>${eyebrow ? `<p class="eyebrow">${escapeHtml(eyebrow)}</p>` : ''}${title ? `<h2>${escapeHtml(title)}</h2>` : ''}</div>
   ${moreHref ? `<a class="more" href="${moreHref}">${escapeHtml(moreLabel)} →</a>` : ''}
 </div>`;
 }
@@ -1268,12 +1268,11 @@ ${demosSection}
 
 <section class="build-section home-close">
   <div>
-    <p class="eyebrow">Start a conversation</p>
-    <h2>Working on a builder platform or developer tool?</h2>
+    <p class="eyebrow">Collaborate</p>
+    <h2>Building something in this space?</h2>
   </div>
   <div>
-    <p>I am most useful solving end-user technical opportunities for developer and builder platforms, working backwards from a growth hypothesis.</p>
-    <a class="button button-primary" href="${BASE}contact/">Send a note</a>
+    <a class="button button-primary" href="${BASE}contact/">Reach out to collab</a>
   </div>
 </section>
 `;
