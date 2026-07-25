@@ -21,7 +21,7 @@ Mapbox's developer base was web and mobile engineers. Two big adjacent audiences
 
 ## What shipped
 
-I wrote both libraries. **mapboxgl-jupyter** brought Mapbox GL visualization into Python notebooks with pandas-native code. **mapboxgl-powerbi** rendered Mapbox maps natively inside Power BI dashboards. Both were developer advocacy with a product spine: real libraries that closed real workflow gaps, not conference demos.
+I wrote both libraries. **mapboxgl-jupyter** brought Mapbox GL visualization into Python notebooks with pandas-native code. **mapboxgl-powerbi** rendered Mapbox maps natively inside Power BI dashboards. Both were developer advocacy with a product spine: real libraries that closed real workflow gaps.
 
 ![A Power BI dashboard analyzing NYC cyclist injuries on a Mapbox heatmap with the mapboxgl-powerbi custom visual](/img/work/mapboxgl-powerbi.jpg)
 

@@ -49,7 +49,7 @@
   {
     "name": "real-world-reasoning-agent",
     "title": "Atlas - Real World Reasoning Agent",
-    "description": "An interactive map agent that solves real-world geo reasoning problems using Maps APIs.",
+    "description": "An interactive map agent that handles real-world geo reasoning problems using Maps APIs.",
     "path": "https://atlas-demo-561209038703.us-central1.run.app/",
     "source": { "type": "external" },
     "api": { "type": "none" },
