@@ -1,6 +1,6 @@
 ---
 title: The Model That Picks Your Platform Doesn't Write the Code
-summary: As open models make code execution cheap, a developer platform's moat becomes the loop of context, evals, and distribution that keeps critical journeys working while the models underneath churn.
+summary: As open models make code execution cheap, a developer platform's moat becomes the loop of context, evals, and distribution that keeps critical developer journeys working while the models underneath churn.
 date: 2026-07-20
 updated: 2026-07-20
 canonical: https://ryanbaumann.dev/writing/the-model-that-picks-your-platform-doesnt-write-the-code/
@@ -25,7 +25,7 @@ Your platform meets this system twice. The orchestrator is where your platform g
 
 ![A descending staircase of tiers from Frontier to Balanced to Open, the cost circle shrinking at each step, showing the same journey completing at a cheaper tier.](/img/writing/model-tiers-devx.svg)
 
-The execution scoreboard is consistency. A journey is cheap when a small model completes it the same way run after run, with low variance and less context each release. When work that needed Gemini Pro lands just as reliably on Gemini Flash, developers get the same result faster and cheaper, and the same holds for every model family you route. A journey that drops a tier is a win worth counting.
+The execution scoreboard is consistency. A developer journey is cheap when a small model completes it the same way run after run, with low variance and less context each release. When work that needed Gemini Pro lands just as reliably on Gemini Flash, developers get the same result faster and cheaper, and the same holds for every model family you route. A task that drops a tier is a win worth counting.
 
 The moat is the loop, not any single model. Own the context, evals, and distribution that keep your critical journeys working as the models underneath them churn. Our team runs a version of this for Google Maps Platform through portable [agent skills](/work/agent-skills/) and a [task-based eval suite](/work/agentic-evals/). Open source the skills and evals you want model teams to learn from, [keep a held-out set](/writing/builder-platforms-grow-by-owning-the-agent-loop/), and ship the same tested context into every agent developers reach for.
 

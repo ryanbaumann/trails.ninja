@@ -22,7 +22,7 @@ This is a growth problem, not just an AI quality problem. When a developer asks 
 
 ## The model is not the strategy
 
-A coding agent is a model plus a harness. The harness controls instructions, tools, repository search, context, and how the agent decides it is done. Change either and the behavior changes.
+A coding agent is a model plus a harness. The harness controls instructions, tools, repository search, context, and how the agent decides it's done. Change either and the behavior changes.
 
 Models and harnesses will keep moving. Your platform can still own four parts of the loop:
 
@@ -35,7 +35,7 @@ Models and harnesses will keep moving. Your platform can still own four parts of
 
 *The loop: distribute tested context, measure activation, retention, and expansion, then review selected traces to improve the skills and evals.*
 
-Evals test the context. Distribution puts the tested path in more hands, while outcome signals show where it still falls short. After review, some failures become new tasks and some successes become better examples. Usage does not automatically become training data for a model company, and it should not.
+Evals test the context. Distribution puts the tested path in more hands, while outcome signals show where it still falls short. After review, some failures become new tasks and some successes become better examples. Usage doesn't automatically become training data for a model company, and it shouldn't.
 
 ## Why verifiers matter
 
@@ -45,7 +45,7 @@ Pretraining gives a model broad capability. Post-training turns that capability 
 
 *The stack: pretraining builds broad capability. Post-training can use examples, preference rewards, or verifiable rewards. The runtime harness supplies current context, tools, and execution.*
 
-[SWE-Gym](https://arxiv.org/abs/2412.21139) packages real repository tasks with executable environments and tests. That is what a DevX team needs: a real job and a trustworthy check.
+[SWE-Gym](https://arxiv.org/abs/2412.21139) packages real repository tasks with executable environments and tests. That's what a DevX team needs: a real job and a trustworthy check.
 
 ## Start with deterministic checks
 
@@ -56,7 +56,7 @@ For each critical developer journey, define the checks that can be objective:
 - Are credentials handled through the correct boundary?
 - How much time, tool use, and token cost did the successful run require?
 
-Add human judgment where the task needs it. For qualities like UI taste and system simplicity, start with a human-written rubric, and calibrate any model grader against repeated human review. A judge that agrees with itself is not evidence that it agrees with developers.
+Add human judgment where the task needs it. For qualities like UI taste and system simplicity, start with a human-written rubric, and calibrate any model grader against repeated human review. A judge that agrees with itself isn't evidence that it agrees with developers.
 
 ![A critical developer journey passes through deterministic checks and calibrated judgment before a ship, improve, or hold decision, while a separate held-out set helps protect the measurement.](/img/writing/agent-feedback-loop-evals.svg)
 
@@ -70,11 +70,11 @@ A builder platform needs a first-party measurement path, either through a surfac
 
 Record the exact model, harness, context, execution environment, verifier, and run budget, then connect the run to a product outcome. A passing eval only says the path can work. Activation proves the developer found value, and retention confirms they stayed. Expansion follows when the platform earns more of their work.
 
-Do not collect raw source code or private conversations by default. Keep only the signals that can change a product decision, and review traces through an explicit privacy and security process.
+Don't collect raw source code or private conversations by default. Keep only the signals that can change a product decision, and review traces through an explicit privacy and security process.
 
 ## Distribution makes the learning compound
 
-Our team is running a version of this loop for Google Maps Platform through [portable agent skills](/work/agent-skills/) and a [task-based eval suite](/work/agentic-evals/). I lead the strategy and review the traces to help guide our launch decisions. We are still learning what works.
+Our team is running a version of this loop for Google Maps Platform through [portable agent skills](/work/agent-skills/) and a [task-based eval suite](/work/agentic-evals/). I work with product and engineering to guide our launch decisions by reviewing the traces. We're finding new ways it breaks every week.
 
 Ship versioned context in a portable form, and run the same tasks in the tools, prompts, and execution boundaries developers receive. Treat every new model or harness as another row in the test matrix, not a reason to restart the strategy.
 
@@ -88,6 +88,6 @@ Start with ten critical developer journeys. For each one:
 2. Define the deterministic checks and the small amount of calibrated judgment it needs.
 3. Package the best current context as a versioned, portable skill or workflow.
 4. Test it across representative model and harness versions.
-5. Measure outcomes and review failures. Reuse traces only when they are authorized and cleared through privacy and security review.
+5. Measure outcomes and review failures. Reuse traces only when they're authorized and cleared through privacy and security review.
 
 Run it again. Models and harnesses will move, and nobody has this figured out yet, including us. Keep learning, keep experimenting, keep shipping, and let the loop get better every time they do.

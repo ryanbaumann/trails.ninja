@@ -10,6 +10,6 @@ shareImageAlt: Ryan Baumann beside an invitation to start with the thing you are
 
 The most useful conversations start with the thing you are trying to build and the developer friction in the way.
 
-Use the form for a developer-platform discussion, content collaboration, speaking opportunity, or another focused question. I am not available for outside consulting while employed at Google.
+Use the form for a developer-platform discussion, content collaboration, speaking opportunity, or another focused question. I'm not available for outside consulting while employed at Google.
 
-The form sends your note through a server-managed endpoint. Your email address is used to reply, is not exposed on this site, and is not sent to the advertising classifier.
+This form sends your note directly to me. I only use your email to reply—I don't expose it on this site or feed it to an ad classifier.

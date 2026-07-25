@@ -25,9 +25,9 @@ When a developer asks an AI coding agent to add a map, the agent makes several p
 
 Training memory alone is a weak contract for that work because APIs change and recommended patterns move. A platform needs a way to provide current, official context inside the task instead of waiting for the developer to search for it.
 
-[Google Maps Platform Code Assist](https://developers.google.com/maps/ai/code-assist) addresses that gap through a hosted remote MCP service. I led the strategy and wrote the initial evaluation suites, while our team took it from a GitHub alpha to a product that grounds compatible AI coding agents in official documentation, code samples, and architecture guidance. The [public repository](https://github.com/googlemaps/platform-ai) shows the integration surface, and the [launch walkthrough](https://youtu.be/L2V58kKIHvc) shows it in use.
+[Google Maps Platform Code Assist](https://developers.google.com/maps/ai/code-assist) addresses that gap through a hosted remote MCP service. I wrote the initial evaluation suites, and our team took it from a GitHub alpha to a product that grounds compatible AI coding agents in official documentation, code samples, and architecture guidance. The [public repository](https://github.com/googlemaps/platform-ai) shows the integration surface, and the [launch walkthrough](https://youtu.be/L2V58kKIHvc) shows it in use.
 
-The interface is not a new destination: it is a tool call inside the developer's existing agent session.
+The interface isn't a new destination: it's a tool call inside the developer's existing agent session.
 
 ## Facts are necessary, workflows are different
 
@@ -55,6 +55,6 @@ The same principle has held across earlier shifts in developer workflow. At Mapb
 
 ## Replay one real task
 
-We are still learning what works for these interfaces, and the patterns will evolve. But the starting point is visible today. 
+The patterns for these interfaces will evolve as we experiment. But the starting point is visible today. 
 
 Run a real developer task with no platform context, then run it again with current retrieval and workflow guidance. Inspect the trace. The first incorrect decision tells you whether the missing piece is a fact, a workflow, or an eval case, and gives you the next experiment to run.

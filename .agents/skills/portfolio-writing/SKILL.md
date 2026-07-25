@@ -109,6 +109,7 @@ canonical control or write API. For ongoing syndication:
 - Anything that reads like a resume bullet transplanted into prose.
 - Em-dashes.
 - Solo credit for team work.
+- Cliché outdoor metaphors for hobbies (e.g., "chase trails"). Use specific, literal descriptions of the activity (e.g., "love the outdoors and pushing myself gravel riding and trail running").
 - Precise recent internal current-employer usage or growth numbers (use qualitative framing; prior-company and public/verifiable metrics keep their real numbers).
 - Enumerated lists of third-party or competitor AI tools ("AI Studio and other compatible agent environments," not a name-brand list).
 - Employer product-marketing tone that reads like he is selling the platform or looking for work elsewhere.

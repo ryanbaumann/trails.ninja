@@ -9,7 +9,7 @@ image: /assets/devx-growth-header.png
 imageAlt: A four-stage DevX loop moves from observed friction to a shipped fix, distribution in builder workflows, and rising measured outcomes.
 socialImage: /social/devx-growth-discipline.jpg
 shareTitle: DevX Is a Growth Function
-shareSummary: More docs rarely fix a broken journey. Own the friction, ship the fix, distribute the path, and measure the outcome.
+shareSummary: More docs rarely fix a broken developer journey. Own the friction, ship the fix, distribute the path, and measure the outcome.
 shareImageAlt: Social preview reading DevX Is a Growth Discipline beside a product, distribution, and measurement loop.
 tags: ["developer experience", "growth", "distribution", "ai"]
 order: 2
@@ -33,14 +33,14 @@ A great experience has no impact if builders never encounter it. Documentation i
 
 Instead of relying on documentation alone, we distribute executable product behavior directly into developer workflows. Client libraries encapsulate the logic, while [Code Assist](/work/code-assist/) delivers [current official documentation and samples](https://developers.google.com/maps/ai/code-assist) straight to compatible MCP clients. For repetitive tasks, our [Agent skills](/work/agent-skills/) bundle [versioned workflows](https://github.com/googlemaps/agent-skills) across Web, Android, iOS, and Web Services. Before shipping, we gate each skill with a task-based eval to ensure it works.
 
-Distribution cannot be an afterthought. Design the experience so it can travel, then make it the default in the workflows that already have reach.
+Distribution can't be an afterthought. Design the experience so it can travel, then make it the default in the workflows that already have reach.
 
 ## Measure and own outcomes
 
-Traditional feedback loops are slow. While interviews, support themes, and developer surveys remain essential, they rarely translate into immediate product decisions. We shorten this loop using [Agent evaluations](/work/agentic-evals/). When a coding agent attempts a representative task, its trace reveals exactly where the journey stalls or branches wrong. A rubric then scores that result against a no-context baseline, giving us a clear ship-or-hold decision before we launch.
+Traditional feedback loops are slow. While interviews, support themes, and developer surveys remain essential, they rarely translate into immediate product decisions. We shorten this loop using [Agent evaluations](/work/agentic-evals/). When a coding agent attempts a representative task, its trace reveals exactly where the task stalls or branches wrong. A rubric then scores that result against a no-context baseline, giving us a clear ship-or-hold decision before we launch.
 
-Evals do not replace user research, because no single score explains a human builder. An eval delta confirms that the experience can complete the task mechanically. Product telemetry tells us whether builders actually found that path, finished the journey, and returned. Finally, direct research explains why people behaved that way. Together, these signals let a DevX team test specific hypotheses and measure the real outcome.
+Evals don't replace user research, because no single score explains a human builder. An eval delta confirms that the experience can complete the task mechanically. Product telemetry tells us whether builders actually found that path, finished the work, and returned. Finally, direct research explains why people behaved that way. Together, these signals let a DevX team test specific hypotheses and measure the real outcome.
 
 ![An agent evaluation loop moves from a representative task through an agent trace and rubric comparison to a ship-or-hold decision, then repeats using telemetry and research.](/assets/devx-eval-loop.png)
 
-This is the discipline: stop counting output as progress by default. Own the friction, solve it, improve the product, ship the better experience into the workflow, and measure the impact. Then run the loop again. We are still experimenting with every part of it, and that is the point.
+This is the discipline: stop counting output as progress by default. Own the friction, solve it, improve the product, ship the better experience into the workflow, and measure the impact. Then run the loop again. We're still experimenting with every part of it, and that's the point.
