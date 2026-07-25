@@ -29,6 +29,22 @@ test('skips published, external, and opted-out Field Notes', () => {
   assert.deepEqual(buildSocialDrafts({ ...base, stageSocial: false }, 'draft'), []);
 });
 
+// `npm run new:post -- "Title" --schedule <timestamp>` writes draft: false with a
+// future publishAt, which build.mjs treats as unpublished. Staging runs once, on
+// the commit that adds the file, so a note skipped here never gets a draft at all.
+test('stages drafts for a scheduled Field Note that has not published yet', () => {
+  const meta = { ...parseFrontMatter(MARKDOWN), draft: false, publishAt: '2026-08-01T16:00:00Z' };
+  const drafts = buildSocialDrafts(meta, 'devex-growth', new Date('2026-07-18T12:00:00Z'));
+  assert.equal(drafts.length, 2);
+  assert.match(drafts[0].text, /utm_source=linkedin/);
+  assert.match(drafts[1].text, /utm_source=x/);
+});
+
+test('skips a Field Note whose publishAt has already passed', () => {
+  const meta = { ...parseFrontMatter(MARKDOWN), draft: false, publishAt: '2026-07-01T16:00:00Z' };
+  assert.deepEqual(buildSocialDrafts(meta, 'devex-growth', new Date('2026-07-18T12:00:00Z')), []);
+});
+
 test('stages an unpublished Buffer draft with variables instead of interpolated text', async () => {
   const calls = [];
   const fetchImpl = async (_url, options) => {
