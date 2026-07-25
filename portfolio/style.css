@@ -855,7 +855,7 @@ main > section.hero { margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
   padding: clamp(1.25rem, 4vw, 2.5rem);
   border-block: 2px solid var(--ink);
 }
-.build-section h2 { font-size: clamp(1.75rem, 4vw, 2.75rem); max-width: 32rem; }
+.build-section h2 { font-size: clamp(1.75rem, 4vw, 2.75rem); max-width: 36rem; }
 .field-note { margin: -0.25rem 0 0; color: var(--muted); font-size: 0.88rem; }
 .contact-form select { appearance: auto; }
 .writer-banner {
@@ -892,7 +892,8 @@ main > section.hero { margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
 .writer-pagination[hidden] { display: none; }
 
 @media (min-width: 760px) {
-  .build-section { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+  .build-section { grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr); align-items: center; }
+  .build-section > div:last-child { justify-self: end; }
 }
 
 @media (max-width: 720px) {

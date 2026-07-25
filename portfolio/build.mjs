@@ -1268,10 +1268,11 @@ ${demosSection}
 <section class="build-section home-close">
   <div>
     <p class="eyebrow">Collaborate</p>
-    <h2>Building a developer platform?</h2>
+    <h2>Growing a developer platform, or getting one ready for agents?</h2>
+    <p>That's most of what I work on. Happy to consult, collaborate, or just trade notes.</p>
   </div>
   <div>
-    <a class="button button-primary" href="${BASE}contact/">Reach out to collab</a>
+    <a class="button button-primary" href="${BASE}contact/">Get in touch</a>
   </div>
 </section>
 `;
