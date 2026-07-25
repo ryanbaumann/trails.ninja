@@ -867,7 +867,7 @@ function subscribeSection() {
   return `<section class="subscribe" aria-labelledby="subscribe-title">
   <p class="eyebrow">Email list</p>
   <h2 id="subscribe-title">Get new field notes by email</h2>
-  <p>One email when a new essay, talk, or Labs project ships. No noise, and every send has a one-click unsubscribe.</p>
+  <p>One email when something ships. One-click unsubscribe.</p>
   <form class="subscribe-form" action="${BASE}api/subscribe" method="post">
     <label for="subscribe-email">Email address</label>
     <div class="subscribe-controls">
@@ -1256,7 +1256,6 @@ function buildHome(collections) {
 
 <section>
   ${sectionHeader('', 'Notes', `${BASE}writing/`, 'All notes')}
-  <p class="section-note">Learnings from users</p>
   ${fieldNotesBody}
 </section>
 
@@ -1269,7 +1268,7 @@ ${demosSection}
 <section class="build-section home-close">
   <div>
     <p class="eyebrow">Collaborate</p>
-    <h2>Building something in this space?</h2>
+    <h2>Building a developer platform?</h2>
   </div>
   <div>
     <a class="button button-primary" href="${BASE}contact/">Reach out to collab</a>
@@ -1296,7 +1295,7 @@ function buildDemosPage() {
   <div class="grid demo-grid">
     ${demos.map(demoCard).join('\n')}
   </div>
-  <p class="section-note">Labs combines open-source reference apps hosted with Fieldwork and selected external experiments. <a href="${site.links.github}/fieldwork" target="_blank" rel="noopener noreferrer">Read the source</a>.</p>
+  <p class="section-note"><a href="${site.links.github}/fieldwork" target="_blank" rel="noopener noreferrer">Read the source</a>.</p>
 </section>`;
 
   writePage(join('demos', 'index.html'), layout({
@@ -1312,7 +1311,7 @@ function buildCollectionIndex(collection, entries) {
   const isEmpty = entries.length === 0;
   const emptyState = `<div class="empty-state">
   <h2>Coming soon</h2>
-  <p>This section is designed, built, and waiting for its first entry. Drop a markdown file into <code>content/${collection.name}/</code> and rebuild.</p>
+  <p>Nothing here yet.</p>
 </div>`;
 
   let body;
@@ -1390,7 +1389,6 @@ function contactPageContent(meta) {
   return `<section class="contact-shell">
   <p class="eyebrow">Contact</p>
   <h1>Start a conversation.</h1>
-  <p class="lede">Choose what you want to discuss, then share enough context for a useful first reply.</p>
   <form id="contact-form" class="contact-form" action="${BASE}api/contact" method="post">
     <fieldset class="intent-options"><legend>What is this about?</legend>
       ${['Developer platform discussion', 'Content collaboration', 'Speaking opportunity', 'Other'].map((intent) => `<label><input type="radio" name="intent" value="${intent}" required /> <span>${intent}</span></label>`).join('')}
@@ -1460,7 +1458,7 @@ function buildNotFoundPage() {
   const content = `<section class="prose">
   <p class="eyebrow">404</p>
   <h1>Page not found</h1>
-  <p>I couldn't find that page. It may have moved, or the link is out of date.</p>
+  <p>I couldn't find that page.</p>
   <p class="hero-actions">
     <a class="button button-primary" href="${BASE}">Home</a>
     <a href="${BASE}work/">Work</a>

@@ -50,6 +50,11 @@ test('a generic site preview cannot be a post header', () => {
   assert.ok(rules(checkDocument(doc(front, ESSAY_BODY))).includes('C-GENERIC-PREVIEW'));
 });
 
+test('shareSummary may not be a copy of summary', () => {
+  const front = ESSAY_FRONT.replace('shareSummary: A claim.', 'shareSummary: One sentence.');
+  assert.ok(rules(checkDocument(doc(front, ESSAY_BODY))).includes('C-SHARE-DUP'));
+});
+
 test('header and social alt text must differ', () => {
   const front = ESSAY_FRONT.replace('shareImageAlt: The social card', 'shareImageAlt: The header evidence');
   assert.ok(rules(checkDocument(doc(front, ESSAY_BODY))).includes('C-ALT-DISTINCT'));

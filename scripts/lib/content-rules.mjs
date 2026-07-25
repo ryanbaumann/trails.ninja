@@ -99,6 +99,13 @@ export function checkDocument({ path, collection, raw }) {
     add(metaLines.image, 'C-GENERIC-PREVIEW', 'error', 'A generic site preview is not a post header. Use a dedicated 1200x675 image (portfolio-content).');
   }
 
+  // shareTitle and shareSummary are concatenated into the staged LinkedIn post
+  // (scripts/lib/social-drafts.mjs). A shareSummary copied from summary means the
+  // social post ships with no hook of its own.
+  if (meta.shareSummary && meta.shareSummary === meta.summary) {
+    add(metaLines.shareSummary, 'C-SHARE-DUP', 'error', 'shareSummary repeats summary. It becomes the social post, so give it its own hook (portfolio-writing).');
+  }
+
   if (meta.imageAlt && meta.imageAlt === meta.shareImageAlt) {
     add(metaLines.shareImageAlt, 'C-ALT-DISTINCT', 'error', 'Header and social alt text are identical. Write asset-specific alt text (portfolio-content).');
   }

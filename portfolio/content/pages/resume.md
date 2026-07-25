@@ -1,10 +1,10 @@
 ---
 title: Resume
-summary: Selected work across builder platforms, developer tools, evals, open source, and AI coding agents.
+summary: Where I have led, what shipped, and what it moved.
 eyebrow: Experience
 socialImage: /social/resume.jpg
 shareTitle: Ryan Baumann Resume
-shareSummary: Selected leadership and hands-on work across builder platforms, tools, evals, and AI coding agents.
+shareSummary: Fifteen years of developer platform work, with the artifacts behind each claim.
 shareImageAlt: Ryan Baumann beside a summary of his Developer Experience Engineering work.
 ---
 
