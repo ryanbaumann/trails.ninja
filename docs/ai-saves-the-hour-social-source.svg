@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="627" viewBox="0 0 1200 627">
+  <rect width="1200" height="627" fill="#faf9f6"/>
+  <rect width="1200" height="9" fill="#3b82f6"/>
+  <rect x="1" y="1" width="1198" height="625" fill="none" stroke="#d9dde5" stroke-width="2"/>
+  <text x="68" y="89" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="25" font-weight="700" letter-spacing="2.5" fill="#2563eb">FIELD NOTE</text>
+  <text x="68" y="171" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="60" font-weight="800" letter-spacing="-2" fill="#111827">Your team just got an hour back</text>
+  <rect x="68" y="229" width="482" height="278" rx="22" fill="#111827"/>
+  <text x="108" y="284" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="22" font-weight="700" letter-spacing="2" fill="#faf9f6" opacity=".7">DEFAULT</text>
+  <text x="309" y="378" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="70" font-weight="800" letter-spacing="-3" fill="#faf9f6">MORE</text>
+  <text x="309" y="452" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="70" font-weight="800" letter-spacing="-3" fill="#faf9f6">OUTPUT</text>
+  <rect x="594" y="229" width="538" height="278" rx="22" fill="#eaf2ff" stroke="#3b82f6" stroke-width="3"/>
+  <text x="634" y="284" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="22" font-weight="700" letter-spacing="2" fill="#2563eb">CHOSEN</text>
+  <text x="863" y="378" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="70" font-weight="800" letter-spacing="-3" fill="#111827">MORE</text>
+  <text x="863" y="452" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="70" font-weight="800" letter-spacing="-3" fill="#111827">CAPABILITY</text>
+  <text x="68" y="575" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="25" fill="#5f6875">the savings are automatic · the reinvestment is a decision</text>
+</svg>

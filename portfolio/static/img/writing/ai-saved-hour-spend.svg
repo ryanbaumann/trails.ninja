@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Where the hour AI saves actually goes</title>
+  <desc id="desc">An hour saved by AI branches toward more requested output by default, or toward customers, hard problems, feedback, and judgment by choice.</desc>
+  <style>
+    :root { --bg:#faf9f6; --surface:#fff; --ink:#111827; --muted:#5f6875; --line:#d9dde5; --accent:#3b82f6; --accent-ink:#2563eb; --soft:#eaf2ff; }
+    @media (prefers-color-scheme:dark) { :root { --bg:#030712; --surface:#111827; --ink:#f9fafb; --muted:#aeb7c4; --line:#334155; --accent:#60a5fa; --accent-ink:#93c5fd; --soft:#12213b; } }
+    .sans { font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    .mono { font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 10 5 0 10Z" fill="var(--accent)"/></marker>
+  </defs>
+  <rect width="1200" height="675" fill="var(--bg)"/>
+  <rect width="1200" height="8" fill="var(--accent)"/>
+  <rect x="1" y="1" width="1198" height="673" fill="none" stroke="var(--line)" stroke-width="2"/>
+  <text x="70" y="82" class="mono" font-size="25" font-weight="700" letter-spacing="2.5" fill="var(--accent-ink)">WHERE DOES THE HOUR GO?</text>
+  <text x="70" y="145" class="sans" font-size="50" font-weight="750" letter-spacing="-1.4" fill="var(--ink)">Only one branch needs a leader</text>
+
+  <g aria-label="One hour saved">
+    <circle cx="180" cy="365" r="110" fill="var(--ink)"/>
+    <text x="180" y="350" text-anchor="middle" class="sans" font-size="66" font-weight="800" fill="var(--bg)">1 HR</text>
+    <text x="180" y="402" text-anchor="middle" class="mono" font-size="23" fill="var(--bg)" opacity=".78">SAVED BY AI</text>
+  </g>
+
+  <path d="M295 365H400C438 365 438 285 476 285H500" fill="none" stroke="var(--line)" stroke-width="5" marker-end="url(#arrow)"/>
+  <path d="M295 365H400C438 365 438 470 476 470H500" fill="none" stroke="var(--accent)" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <g aria-label="More requested output">
+    <rect x="520" y="205" width="640" height="160" rx="22" fill="var(--surface)" stroke="var(--line)" stroke-width="3"/>
+    <text x="558" y="270" class="mono" font-size="22" font-weight="700" letter-spacing="1.8" fill="var(--muted)">DEFAULT · NO DECISION</text>
+    <text x="558" y="326" class="sans" font-size="40" font-weight="750" fill="var(--ink)">More requested output</text>
+  </g>
+
+  <g aria-label="More capability">
+    <rect x="520" y="390" width="640" height="192" rx="22" fill="var(--soft)" stroke="var(--accent)" stroke-width="3"/>
+    <text x="558" y="448" class="mono" font-size="22" font-weight="700" letter-spacing="1.8" fill="var(--accent-ink)">CHOSEN · COSTS SOMETHING</text>
+    <text x="558" y="504" class="sans" font-size="40" font-weight="750" fill="var(--ink)">More capability</text>
+    <text x="558" y="552" class="mono" font-size="20" fill="var(--muted)">customers · hard problems · feedback · judgment</text>
+  </g>
+
+  <text x="70" y="632" class="mono" font-size="26" fill="var(--muted)">the savings are automatic · the reinvestment is a decision</text>
+</svg>
