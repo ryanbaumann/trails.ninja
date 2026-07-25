@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">The jagged technological frontier</title>
+  <desc id="desc">Inside the frontier the same AI tool made consultants faster and better; on a task just outside it, the same tool made them worse.</desc>
+  <style>
+    :root { --bg:#faf9f6; --surface:#fff; --ink:#111827; --faint:#5f6875; --line:#d9dde5; --accent:#3b82f6; --accent-ink:#2563eb; }
+    @media (prefers-color-scheme:dark) { :root { --bg:#030712; --surface:#111827; --ink:#f9fafb; --faint:#aeb7c4; --line:#334155; --accent:#60a5fa; --accent-ink:#93c5fd; } }
+    .sans { font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    .mono { font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; }
+  </style>
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="var(--line)" stroke-width="1" opacity=".28"/></pattern>
+  </defs>
+  <rect width="1200" height="675" fill="var(--bg)"/>
+  <rect width="1200" height="675" fill="url(#grid)"/>
+  <rect width="1200" height="8" fill="var(--accent)"/>
+  <rect x="1" y="1" width="1198" height="673" fill="none" stroke="var(--line)" stroke-width="2"/>
+  <text x="70" y="82" class="mono" font-size="25" font-weight="700" letter-spacing="2.5" fill="var(--accent-ink)">THE JAGGED FRONTIER · 758 CONSULTANTS</text>
+  <text x="70" y="145" class="sans" font-size="50" font-weight="750" letter-spacing="-1.4" fill="var(--ink)">The edge is unmarked</text>
+  <g aria-label="Inside the frontier">
+    <rect x="72" y="220" width="440" height="324" rx="24" fill="var(--ink)"/>
+    <text x="112" y="278" class="mono" font-size="23" font-weight="700" letter-spacing="2" fill="var(--bg)" opacity=".72">INSIDE THE FRONTIER</text>
+    <text x="292" y="404" text-anchor="middle" class="sans" font-size="96" font-weight="800" letter-spacing="-3" fill="var(--bg)">FASTER</text>
+    <text x="292" y="470" text-anchor="middle" class="mono" font-size="27" fill="var(--bg)" opacity=".78">and better quality</text>
+  </g>
+  <path d="M580 215 L556 265 L604 315 L556 365 L604 415 L556 465 L604 515 L580 567" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <g aria-label="Just outside the frontier">
+    <rect x="648" y="220" width="480" height="324" rx="24" fill="var(--surface)" stroke="var(--line)" stroke-width="3"/>
+    <text x="688" y="278" class="mono" font-size="23" font-weight="700" letter-spacing="2" fill="var(--faint)">JUST OUTSIDE</text>
+    <text x="888" y="404" text-anchor="middle" class="sans" font-size="96" font-weight="800" letter-spacing="-3" fill="var(--ink)">WORSE</text>
+    <text x="888" y="470" text-anchor="middle" class="mono" font-size="27" fill="var(--faint)">same tool, same team</text>
+  </g>
+  <text x="600" y="628" text-anchor="middle" class="mono" font-size="26" fill="var(--faint)">the edge is invisible from inside the task</text>
+</svg>
