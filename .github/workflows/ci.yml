@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 20
-      - run: npm run check:labs && npm run test:labs
+      - run: npm run check:labs && npm run check:content && npm run test:labs
       - id: packages
         run: echo "value=$(node scripts/list-ci-packages.mjs)" >> "$GITHUB_OUTPUT"
 

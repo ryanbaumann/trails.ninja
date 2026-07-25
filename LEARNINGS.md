@@ -2,6 +2,13 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-07-25 - The prose rules that held were the ones a regex could decide
+
+Context: An audit graded `portfolio-writing` against every published entry. Rules that ban a pattern held at 100 percent across 22 files. Rules needing judgment did not, and the corpus was clean only because a person had been careful, with nothing to catch the next lapse.
+Learning: Split a style guide by decidability, not by topic. Move every rule a regex can settle into a checker so review attention goes to claims, evidence, and rhythm, which no checker can grade. The split also makes disagreement cheap: a disputed finding is settled by editing one rule, not by arguing taste in a review thread.
+Evidence: `npm run check:content` reported 0 errors and 3 warnings on 31 entries at introduction, and independently reproduced the audit's finding that one prescribed phrase had spread to four Field Notes. Its 10 regression cases are must-fail fixtures, not just happy paths.
+Use next time: When a review keeps catching the same mechanical defect, add the rule and a failing fixture in the same change. Keep taste rules out of the checker; a warning is a prompt to look, not an instruction to obey.
+
 ## 2026-07-25 - A publication gate copied by hand drifts from the one the build uses
 
 Context: An audit of the authoring loop found that `buildSocialDrafts` skipped any note without `draft: true`, while `portfolio/build.mjs` decides publication with `isPublished()`, which also honors a future `publishAt`. A note scaffolded with `--schedule` satisfied one gate and not the other.

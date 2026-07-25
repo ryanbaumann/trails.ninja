@@ -29,6 +29,9 @@ All notable changes to this project will be documented in this file.
 - Added an `apple-touch-icon.png` and explicit `thumbnail` meta tag to the site `<head>` for better crawler visual citation and brand previews.
 - Enhanced the `sitemap.xml` generator to output `<image:image>` and `<image:loc>` nodes for pages with cover images to optimize visual search indexing.
 
+### Added
+- Added `npm run check:content`, a zero-dependency gate for the mechanically checkable subset of the writing and content rules: em-dashes, banned phrases, hype adjectives, the three-asset essay contract, alt-text distinctness, tag vocabulary and count, and distinctive phrases repeated across entries. Errors block, taste warnings advise, code fences and `<!-- lint-ignore -->` lines are exempt, and it runs in CI beside `check:labs`.
+
 ### Fixed
 - Staged Buffer social drafts for scheduled Field Notes. `buildSocialDrafts` gated on the `draft` flag alone, so a note created with `--schedule` (which writes `draft: false` with a future `publishAt`) published with no social draft, silently and permanently, because staging runs only on the commit that adds the file.
 - Aligned `npm run new:post` with the rules it points authors at: no em-dash in the scaffolded body, no generic site preview as a post header, and the full social and image contract emitted as commented placeholders matching `_TEMPLATE.md`.
