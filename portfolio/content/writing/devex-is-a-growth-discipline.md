@@ -9,7 +9,7 @@ image: /assets/devx-growth-header.png
 imageAlt: A four-stage DevX loop moves from observed friction to a shipped fix, distribution in builder workflows, and rising measured outcomes.
 socialImage: /social/devx-growth-discipline.jpg
 shareTitle: DevX Is a Growth Function
-shareSummary: More docs rarely fix a broken developer journey. Own the friction, ship the fix, distribute the path, and measure the outcome.
+shareSummary: Docs, code samples, advocacy, tutorials, and even talking to customers all have a limit. Own the friction, ship the fix, distribute the path, and measure the outcome.
 shareImageAlt: Social preview reading DevX Is a Growth Discipline beside a product, distribution, and measurement loop.
 tags: ["developer experience", "growth", "distribution", "ai"]
 order: 2
@@ -17,7 +17,7 @@ order: 2
 
 Between early 2025 and 2026, our open-source ecosystem more than doubled its unique active users, driving strong growth in API engagement. We moved those metrics by treating DevX as a growth discipline, not a docs queue. I helped lead distribution strategy across major UI frameworks and AI agent platforms alongside our product, engineering, UX, and technical writing teams. We treated product, distribution, and measurement as one system, because presence in a workflow is not proof of adoption.
 
-Documentation requests often pull DevX teams away from the real scoreboard. But the job isn't just to publish more docs. It's to find the friction that stops a builder, fix it in the product or experience, put the better path where people work, and prove that behavior changed.
+Documentation requests often pull DevX teams away from the real scoreboard. Docs, code samples, advocacy, tutorials, and even talking to customers all have a limit. The job is to find the friction that stops a builder, fix it in the product or experience, put the better path where people work, and prove that behavior changed.
 
 ## Own the friction
 
