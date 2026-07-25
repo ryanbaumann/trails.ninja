@@ -7,11 +7,11 @@ summary: A public catalog that turns repeated enterprise questions into reusable
 tags: ["developer experience", "architecture", "technical writing"]
 links: [{"label": "Architecture Center", "url": "https://developers.google.com/maps/architecture"}]
 image: /img/work/geo-architecture-center.svg
-imageAlt: Panel representing the Geo Architecture Center's public catalog of solution architectures
+imageAlt: Panel representing the Geo Architecture Center's public catalog of system architectures
 socialImage: /social/work-geo-architecture-center.jpg
 shareTitle: Geo Architecture Center
 shareSummary: Reusable system patterns for repeated Google Maps Platform architecture questions.
-shareImageAlt: Geo Architecture Center beside its solution-architecture artifact card.
+shareImageAlt: Geo Architecture Center beside its system-architecture artifact card.
 order: 6
 ---
 
@@ -25,4 +25,4 @@ I started the Geo Architecture Center and wrote several of its guides as princip
 
 ## What I learned
 
-One precise solution architecture can answer a repeated question once, then help many teams move faster. Structured, opinionated system designs also give AI agents better context than an API reference alone.
+One precise architecture reference can answer a repeated question once, helping many teams move faster. Structured, opinionated system designs also give AI agents better context than an API reference alone.

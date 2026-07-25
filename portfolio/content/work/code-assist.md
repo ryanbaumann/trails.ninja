@@ -18,7 +18,7 @@ order: 1
 
 ## The goal
 
-Developers increasingly let their agents read the docs for them. When an AI generates wrong Google Maps Platform code, the developer blames the platform, not the model. The goal: make AI coding agents generate correct, current platform code, and turn that field pain into a product surface we could operate and improve.
+Developers increasingly let their agents read the docs for them. When an AI generates wrong Google Maps Platform code, the developer blames the platform. The goal: make AI coding agents generate correct, current platform code, and turn that field pain into a product surface we could operate and improve.
 
 ## What shipped
 
