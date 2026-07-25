@@ -1,10 +1,10 @@
 ---
 title: Contact
-summary: Questions about builder platforms, developer tools, AI coding agents, speaking, or the work shown here.
+summary: What are you building, and what is in the way?
 eyebrow: Contact
 socialImage: /social/contact.jpg
 shareTitle: Start a Conversation With Ryan Baumann
-shareSummary: Discuss builder platforms, developer tools, AI coding agents, content, or speaking.
+shareSummary: Start with the thing you are building and the friction in the way.
 shareImageAlt: Ryan Baumann beside an invitation to start with the thing you are trying to build.
 ---
 

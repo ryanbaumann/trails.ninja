@@ -5,19 +5,17 @@
   "brandShort": "Fieldwork",
   "brandByline": "Fieldwork by Ryan Baumann",
   "role": "Head of DevX at Google Maps Platform",
-  "tagline": "BUILDER PLATFORMS \u00b7 DEVELOPER TOOLS \u00b7 AI CODING AGENTS",
   "location": "San Francisco",
-  "heroHeadline": "AI-Driven Growth for Builder Platforms.",
-  "profileHeadline": "Head of DevX · Google Maps Platform",
+  "heroHeadline": "Developer friction is a growth problem.",
+  "profileHeadline": "Head of DevX · Google Maps",
   "intro": "I work on engineering and product teams to create tools that developers love.",
   "heroStats": [],
   "description": "Fieldwork is Ryan Baumann’s developer notebook on builder platforms, developer tools, evals, and AI coding agents.",
-  "aboutTeaser": "I lead Developer Experience Engineering and product. I stay close to the code by reviewing traces, writing evals, and shipping apps.",
   "sectionIntros": {
     "work": "Shipped tools, open-source libraries, and experiments, with the problem and result behind each.",
-    "writing": "Notes on builder platforms, AI coding agents, evals, and open source.",
+    "writing": "What I am learning about agents, evals, and the platforms they run on.",
     "talks": "Demo-first talks on developer tools, AI-assisted development, and reliable generated code.",
-    "demos": "Labs is where I learn in public through working reference apps and experiments."
+    "demos": "Reference apps I actually shipped, and experiments that did not have to work."
   },
   "links": {
     "github": "https://github.com/ryanbaumann",
@@ -39,7 +37,7 @@
   "defaultShareImage": "/social/home.jpg",
   "defaultShareImageAlt": "Fieldwork social card showing the site beside the line Builder platforms for humans and agents.",
   "socialHandle": "@ryanbaumann",
-  "answerEngineSummary": "Fieldwork is Ryan Baumann’s developer notebook. Ryan is a Developer Experience Engineering and product lead who builds tools, evals, and workflows for humans and AI coding agents. His current work at Google Maps Platform includes Code Assist, agent skills, and an agentic eval suite.",
+  "answerEngineSummary": "Fieldwork is Ryan Baumann’s developer notebook. He leads Developer Experience Engineering at Google Maps Platform: Code Assist, agent skills, and an agentic eval suite.",
   "profileImage": "/img/ryan-baumann-profile.jpg",
   "profileImageAlt": "Ryan Baumann profile image"
 }

@@ -27,7 +27,9 @@
     --surface: #111827;
     --ink: #f9fafb;
     --muted: #9ca3af;
-    --faint: #aeb7c4;
+    /* Must stay dimmer than --muted: this is the third step of the hierarchy,
+       not a brighter one. 5.33:1 on --bg, mirroring light mode's 5.36. */
+    --faint: #7b8493;
     --line: #1f2937;
     --accent: #60a5fa;
     --accent-ink: #93c5fd;
@@ -297,11 +299,14 @@ main > section { margin-bottom: clamp(3rem, 6vw, 5.5rem); }
 
 .grid-card.has-thumb { padding: 0; overflow: hidden; }
 .grid-card.has-thumb .card-body { padding: 1.15rem 1.35rem 1.35rem; display: flex; flex-direction: column; }
+/* Every thumbnail source is authored 16:9 (portfolio-design principle 8). Any
+   other ratio here crops it, and `cover` takes the crop out of the sides, which
+   cuts label text off artifact cards. */
 .card-thumb {
   height: auto;
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
   border-radius: 0;
   border-bottom: 1px solid var(--line);
@@ -318,7 +323,7 @@ main > section { margin-bottom: clamp(3rem, 6vw, 5.5rem); }
 .demo-preview {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
   object-position: top left;
   border-radius: 0;
@@ -358,7 +363,7 @@ main > section { margin-bottom: clamp(3rem, 6vw, 5.5rem); }
 .row-thumb {
   height: auto;
   width: clamp(7rem, 18vw, 10rem);
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
   border-radius: 0.5rem;
   border: 1px solid var(--line);
@@ -525,7 +530,9 @@ html[data-theme="dark"] {
   --surface: #111827;
   --ink: #f9fafb;
   --muted: #9ca3af;
-  --faint: #aeb7c4;
+  /* Keep in step with the prefers-color-scheme block above: --faint is the
+     dimmest of the three text tokens, never the brightest. */
+  --faint: #7b8493;
   --line: #1f2937;
   --accent: #60a5fa;
   --accent-ink: #93c5fd;
@@ -909,7 +916,10 @@ main > section.hero { margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
     width: 100%;
     gap: 0;
   }
-  .site-header nav a { min-height: 44px; font-size: clamp(0.66rem, 2.5vw, 0.78rem); padding-inline: 0; }
+  /* Floor is a legibility minimum, not a fitting device: 0.66rem rendered at
+     10.56px. The one-line rule is held by padding and min-width, not by
+     shrinking type below readable size. Verify at 390px after changing. */
+  .site-header nav a { min-height: 44px; font-size: clamp(0.75rem, 2.5vw, 0.78rem); padding-inline: 0; }
   .site-header nav a { min-width: 0; justify-content: center; }
   .header-actions { justify-self: end; gap: 0.35rem; }
   .theme-toggle { min-height: 44px; font-size: 1.1rem; padding: 0; }

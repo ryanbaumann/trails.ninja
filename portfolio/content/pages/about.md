@@ -6,7 +6,7 @@ image: /img/ryan-baumann-profile.jpg
 imageAlt: Headshot of Ryan Baumann wearing a blue shirt.
 socialImage: /social/about.jpg
 shareTitle: Ryan Baumann
-shareSummary: Developer Experience Engineering leader shipping tools, evals, and workflows for humans and AI coding agents.
+shareSummary: Why I treat developer friction as a growth problem.
 shareImageAlt: Ryan Baumann beside his focus on tools, evals, and AI coding agents.
 ---
 
@@ -20,4 +20,4 @@ Before this role, I led product and engineering for [Intelligent Product Essenti
 
 I studied mechanical engineering at the University of Wisconsin-Madison. Before software, I raced professionally for Trek-Livestrong and Bahati Foundation. Racing taught me to pace long efforts, measure the right signal, and keep looking for the next useful improvement. I still chase trails.
 
-[View the resume](/resume/) · [See selected work](/work/) · [Explore Ryan’s Lab](/demos/)
+[View the resume](/resume/) · [See selected work](/work/) · [Explore Labs](/demos/)

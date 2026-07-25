@@ -9,7 +9,7 @@ tags: ["code assist", "mcp", "developer experience"]
 external: https://mapsplatform.google.com/resources/blog/announcing-code-assist-toolkit-bring-google-maps-platform-expertise-to-your-ai-coding-assistant/
 socialImage: /social/code-assist-launch.jpg
 shareTitle: Retrieval beats training-data memory
-shareSummary: Our team shipped a hosted MCP service to bring grounded platform expertise to AI Studio and other compatible agent environments. Here is why retrieval outperforms training-data memory.
+shareSummary: Training data goes stale. Retrieval does not. What changed when the docs became a tool call.
 shareImageAlt: Social card reading Retrieval beats training-data memory beside a grounded-retrieval artifact.
 image: /img/writing/code-assist-launch.svg
 imageAlt: Artifact card reading Announcing Code Assist and grounded platform expertise in any AI assistant.
