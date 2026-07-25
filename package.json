@@ -8,6 +8,7 @@
     "start": "node --env-file=.env gateway/server.js",
     "smoke": "node scripts/smoke.mjs",
     "check:labs": "node scripts/validate-apps.mjs",
+    "check:content": "node scripts/check-content.mjs",
     "labs:check": "node scripts/validate-apps.mjs",
     "labs:new": "node scripts/new-demo.mjs",
     "labs:import": "node scripts/import-demo.mjs",

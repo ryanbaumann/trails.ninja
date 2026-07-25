@@ -64,10 +64,18 @@ Use deterministic tools and lower-cost models for inventory and mechanical check
 Run the narrowest relevant checks, then the complete content path when practical:
 
 ```bash
+npm run check:content   # mechanical writing and content rules; run this first
 cd portfolio && npm test && npm run build
 cd ../gateway && npm test
 cd .. && node scripts/build-local.mjs && node scripts/smoke.mjs
 ```
+
+`check:content` decides only what a regex can decide: em-dashes, banned phrases,
+hype adjectives, the essay asset contract, alt-text distinctness, tag
+vocabulary, and phrases repeated across entries. A clean run means the review
+lanes below can spend their attention on claims, evidence, rhythm, and taste. It
+is not a substitute for any of them, and a warning it raises is a prompt to look,
+not an instruction to obey.
 
 Also verify changed image signatures and dimensions, inspect desktop/mobile browser captures, and test affected redirects with HTTP requests. Report every command and result. Do not claim browser, link, or image review without captured evidence.
 
