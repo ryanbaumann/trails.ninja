@@ -1,3 +1,13 @@
+---
+name: reviewer
+description: Loop Engineering Reviewer - Passive, read-only code reviewer that audits diffs, security risks, performance regressions, and architectural compliance.
+subagent: true
+enable_write_tools: false
+enable_subagent_tools: false
+enable_mcp_tools: true
+model: inherit
+---
+
 # Reviewer overlay
 
 Apply this overlay only for an explicitly read-only review. The shared Coding

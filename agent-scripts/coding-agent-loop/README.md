@@ -26,10 +26,19 @@ rather than assume paths from this README. That keeps the package useful as
 agent products change. Reuse the same instruction when you want to update the
 installed copy.
 
-If you prefer to install it yourself, put [`SYSTEM_PROMPT.md`](SYSTEM_PROMPT.md)
-in your agent's global instruction file. Keep repository facts and commands in
-repository-local instructions. Add a role overlay only to an agent performing
-that role.
+---
+
+## Harness Compatibility & Setup Guide
+
+| Agent Harness | Discovery & Configuration Paths | Subagent / Overlay Integration |
+| :--- | :--- | :--- |
+| **Google Antigravity / AGY / AG2.0** | `~/.gemini/config/agents/<role>.md`<br>`.agents/agents/<role>.md` | Native frontmatter (`subagent: true`, tool flags), interactive `/agents` panel, and `invoke_subagent` dispatch. |
+| **Anthropic Claude Code** | `~/.claude/CLAUDE.md`<br>`.claude/agents/<role>.md` | Append `SYSTEM_PROMPT.md` to `CLAUDE.md`. Copy `roles/*.md` into `.claude/agents/` for subagent dispatch. |
+| **OpenAI Codex** | `.codex/instructions.md`<br>Global system prompt | Ingest `SYSTEM_PROMPT.md` into global system instructions; inject role prompt overlays per sub-session. |
+| **OpenCode** | `.opencode/instructions.md`<br>`opencode.json` | Register `SYSTEM_PROMPT.md` as primary project instruction; load `roles/*.md` as subagent skills. |
+| **Aider** | `.aider.conf.yml` (`system-prompt`) | Set `system-prompt: SYSTEM_PROMPT.md` in `.aider.conf.yml`. Read role files on demand via `/read roles/<role>.md`. |
+
+---
 
 ## Use the roles only when the job needs them
 
@@ -44,9 +53,7 @@ For multi-agent work, assign exactly one overlay to each participant:
 - **Reviewer:** reads the supplied change independently and does not edit it.
 - **Verifier:** maps acceptance criteria to observed checks after implementation.
 
-Skill-aware harnesses can register the four files as on-demand skills. In a
-harness without skills, attach the matching file from [`roles/`](roles/) to that
-agent's prompt.
+Skill-aware harnesses can register the four files as on-demand skills. In subagent-capable harnesses (such as Antigravity or OpenCode), the four role files in `roles/` include YAML frontmatter (`subagent: true`, `enable_write_tools`, `enable_subagent_tools`, `enable_mcp_tools`, `model`) allowing them to be registered directly as subagents and invoked asynchronously.
 
 The overlays make a job narrower. They never grant permissions that the shared
 contract or the user did not grant. Give every worker a concrete objective,
@@ -55,10 +62,10 @@ done condition, read/write boundaries, verifier, output format, and stop rule.
 ## Files
 
 - [`SYSTEM_PROMPT.md`](SYSTEM_PROMPT.md): canonical complete prompt.
-- [`roles/orchestrator.md`](roles/orchestrator.md): root control-plane overlay.
-- [`roles/worker.md`](roles/worker.md): bounded maker or investigator overlay.
-- [`roles/reviewer.md`](roles/reviewer.md): read-only finding and risk overlay.
-- [`roles/verifier.md`](roles/verifier.md): evidence-only verification overlay.
+- [`roles/orchestrator.md`](roles/orchestrator.md): root control-plane overlay with subagent YAML frontmatter.
+- [`roles/worker.md`](roles/worker.md): bounded maker or investigator overlay with subagent YAML frontmatter.
+- [`roles/reviewer.md`](roles/reviewer.md): read-only finding and risk overlay with subagent YAML frontmatter.
+- [`roles/verifier.md`](roles/verifier.md): evidence-only verification overlay with subagent YAML frontmatter.
 - [`evals/cases.md`](evals/cases.md): regression cases and grading rubric.
 - [`evals/check.sh`](evals/check.sh): deterministic structural contract check.
 

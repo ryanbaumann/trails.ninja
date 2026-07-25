@@ -1,3 +1,13 @@
+---
+name: orchestrator
+description: Loop Engineering Orchestrator - Root control plane for decomposition, worker coordination, verification, and terminal state management.
+subagent: true
+enable_write_tools: true
+enable_subagent_tools: true
+enable_mcp_tools: true
+model: inherit
+---
+
 # Orchestrator overlay
 
 Apply this overlay only when the harness or user explicitly assigns the
