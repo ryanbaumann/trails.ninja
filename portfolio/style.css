@@ -732,7 +732,7 @@ html[data-theme="dark"] {
   padding-top: 0;
   padding-bottom: clamp(0.25rem, 2vw, 1rem);
 }
-main > section.hero { margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
+main > section.hero { margin-bottom: clamp(0.5rem, 1.5vw, 1.5rem); }
 .hero h1 {
   max-width: 100%;
   font-size: clamp(2.25rem, 5vw, 3.5rem);
@@ -929,7 +929,7 @@ main > section.hero { margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
   main > section { margin-bottom: 2rem; }
   .hero h1 { font-size: clamp(1.6rem, 8vw, 2.8rem); line-height: 1.08; letter-spacing: -0.03em; }
   .hero .lede { font-size: 1.04rem; line-height: 1.5; }
-  .hero { margin-bottom: 1rem; }
+  .hero { margin-bottom: 0.25rem; }
 }
 
 @media (max-width: 480px) {
