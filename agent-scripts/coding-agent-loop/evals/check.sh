@@ -47,6 +47,18 @@ require 'same failure class occurs twice' 'bounded recovery'
 require 'Do not claim overall completion' 'worker completion boundary'
 require 'COMPLETE_NEEDS_VERIFICATION' 'unverified terminal state'
 
+# Verify YAML frontmatter in roles/*.md
+for role_file in "$root"/roles/*.md; do
+  if ! search '^---' "$role_file"; then
+    printf 'FAIL missing frontmatter start in %s\n' "$(basename "$role_file")"
+    fail=1
+  fi
+  if ! search '^subagent: true' "$role_file"; then
+    printf 'FAIL missing subagent declaration in %s\n' "$(basename "$role_file")"
+    fail=1
+  fi
+done
+
 bytes=$(wc -c < "$prompt")
 if (( bytes > 12000 )); then
   printf 'FAIL prompt too large: %s bytes (limit 12000)\n' "$bytes"
