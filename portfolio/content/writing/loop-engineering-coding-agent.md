@@ -5,7 +5,7 @@ date: 2026-07-16
 updated: 2026-07-16
 canonical: https://ryanbaumann.dev/writing/loop-engineering-coding-agent/
 aliases: ["/scripts/loop-engineering-coding-agent/"]
-tags: ["ai", "developer tools", "evals", "field notes"]
+tags: ["ai", "developer tools", "evals"]
 links: [{"label":"Get the prompt","url":"https://github.com/ryanbaumann/fieldwork/tree/main/agent-scripts/coding-agent-loop"}]
 image: /img/scripts/coding-agent-loop.svg
 imageAlt: An orchestrator routes jobs to tools, fast workers, balanced agents, or deep reasoning before integrated verification.
@@ -21,7 +21,7 @@ The orchestrator owns the hard parts: user intent, permissions, task boundaries,
 
 ## Build the smallest capable team
 
-I designed the prompt to route work by capability instead of model name. Deterministic tools handle discovery and checks. Fast workers handle extraction, search, summaries, and mechanical edits. Balanced agents own normal implementation. Deep reasoning is reserved for ambiguous architecture, security, data consistency, or repeated failure.
+I designed the prompt to route work by capability instead of model name. Instead of leaning on a single large model, I use deterministic tools for discovery and fast workers for extraction and mechanical edits. That leaves balanced agents to handle normal implementation, reserving deep reasoning specifically for ambiguous architecture, security, or repeated failures.
 
 Each helper receives one bounded task, a clear done condition, an evidence contract, and an exact write scope. Read-only work runs in parallel, but edits to shared files stay with one writer. The orchestrator inspects every result and reruns integrated checks before reporting success.
 
@@ -38,7 +38,7 @@ Model output is only one step in an engineering system. Loop engineering treats 
 5. Integrate the full result across agent boundaries.
 6. Learn from evidence, or stop with the precise blocker.
 
-Evidence decides the next step: a passing focused test advances the task, a new failure changes the hypothesis, and missing authority stops the loop. The agent does not keep editing until the output looks plausible. It does not call the work complete just because code exists.
+Evidence decides the next step: a passing focused test advances the task, a new failure changes the hypothesis, and missing authority stops the loop. The agent doesn't keep editing until the output looks plausible. It doesn't call the work complete just because code exists.
 
 ![Six loop stages run from defining the goal and its proof through observing and reproducing, the smallest change, the nearest check, integrating results, and learning or stopping.](/img/writing/loop-engineering-evidence.svg)
 
@@ -90,7 +90,7 @@ Configure the models and token budgets in the harness. Re-run the suite whenever
 
 I built a suite that specifies 16 scenarios, including dirty worktrees, read-only diagnosis, prompt injection in repository data, conflicting instructions, production boundaries, retry limits, parallel writers, helper containment, cross-session work, missing verification, security changes, UI checks, and memory quality.
 
-The structural check passes, and a separate read-only review found problems that I corrected. However, this is not a behavioral benchmark. I have not recorded behavioral trial results. We are still learning what works in production agent workflows. Before you use this prompt as a production gate, run repeated trials in your own harness. Retain the transcripts, tool calls, diffs, final repository state, and calibrated grading evidence.
+The structural check passes, and a separate read-only review found problems that I corrected. However, this isn't a behavioral benchmark. I haven't recorded behavioral trial results. Production agent workflows are still new territory. Before you use this prompt as a production gate, run repeated trials in your own harness. Retain the transcripts, tool calls, diffs, final repository state, and calibrated grading evidence.
 
 ## Why it is built this way
 

@@ -15,11 +15,11 @@ shareImageAlt: Evals Are How You Know an AI Developer Tool Got Better beside a t
 tags: ["developer experience", "ai", "evals"]
 ---
 
-A task-based evaluation proves an agent became better at a developer's job. A polished demo proves only that one path worked once. Without evals, a team can ship context, prompts, tools, and skills, but it cannot tell whether the AI actually improved the developer experience.
+A task-based evaluation proves an agent became better at a developer's job. A polished demo proves only that one path worked once. Without evals, a team can ship context, prompts, tools, and skills, but it can't tell whether the AI actually improved the developer experience.
 
 ## Measure the developer task
 
-Our team built an [agentic eval suite](/work/agentic-evals/) for Google Maps Platform because we needed a shared quality bar for retrieval, skills, and agent integrations. I led the strategy and stayed close to the work. We compare context products against a no-context baseline and use the result to inform launch and roadmap decisions.
+Our team built an [agentic eval suite](/work/agentic-evals/) for Google Maps Platform because we needed a shared quality bar for retrieval, skills, and agent integrations. I wrote the initial eval harness to prove the pattern, and we now compare context products against a no-context baseline to inform launch and roadmap decisions.
 
 The unit of quality is the job the developer is trying to complete instead of an abstract benchmark. For a developer platform, that means adding a map, choosing the right API, configuring authentication, or fixing code that uses an outdated surface. We run that task through an agent and inspect the result. Depending on the job, useful measures include grounded code accuracy, tool-call behavior, token cost, and end-to-end completion. The important comparison is the delta between a baseline and the proposed change.
 
@@ -56,4 +56,4 @@ That shared mechanism reduces opinion-driven debate and keeps AI Developer Exper
 
 ## Start with ten real tasks
 
-We are still learning what works, but building a baseline is the necessary first step. Choose ten failures from issues, support, community questions, or traces. Run them with no added context. Inspect the failures, make one targeted change, and run the same tasks again. Let the delta decide what to fix next.
+We're still mapping these patterns, but building a baseline is the necessary first step. Choose ten failures from issues, support, community questions, or traces. Run them with no added context. Inspect the failures, make one targeted change, and run the same tasks again. Let the delta decide what to fix next.
