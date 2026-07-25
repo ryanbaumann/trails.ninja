@@ -1,3 +1,5 @@
+# Adapter. The vendor-neutral source of truth is ../manifest.json.
+# scripts/test/skill-manifest.test.mjs fails when the two drift.
 interface:
   display_name: "Portfolio Review"
   short_description: "Audit portfolio copy, claims, links, and visuals"

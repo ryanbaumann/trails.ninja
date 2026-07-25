@@ -29,8 +29,14 @@ All notable changes to this project will be documented in this file.
 - Added an `apple-touch-icon.png` and explicit `thumbnail` meta tag to the site `<head>` for better crawler visual citation and brand previews.
 - Enhanced the `sitemap.xml` generator to output `<image:image>` and `<image:loc>` nodes for pages with cover images to optimize visual search indexing.
 
+### Fixed
+- Staged Buffer social drafts for scheduled Field Notes. `buildSocialDrafts` gated on the `draft` flag alone, so a note created with `--schedule` (which writes `draft: false` with a future `publishAt`) published with no social draft, silently and permanently, because staging runs only on the commit that adds the file.
+- Aligned `npm run new:post` with the rules it points authors at: no em-dash in the scaffolded body, no generic site preview as a post header, and the full social and image contract emitted as commented placeholders matching `_TEMPLATE.md`.
+
 ### Changed
 - Refined the homepage hero section by removing redundant call-to-action buttons (Read Field Notes, Selected Work, Contact) to embrace a cleaner, content-first layout, and tightened the vertical whitespace between the hero introduction and the Field Notes list.
+- Removed the `google-maps-platform` skill's orphaned local index mirror, which still pointed at the per-product sub-skill copies deleted earlier, and recorded in `AGENTS.md` that the skill is a runtime entry point whose sub-skills are fetched from the GMP Skills Index and must never be vendored back into the repo.
+- Made vendor-neutral `manifest.json` the source of truth for skill interface metadata, demoted the OpenAI adapter to one projection of it, and added a check that fails when a skill ships an adapter without a manifest or the two drift.
 - Renamed the site and repository identity to Fieldwork, aligned package, CI, GitHub, Artifact Registry, and Cloud Run names, refreshed the favicon and social/home previews, and documented a backward-compatible service and repository migration.
 - Removed Resume from the primary header, kept it linked from About and the footer, kept Fieldwork, Notes, Work, Talks, Labs, About, and the theme control on one non-scrolling mobile header line, and tightened the visual rhythm between titles and explanatory subheads.
 - Cut `ryanbaumann.dev` over to the new `fieldwork` service and restored strict public-origin manifest verification after the migration compatibility window.

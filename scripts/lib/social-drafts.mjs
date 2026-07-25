@@ -40,8 +40,17 @@ function fitXText(title, url) {
   return `${title.slice(0, available).trimEnd()}…${suffix}`;
 }
 
+// Mirrors isPublished() in portfolio/build.mjs. Staging fires once, on the commit
+// that adds the file, so gate on "has not published yet" rather than on draft
+// alone: --schedule writes draft: false with a future publishAt.
+function isUnpublished(meta, now) {
+  if (meta.draft === true) return true;
+  if (!meta.publishAt) return false;
+  return new Date(meta.publishAt).valueOf() > now.valueOf();
+}
+
 export function buildSocialDrafts(meta, slug, now = new Date()) {
-  if (meta.draft !== true || meta.external || meta.stageSocial === false) return [];
+  if (!isUnpublished(meta, now) || meta.external || meta.stageSocial === false) return [];
   const title = String(meta.shareTitle || meta.title || '').trim();
   const summary = String(meta.shareSummary || meta.summary || '').trim();
   if (!title || !summary) throw new Error('Field Note needs a title and summary before social drafts can be staged.');

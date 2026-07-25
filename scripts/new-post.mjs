@@ -82,7 +82,7 @@ const body = external
   ? ''
   : `
 
-State the thesis in the first paragraph — the claim and why the reader
+State the thesis in the first paragraph: the claim and why the reader
 should care. No throat-clearing.
 
 Evidence from real work. Link the artifact every time.
@@ -96,12 +96,18 @@ summary: ${summary}
 date: ${date}
 updated: ${date}
 canonical: ${canonical}
-image: /previews/fieldwork.jpg
-imageAlt: Fieldwork homepage preview
 tags: ${JSON.stringify(tagList)}
 draft: ${draft}
 noindex: ${draft}
-${publishAt ? `publishAt: ${publishAt}\n` : ''}${external ? `external: ${external}\n` : ''}---${body}`);
+${publishAt ? `publishAt: ${publishAt}\n` : ''}${external ? `external: ${external}\n` : ''}${external ? '' : `# Required before publishing: three distinct visuals, each with its own alt text.
+# Point every path at a real asset, then uncomment. Never a generic site preview.
+# image: /img/writing/${slug}.jpg
+# imageAlt: A specific description of the evidence shown in the article image
+# socialImage: /social/${slug}.jpg
+# shareTitle: A concise title for social previews
+# shareSummary: One specific claim or reason to read.
+# shareImageAlt: A literal description of the social preview image
+`}---${body}`);
 
 console.log(`[new-post] created portfolio/content/writing/${slug}.md`);
 console.log('[new-post] preview:  cd portfolio && node build.mjs && node serve.mjs');

@@ -174,7 +174,7 @@ runbook rather than duplicating the steps here.
 
 Use these repo-local skills when the task matches their scope:
 
-- `.agents/skills/google-maps-platform/SKILL.md` for broad Google Maps Platform, key-security, quota, Places, Routes, and general Maps JavaScript API work.
+- `.agents/skills/google-maps-platform/SKILL.md` for **all** Google Maps Platform work: 2D and 3D Maps JavaScript API, Places, Routes, Geocoding, Environment APIs (Air Quality, Pollen, Solar, Weather), key security, and quota. This is the single Maps skill in the repo. It is an entry point, not a reference: its mandatory first action fetches the GMP Skills Index and loads the matching per-product sub-skills at runtime. Never vendor a copy of a sub-skill into this repo, and never skip the fetch because a topic feels familiar.
 - `.agents/skills/frontend-responsive-design/SKILL.md` for responsive layout, accessibility, CSS architecture, Tailwind utility usage, and visual QA work.
 - `.agents/skills/infographic-agent/SKILL.md` for generating professional infographics, visual summaries, charts, and data visualizations using Gemini.
 - `.agents/skills/portfolio-content/SKILL.md` for adding or updating content on this site (work entries, blog posts, talks, pages, static assets).
