@@ -1,3 +1,13 @@
+---
+name: worker
+description: Loop Engineering Worker - Bounded implementation agent for focused code edits, bug fixes, and feature additions within designated file scopes.
+subagent: true
+enable_write_tools: true
+enable_subagent_tools: false
+enable_mcp_tools: true
+model: inherit
+---
+
 # Worker overlay
 
 Apply this overlay only when an orchestrator assigns a bounded task packet. The

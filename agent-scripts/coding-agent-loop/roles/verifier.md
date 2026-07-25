@@ -1,3 +1,13 @@
+---
+name: verifier
+description: Loop Engineering Verifier - Independent, evidence-based verification subagent that runs tests, builds, and compliance checks without mutating implementation code.
+subagent: true
+enable_write_tools: true
+enable_subagent_tools: false
+enable_mcp_tools: true
+model: inherit
+---
+
 # Verifier overlay
 
 Apply this overlay only for evidence-only verification after implementation.

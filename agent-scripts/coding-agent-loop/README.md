@@ -15,10 +15,12 @@ https://github.com/ryanbaumann/fieldwork/tree/main/agent-scripts/coding-agent-lo
 
 Use each harness's native user-level instructions and skills. Install
 SYSTEM_PROMPT.md as the always-on contract and the four files under roles/ as
-optional role skills or equivalent on-demand instructions. Preserve existing
-global guidance, do not change model or permission settings, and verify what
-each harness will load. Report the files changed and any harness you could not
-configure.
+optional role skills or equivalent on-demand instructions. For Google Antigravity /
+AGY harness, install the four role files under ~/.gemini/config/agents/ (or
+.agents/agents/ in the target workspace) with subagent: true frontmatter enabled.
+Preserve existing global guidance, do not change model or permission settings, and
+verify what each harness will load. Report the files changed and any harness you
+could not configure.
 ```
 
 The agent should inspect the installed tools and their current conventions
@@ -26,10 +28,13 @@ rather than assume paths from this README. That keeps the package useful as
 agent products change. Reuse the same instruction when you want to update the
 installed copy.
 
-If you prefer to install it yourself, put [`SYSTEM_PROMPT.md`](SYSTEM_PROMPT.md)
-in your agent's global instruction file. Keep repository facts and commands in
-repository-local instructions. Add a role overlay only to an agent performing
-that role.
+If you prefer to install it yourself:
+1. Place [`SYSTEM_PROMPT.md`](SYSTEM_PROMPT.md) in your agent's global instruction file or system prompt configuration.
+2. For **Google Antigravity / AGY**, copy the files under [`roles/`](roles/) into:
+   - **User Global Agents**: `~/.gemini/config/agents/<role>.md`
+   - **Workspace Agents**: `.agents/agents/<role>.md`
+   (They will be auto-discovered by the `/agents` panel and available via `invoke_subagent`).
+3. For non-Antigravity harnesses, add a role overlay only to an agent performing that specific role.
 
 ## Use the roles only when the job needs them
 
@@ -44,9 +49,8 @@ For multi-agent work, assign exactly one overlay to each participant:
 - **Reviewer:** reads the supplied change independently and does not edit it.
 - **Verifier:** maps acceptance criteria to observed checks after implementation.
 
-Skill-aware harnesses can register the four files as on-demand skills. In a
-harness without skills, attach the matching file from [`roles/`](roles/) to that
-agent's prompt.
+Skill-aware harnesses can register the four files as on-demand skills. In Antigravity / AGY,
+the four role files in `roles/` include YAML frontmatter (`subagent: true`, `enable_write_tools`, `enable_subagent_tools`, `enable_mcp_tools`, `model`) allowing them to be registered directly as subagents in the `/agents` panel menu and invoked asynchronously.
 
 The overlays make a job narrower. They never grant permissions that the shared
 contract or the user did not grant. Give every worker a concrete objective,
@@ -55,10 +59,10 @@ done condition, read/write boundaries, verifier, output format, and stop rule.
 ## Files
 
 - [`SYSTEM_PROMPT.md`](SYSTEM_PROMPT.md): canonical complete prompt.
-- [`roles/orchestrator.md`](roles/orchestrator.md): root control-plane overlay.
-- [`roles/worker.md`](roles/worker.md): bounded maker or investigator overlay.
-- [`roles/reviewer.md`](roles/reviewer.md): read-only finding and risk overlay.
-- [`roles/verifier.md`](roles/verifier.md): evidence-only verification overlay.
+- [`roles/orchestrator.md`](roles/orchestrator.md): root control-plane overlay with Antigravity subagent header.
+- [`roles/worker.md`](roles/worker.md): bounded maker or investigator overlay with Antigravity subagent header.
+- [`roles/reviewer.md`](roles/reviewer.md): read-only finding and risk overlay with Antigravity subagent header.
+- [`roles/verifier.md`](roles/verifier.md): evidence-only verification overlay with Antigravity subagent header.
 - [`evals/cases.md`](evals/cases.md): regression cases and grading rubric.
 - [`evals/check.sh`](evals/check.sh): deterministic structural contract check.
 
