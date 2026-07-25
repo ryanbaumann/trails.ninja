@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Changed
+- Updated the portfolio homepage: simplified the role title to "DevX at Google Maps Platform", tightened the intro sub headline around AI technologies and growth, and further reduced vertical padding between the hero section and the first content block.
 - Refined the homepage hero section by removing redundant call-to-action buttons (Read Field Notes, Selected Work, Contact) to embrace a cleaner, content-first layout, and tightened the vertical whitespace between the hero introduction and the Field Notes list.
 - Applied UI/UX layout enhancements: increased macro whitespace around hero and main sections, implemented responsive typography scaling for headers and stats. Card interaction stays the documented border accent and 2px lift.
 - Updated SSG sorting logic for Field Notes, Labs, and Selected Work. All collections now default to chronological order globally. The homepage logic now supports pinning a specific entry (via `order` metadata) for all three sections while correctly rendering the newest remaining entries automatically.
