@@ -5,7 +5,7 @@ date: 2026-07-16
 updated: 2026-07-16
 canonical: https://ryanbaumann.dev/writing/loop-engineering-coding-agent/
 aliases: ["/scripts/loop-engineering-coding-agent/"]
-tags: ["ai", "developer tools", "evals", "field notes"]
+tags: ["ai", "developer tools", "evals"]
 links: [{"label":"Get the prompt","url":"https://github.com/ryanbaumann/fieldwork/tree/main/agent-scripts/coding-agent-loop"}]
 image: /img/scripts/coding-agent-loop.svg
 imageAlt: An orchestrator routes jobs to tools, fast workers, balanced agents, or deep reasoning before integrated verification.

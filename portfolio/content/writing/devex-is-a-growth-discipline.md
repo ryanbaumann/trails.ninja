@@ -11,7 +11,7 @@ socialImage: /social/devx-growth-discipline.jpg
 shareTitle: DevX Is a Growth Function
 shareSummary: Docs, code samples, advocacy, tutorials, and even talking to customers all have a limit. Own the friction, ship the fix, distribute the path, and measure the outcome.
 shareImageAlt: Social preview reading DevX Is a Growth Discipline beside a product, distribution, and measurement loop.
-tags: ["developer experience", "growth", "distribution", "ai"]
+tags: ["developer experience", "growth", "ai"]
 order: 2
 ---
 

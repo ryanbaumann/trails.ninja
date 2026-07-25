@@ -14,7 +14,7 @@ I lead Developer Experience Engineering for Google Maps Platform. I build system
 
 My team works across product, engineering, UX, technical writing, and field teams. Recent work includes [Code Assist](https://developers.google.com/maps/ai/code-assist), [agent skills](https://github.com/googlemaps/agent-skills), agentic evals, the [Geo Architecture Center](https://developers.google.com/maps/architecture), and open-source client libraries.
 
-I shape this work directly—whether that's writing the first evals for a new agent or shipping a reference app to test our own friction. The loop is simple: find a problem that repeats, build the smallest useful artifact, test whether it helps, and publish what others can reuse. I've explained the operating model in [DevX Is a Growth Function](/writing/devx-is-a-growth-discipline/).
+I shape this work directly: whether that's writing the first evals for a new agent or shipping a reference app to test our own friction. The loop is simple: find a problem that repeats, build the smallest useful artifact, test whether it helps, and publish what others can reuse. I've explained the operating model in [DevX Is a Growth Function](/writing/devx-is-a-growth-discipline/).
 
 Before this role, I led product and engineering for [Intelligent Product Essentials](https://cloud.google.com/blog/products/data-analytics/introducing-intelligent-products-essentials-for-manufacturers) at Google Cloud. I've also built the solutions architecture team at Instabase and worked as Mapbox's first customer-facing engineer. There, the team launched Boundaries and Atlas, while I wrote open-source tools for Python notebooks and Power BI. My early career was spent building connected-worksite systems at Caterpillar.
 

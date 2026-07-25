@@ -12,4 +12,4 @@ The most useful conversations start with the thing you are trying to build and t
 
 Use the form for a developer-platform discussion, content collaboration, speaking opportunity, or another focused question. I'm not available for outside consulting while employed at Google.
 
-This form sends your note directly to me. I only use your email to reply—I don't expose it on this site or feed it to an ad classifier.
+This form sends your note directly to me. I only use your email to reply. I don't expose it on this site or feed it to an ad classifier.
