@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Refined the homepage hero section by removing redundant call-to-action buttons (Read Field Notes, Selected Work, Contact) to embrace a cleaner, content-first layout, and tightened the vertical whitespace between the hero introduction and the Field Notes list.
-- Applied UI/UX layout enhancements: increased macro whitespace around hero and main sections, implemented responsive typography scaling for headers and stats, and added an elevated interaction state to cards.
+- Applied UI/UX layout enhancements: increased macro whitespace around hero and main sections, implemented responsive typography scaling for headers and stats. Card interaction stays the documented border accent and 2px lift.
 - Updated SSG sorting logic for Field Notes, Labs, and Selected Work. All collections now default to chronological order globally. The homepage logic now supports pinning a specific entry (via `order` metadata) for all three sections while correctly rendering the newest remaining entries automatically.
 - Fixed theme-aware SVGs failing to respond to explicit light/dark toggles by injecting `color-scheme` into the host `html[data-theme]` block, bypassing system-level media queries on `<img>` tags.
 - Updated `infographic-agent` skill, documentation, CLI wrapper, and prompt metadata to use `gemini-3.6-flash` for the research orchestrator (standardizing Flash on 3.6 while Flash-Lite uses 3.5).
@@ -28,11 +28,11 @@ All notable changes to this project will be documented in this file.
 - Added permanent `/lab/` and `/labs/` redirects to the canonical `/demos/` route.
 - Added an `apple-touch-icon.png` and explicit `thumbnail` meta tag to the site `<head>` for better crawler visual citation and brand previews.
 - Enhanced the `sitemap.xml` generator to output `<image:image>` and `<image:loc>` nodes for pages with cover images to optimize visual search indexing.
-
-### Added
+- Recorded the voice moves the writing skill could not previously produce (quoted-objection openings, definition by negative space, the colon pivot, vantage-point evidence, era-based credit), replaced its unreachable external rhythm calibration with three in-repo hand-written entries, scoped the outcome-first rule so it stops contradicting the work-entry structure, and reframed every prescribed phrasing as a meaning rather than a string to paste.
 - Added `npm run check:content`, a zero-dependency gate for the mechanically checkable subset of the writing and content rules: em-dashes, banned phrases, hype adjectives, the three-asset essay contract, alt-text distinctness, tag vocabulary and count, and distinctive phrases repeated across entries. Errors block, taste warnings advise, code fences and `<!-- lint-ignore -->` lines are exempt, and it runs in CI beside `check:labs`.
 
 ### Fixed
+- Returned the card hover to its documented behavior, a border accent and a 2px lift, and removed the resting and hover drop shadows. The previous 2px accent ring matched the `:focus-visible` ring closely enough that a hovered card and a focused card were indistinguishable, and its hardcoded black shadows rendered only against the light background, so the two color schemes shipped different hover states.
 - Staged Buffer social drafts for scheduled Field Notes. `buildSocialDrafts` gated on the `draft` flag alone, so a note created with `--schedule` (which writes `draft: false` with a future `publishAt`) published with no social draft, silently and permanently, because staging runs only on the commit that adds the file.
 - Aligned `npm run new:post` with the rules it points authors at: no em-dash in the scaffolded body, no generic site preview as a post header, and the full social and image contract emitted as commented placeholders matching `_TEMPLATE.md`.
 
