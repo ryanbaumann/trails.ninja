@@ -17,7 +17,7 @@ order: 2
 
 Between early 2025 and 2026, our open-source ecosystem more than doubled its unique active users, driving strong growth in API engagement. We moved those metrics by treating DevX as a growth discipline, not a docs queue. I helped lead distribution strategy across major UI frameworks and AI agent platforms alongside our product, engineering, UX, and technical writing teams. We treated product, distribution, and measurement as one system, because presence in a workflow is not proof of adoption.
 
-Documentation requests often pull DevX teams away from the real scoreboard. But the job is not just to publish more docs. It is to find the friction that stops a builder, fix it in the product or experience, put the better path where people work, and prove that behavior changed.
+Documentation requests often pull DevX teams away from the real scoreboard. But the job isn't just to publish more docs. It's to find the friction that stops a builder, fix it in the product or experience, put the better path where people work, and prove that behavior changed.
 
 ## Own the friction
 
