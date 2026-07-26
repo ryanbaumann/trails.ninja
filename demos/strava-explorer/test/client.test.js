@@ -5,6 +5,7 @@ import * as urlState from '../src/urlState.js';
 import * as photos from '../src/photos.js';
 import { proxiedPhotoUrl } from '../src/photoUrl.js';
 import * as strava from '../src/strava.js';
+import * as icons from '../src/activityIcons.js';
 
 // Setup Mock LocalStorage for Strava tests
 const mockLocalStorage = (() => {
@@ -259,5 +260,53 @@ describe('Token Expiration (src/strava.js)', () => {
         // Advance time by 6 minutes (360 seconds) - should now be expiring soon
         vi.advanceTimersByTime(360 * 1000);
         expect(strava.isTokenExpiringSoon()).toBe(true);
+    });
+});
+
+describe('src/activityIcons.js', () => {
+    test('maps Strava sport_type values onto canonical keys', () => {
+        expect(icons.normalizeSportType({ sport_type: 'MountainBikeRide' })).toBe('mountainbikeride');
+        expect(icons.normalizeSportType({ sport_type: 'TrailRun' })).toBe('trailrun');
+        expect(icons.normalizeSportType({ sport_type: 'GravelRide' })).toBe('gravelride');
+        expect(icons.normalizeSportType({ sport_type: 'EBikeRide' })).toBe('ebikeride');
+        expect(icons.normalizeSportType({ sport_type: 'Snowshoe' })).toBe('hike');
+        expect(icons.normalizeSportType({ sport_type: 'Kayaking' })).toBe('watersport');
+        expect(icons.normalizeSportType('Run')).toBe('run');
+    });
+
+    test('prefers sport_type over the legacy type field', () => {
+        expect(icons.normalizeSportType({ type: 'Ride', sport_type: 'MountainBikeRide' })).toBe('mountainbikeride');
+        expect(icons.normalizeSportType({ type: 'Ride' })).toBe('ride');
+    });
+
+    test('falls back to demo activities and then to default', () => {
+        expect(icons.normalizeSportType({ id: 'demo-alpine-ride' })).toBe('ride');
+        expect(icons.normalizeSportType({ id: 'demo-coastal-run' })).toBe('run');
+        expect(icons.normalizeSportType({ sport_type: 'Curling' })).toBe('default');
+        expect(icons.normalizeSportType(null)).toBe('default');
+    });
+
+    test('every sport renders a distinct, well-formed marker SVG', () => {
+        const rendered = icons.SPORT_KEYS.map((key) => icons.activityMarkerSvg(key));
+        rendered.forEach((svg, i) => {
+            expect(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg"')).toBe(true);
+            expect(svg.trimEnd().endsWith('</svg>')).toBe(true);
+            expect(svg).toContain(`aria-label="${icons.sportDescriptor(icons.SPORT_KEYS[i]).label} position"`);
+        });
+        expect(new Set(rendered).size).toBe(rendered.length);
+    });
+
+    test('marker size option scales the viewport, not the viewBox', () => {
+        const svg = icons.activityMarkerSvg('hike', { size: 92 });
+        expect(svg).toContain('width="92"');
+        expect(svg).toContain('height="116"');
+        expect(svg).toContain('viewBox="0 0 46 58"');
+    });
+
+    test('sport emoji stays in sync with the marker sport', () => {
+        expect(icons.sportEmoji({ sport_type: 'MountainBikeRide' })).toBe('🚵');
+        expect(icons.sportEmoji({ sport_type: 'Ride' })).toBe('🚴');
+        expect(icons.sportEmoji({ sport_type: 'TrailRun' })).toBe('🏃');
+        expect(icons.sportEmoji({ sport_type: 'Hike' })).toBe('🥾');
     });
 });

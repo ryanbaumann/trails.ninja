@@ -2,6 +2,13 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-07-26 - Marker3DElement only draws three element types, and its collision default is not what "always visible" needs
+
+Context: Making the Strava Explorer rider marker sport-aware (custom SVG per activity type) and stopping it from disappearing behind basemap labels during a tour.
+Learning: Two Maps 3D constraints decide the whole implementation. (1) The `Marker3DElement` default slot ignores everything except `HTMLImageElement`, `SVGElement`, and `PinElement`, and the first two must be wrapped in a `<template>` before being appended - a bare `<div>` or an SVG appended directly is silently dropped, so custom artwork has to be built as an SVG string, parsed with `DOMParser`, and slotted through a template. (2) `collisionBehavior` defaults to `REQUIRED`, which only guarantees the marker is drawn; a colliding basemap label still wins the space. `REQUIRED_AND_HIDES_OPTIONAL` is the value that hides the optional label instead, and it pairs with `collisionPriority` to rank the app's own markers (rider 1000 > photos 100 > route endpoints 50). `sizePreserved: true` is separate again: without it the pin scales down with camera distance, which reads as "disappeared" long before collision does.
+Evidence: Maps JS reference `developers.google.com/maps/documentation/javascript/reference/3d-map-draw` (retrieved via the GMP Code Assist REST endpoint) documents the slot restriction and both enum values; the marker-graphics sample uses the `DOMParser` -> `<template>` -> `marker.append(template)` sequence. Implemented in `demos/strava-explorer/src/activityIcons.js` (artwork as pure strings, unit-tested) and `src/gmp.js` (`svgTemplateFromMarkup`, `alwaysVisibleCollision`).
+Use next time: For any custom 3D marker, build artwork as an SVG string, parse and slot it via `<template>`, and set `collisionBehavior`, `collisionPriority`, and `sizePreserved` together - treating any one of them as sufficient leaves the marker vanishing in some camera state. Keep the artwork in a DOM-free module so it can be rendered to a screenshot sheet and unit-tested without a map or an API key.
+
 ## 2026-07-26 - A CSP is only as good as the list of origins the app actually calls, and "it's a Maps demo" is not that list
 
 Context: The per-app CSP work classified strava-explorer as a Google Maps Platform demo and gave it the Maps allowlist. The demo deployed and broke: connecting an account produced "Failed to fetch activities" from `demos/strava-explorer/src/strava.js`, because `connect-src` had every Google origin and no Strava one.

@@ -22,6 +22,8 @@ export default [
                 URL: "readonly",
                 URLSearchParams: "readonly",
                 Image: "readonly",
+                DOMParser: "readonly",
+                Intl: "readonly",
                 console: "readonly",
                 process: "readonly",
                 Date: "readonly",
