@@ -123,13 +123,24 @@ test('the strava-explorer policy allows the Strava API host the demo actually ca
 test('the strava-explorer policy allows every image host the demo loads without the proxy', () => {
   // The athlete avatar (index.js, athlete.profile_medium) is loaded straight
   // from Strava's photo CDN — only activity photos go through /api/photo-proxy.
-  const photoHost = readFileSync(join(DEMO_SRC, 'photoUrl.js'), 'utf8')
-    .match(/STRAVA_PHOTO_HOST\s*=\s*'([^']+)'/);
+  const photoUrlSource = readFileSync(join(DEMO_SRC, 'photoUrl.js'), 'utf8');
+  const photoHost = photoUrlSource.match(/STRAVA_PHOTO_HOST\s*=\s*'([^']+)'/);
   assert.ok(photoHost, 'could not find STRAVA_PHOTO_HOST in the demo source');
   assert.ok(
     cspAllows(CSP_POLICIES.stravaDemo, 'img-src', `https://${photoHost[1]}/avatar.jpg`),
     `strava-explorer CSP img-src must allow https://${photoHost[1]}`,
   );
+
+  const avatarBlock = photoUrlSource.match(/STRAVA_AVATAR_HOSTS\s*=\s*Object\.freeze\(\[([^\]]+)\]\)/);
+  if (avatarBlock) {
+    const avatarHosts = [...avatarBlock[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+    for (const host of avatarHosts) {
+      assert.ok(
+        cspAllows(CSP_POLICIES.stravaDemo, 'img-src', `https://${host}/avatar.jpg`),
+        `strava-explorer CSP img-src must allow the avatar host https://${host}`,
+      );
+    }
+  }
 
   // The signed-out demo tour renders placeholder photos before any auth; a
   // blocked img-src there breaks the first thing a visitor sees.
@@ -169,13 +180,6 @@ test('cspForApp maps manifest values to policies and falls back to the strict de
 });
 
 test('applySecurityHeaders sets Content-Security-Policy via setHeader (not writeHead)', () => {
-  // applySecurityHeaders only ever calls setHeader(), never writeHead(), so
-  // a caller further down the same request handler (the Strava photo-proxy
-  // binary response) can still pass its own Content-Security-Policy directly
-  // to writeHead() and have it win — Node gives writeHead()'s own headers
-  // precedence over setHeader() for duplicate names. Proven end-to-end
-  // against a real server in server.test.js
-  // ("server includes CORS headers on photo proxy binary response").
   const response = fakeResponse();
   applySecurityHeaders(response);
   assert.equal(response.getHeader('content-security-policy'), CSP_POLICIES.default);
