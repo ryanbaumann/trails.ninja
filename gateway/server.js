@@ -11,7 +11,7 @@ import { createServer } from 'node:http';
 import { join } from 'node:path';
 
 import { loadApps, toPublicApp, appVisibility } from './lib/apps.js';
-import { applySecurityHeaders, serveFromDir, serveFileWithStatus, sendCompressibleBody, CSP_POLICIES } from './lib/staticFiles.js';
+import { applySecurityHeaders, serveFromDir, serveFileWithStatus, sendCompressibleBody, cspForApp } from './lib/staticFiles.js';
 import { createRateLimiter, clientIp, RATE_LIMIT_POLICIES, rateLimitPolicyForPath } from './lib/rateLimit.js';
 import { resolveProvider } from './lib/config.js';
 import {
@@ -767,15 +767,16 @@ const server = createServer(async (request, response) => {
       }
 
       const subPath = pathname.slice(app.path.length - 1);
-      // The Maps JS API loader needs a broader CSP than the portfolio's
-      // default — see CSP_POLICIES in staticFiles.js for why this is scoped
-      // per-app rather than site-wide. This reads the manifest's explicit
-      // `csp` field, never the display `tags`: tags are presentation
-      // metadata (card chips, JSON-LD keywords) that someone could
-      // reasonably rewrite for SEO, and a security policy must not change
-      // as a side effect of that. scripts/validate-apps.mjs enforces that
-      // every app loading Maps declares `"csp": "maps"`.
-      const csp = app.csp === 'maps' ? CSP_POLICIES.mapsDemo : CSP_POLICIES.default;
+      // Some demos need a broader CSP than the portfolio's default — the Maps
+      // JS API loader, and strava-explorer's direct calls to Strava. See
+      // CSP_POLICIES in staticFiles.js for why this is scoped per-app rather
+      // than site-wide. This reads the manifest's explicit `csp` field, never
+      // the display `tags`: tags are presentation metadata (card chips,
+      // JSON-LD keywords) that someone could reasonably rewrite for SEO, and a
+      // security policy must not change as a side effect of that.
+      // scripts/validate-apps.mjs enforces that every app loading Maps
+      // declares one of the maps policies and that the value is a known one.
+      const csp = cspForApp(app);
       if (serveFromDir(app.dir, subPath, request, response, { private: appVisibility(app) === 'private', csp })) return;
       send404Page(request, response);
       return;

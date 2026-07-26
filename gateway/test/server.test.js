@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { server, publicApps, appsByPathLength, apps } from '../server.js';
 import { toPublicApp } from '../lib/apps.js';
+import { CSP_POLICIES, CSP_MANIFEST_POLICIES, cspForApp } from '../lib/staticFiles.js';
 import { AUTH_COOKIE_NAME, setAuthCookie } from '../lib/auth.js';
 
 function request(port, path, headers = {}) {
@@ -569,12 +570,9 @@ test('private app with unset password env serves a styled 503 with the unavailab
 // effect, and a new Maps demo that forgets the field must fail validation
 // rather than ship with a CSP that blocks the Maps loader.
 test('Maps CSP selection is driven by the manifest csp field, not display tags', () => {
-  const mapsApps = apps.filter((app) => app.csp === 'maps');
-  assert.ok(mapsApps.length >= 1, 'expected at least one app declaring csp: maps');
-
-  for (const app of mapsApps) {
-    assert.equal(app.csp, 'maps');
-  }
+  const manifestValues = Object.keys(CSP_MANIFEST_POLICIES);
+  const mapsApps = apps.filter((app) => manifestValues.includes(app.csp));
+  assert.ok(mapsApps.length >= 1, 'expected at least one app declaring a maps csp');
 
   // Every non-external app tagged google-maps-platform must declare the
   // field. This is the invariant scripts/validate-apps.mjs enforces; asserting
@@ -583,11 +581,63 @@ test('Maps CSP selection is driven by the manifest csp field, not display tags',
     (app) => app.tags?.includes('google-maps-platform') && !app.path.startsWith('http'),
   );
   for (const app of taggedMapsApps) {
-    assert.equal(app.csp, 'maps', `${app.name} is tagged google-maps-platform but does not declare csp: maps`);
+    assert.ok(
+      manifestValues.includes(app.csp),
+      `${app.name} is tagged google-maps-platform but declares csp: ${JSON.stringify(app.csp)}`,
+    );
   }
 
   // An app carrying the tag but no csp field must NOT get the Maps policy —
   // proving selection reads the field, not the tag.
   const tagOnly = { name: 'tag-only', tags: ['google-maps-platform'], path: '/tag-only/' };
-  assert.notEqual(tagOnly.csp, 'maps');
+  assert.equal(cspForApp(tagOnly), CSP_POLICIES.default);
+});
+
+// Regression for the deploy that followed #137: strava-explorer was served the
+// plain Maps CSP, whose connect-src has no Strava origin, so the demo failed
+// with "Failed to fetch activities" as soon as a visitor connected an account.
+// The manifest, the policy table, and the header the gateway actually writes
+// all have to agree, so this asserts the real response.
+test('strava-explorer is served the Strava CSP and other demos are not', () => {
+  const stravaApp = apps.find((app) => app.name === 'strava-explorer');
+  assert.ok(stravaApp, 'strava-explorer missing from apps.json');
+  assert.equal(stravaApp.csp, 'maps-strava');
+  assert.equal(cspForApp(stravaApp), CSP_POLICIES.stravaDemo);
+  assert.match(cspForApp(stravaApp), /connect-src [^;]*https:\/\/www\.strava\.com/);
+
+  // Scoping: the relaxation is per-app, so the other Maps demos and the
+  // portfolio keep policies with no Strava origin in them at all.
+  for (const app of apps.filter((app) => app.name !== 'strava-explorer')) {
+    assert.doesNotMatch(cspForApp(app), /strava\.com/, `${app.name} must not inherit the Strava CSP`);
+  }
+});
+
+test('server sends the Strava CSP on strava-explorer static files', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'strava-csp-'));
+  writeFileSync(join(dir, 'index.html'), '<!doctype html><title>strava</title>');
+  const stravaApp = apps.find((app) => app.name === 'strava-explorer');
+  const originalByPath = [...appsByPathLength];
+  const originalDir = stravaApp.dir;
+  const originalAvailable = stravaApp.available;
+
+  stravaApp.dir = dir;
+  stravaApp.available = true;
+  if (!appsByPathLength.includes(stravaApp)) appsByPathLength.unshift(stravaApp);
+  server.listen(0);
+  const port = server.address().port;
+
+  try {
+    const { res } = await request(port, '/strava-explorer/index.html');
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.headers['content-security-policy'], CSP_POLICIES.stravaDemo);
+    assert.match(res.headers['content-security-policy'], /connect-src [^;]*https:\/\/www\.strava\.com/);
+    // The Maps sources the demo still needs must survive the extension.
+    assert.match(res.headers['content-security-policy'], /script-src [^;]*https:\/\/\*\.googleapis\.com/);
+  } finally {
+    stravaApp.dir = originalDir;
+    stravaApp.available = originalAvailable;
+    appsByPathLength.splice(0, appsByPathLength.length, ...originalByPath);
+    rmSync(dir, { recursive: true, force: true });
+    await new Promise((resolve) => server.close(resolve));
+  }
 });
