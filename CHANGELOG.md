@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Security
+- Pinned the Cloud Run service to `--max-instances 1`. The gateway's in-memory per-IP rate limiters (private-demo auth brute-force, and the spend limits in front of Isochrones, Gemini, and Resend) are only correct on a single instance, but the deploy passed no instance cap and Cloud Run's default is 100, so under load every limit silently became per-instance. Also pinned `--concurrency`, `--memory`, and `--cpu` at their current defaults so a platform default change cannot raise cost or dilute the limits again.
+
 ### Changed
+- Gated the hourly scheduled deploy on whether a `publishAt` timestamp has actually come due since the last successful run. The cron trigger exists only to make scheduled posts go live, but it rebuilt and redeployed the container every hour regardless, roughly 720 no-op image builds a month. Pushes to `main` and manual dispatches still always deploy, and every failure path (missing deploy history, unparsable timestamp, unexpected error) reports "due" so an extra build is possible but a missed publish is not.
 - Updated the portfolio homepage: simplified the role title to "DevX at Google Maps Platform", tightened the intro sub headline around AI products and growth, and further reduced vertical padding between the hero section and the first content block.
 - Refined the homepage hero section by removing redundant call-to-action buttons (Read Field Notes, Selected Work, Contact) to embrace a cleaner, content-first layout, and tightened the vertical whitespace between the hero introduction and the Field Notes list.
 - Applied UI/UX layout enhancements: increased macro whitespace around hero and main sections, implemented responsive typography scaling for headers and stats. Card interaction stays the documented border accent and 2px lift.

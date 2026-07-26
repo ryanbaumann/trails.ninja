@@ -84,7 +84,7 @@ plain-HTTP gateway development URL.
    grep over every built asset. No Playwright required; must pass keyless.
 5. **CI never hands secrets to forks.** PR jobs build + smoke with dummy env
    only. Deploy runs on `main` pushes via Workload Identity Federation.
-6. **Scheduled publishing rebuilds.** Public content is immutable static output. A future `publishAt` stays out of detail pages, lists, RSS, and sitemap until an hourly deploy rebuilds at or after that timestamp. `/writer/` is a separate private static build; its publishing endpoint can only update known content files after Google OAuth, allowlisted-email, session, and same-origin checks pass.
+6. **Scheduled publishing rebuilds, gated.** Public content is immutable static output. A future `publishAt` stays out of detail pages, lists, RSS, and sitemap until a deploy rebuilds at or after that timestamp. The hourly cron trigger in `deploy.yml` first runs `scripts/check-scheduled-publish.mjs`, which compares every `publishAt` against the last successful deploy time; the Cloud Build + Cloud Run steps run only when something has newly come due, so the hourly tick is nearly always a no-op instead of a full image build. Pushes to `main` and `workflow_dispatch` always build. `/writer/` is a separate private static build; its publishing endpoint can only update known content files after Google OAuth, allowlisted-email, session, and same-origin checks pass.
 7. **The Fieldwork site stays extractable.** `portfolio/` is a self-contained,
    zero-dependency static site (flat-file markdown CMS with small inline
    theme, analytics, and configured comments helpers).
@@ -111,7 +111,15 @@ image build; untrusted PR CI has no artifact credentials.
 
 `.github/workflows/deploy.yml` builds the image with Cloud Build — public
 `VITE_*` build args threaded through `cloudbuild.yaml` substitutions — and
-deploys to Cloud Run on pushes to `main`. Required repo configuration:
+deploys to Cloud Run on pushes to `main`, on `workflow_dispatch`, and on an
+hourly cron gated by `scripts/check-scheduled-publish.mjs` (see design rule
+6). `gcloud run deploy` pins `--max-instances 1`: the gateway's in-memory
+per-IP rate limiters (private-demo auth, and the spend limits on
+Isochrones/Gemini/Resend) are only correct with a single instance, since
+Cloud Run's real default is 100. `--concurrency 80`, `--memory 512Mi`, and
+`--cpu 1` are also pinned explicitly (Cloud Run's current defaults) so a
+future platform default change can't silently change throughput or cost.
+Required repo configuration:
 
 | Kind    | Name                    | Purpose                              |
 |---------|-------------------------|--------------------------------------|
