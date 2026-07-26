@@ -48,6 +48,10 @@ the build rebases them if the site is mounted under a subpath.
 - `draft: true` + `noindex: true` never enters public HTML, RSS, or sitemap.
 - `draft: false` with no `publishAt` publishes on the next deploy.
 - `draft: false` + `publishAt: <UTC ISO timestamp>` publishes on the first scheduled deploy at or after that time.
+- Any automation that decides public state must reuse `isPublished()` from
+  `build.mjs` or pin an explicit parity test to that implementation. Never
+  paraphrase publication as `draft === false`: test a future schedule first,
+  then before, at, and after its UTC boundary.
 - `/writer/` is a separate password-protected build with preview and publishing controls. It needs server-only writer and GitHub credentials; see `docs/WRITER_WORKFLOW.md`.
 - The repository is public. Committed Markdown and `static/` assets are not confidential even when the rendered route is protected.
 

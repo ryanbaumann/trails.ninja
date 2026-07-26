@@ -19,8 +19,32 @@ node --test scripts/test/skill-improvement.test.mjs
 ```
 
 The gate checks every local `SKILL.md` for completed frontmatter, template
-markers, progressive-disclosure size, and optional Codex UI metadata drift. It
-does not judge behavior; run the owning skill's deterministic checks too.
+markers, progressive-disclosure size, optional Codex UI metadata drift, and the
+shape of any `evals/evals.json` suite. Eval suites must identify development
+cases and preserve at least one frozen selection case. The gate does not judge
+model behavior; run the owning skill's deterministic checks too.
+
+## Audit a repository without widening every skill
+
+A broad evidence audit may inventory the full Git history, changelog, learning
+log, user corrections, tests, and current code. The edits still happen one
+bounded behavior at a time.
+
+1. Build a disposition ledger before editing. For each candidate, record the
+   evidence, current validity, narrow owner, verifier, and one disposition:
+   already enforced, promote to test, promote to skill, keep as documentation,
+   stale/contradicted, or one-off.
+2. Treat current code and tests as stronger evidence than an old changelog
+   claim. When history contains contradictory fixes, verify the current API or
+   behavior and reject the stale variants.
+3. Do not create duplicate skills to hold more history. If an entry skill
+   retrieves sub-skills dynamically, keep the local router and evaluate the
+   live sources; do not vendor what it fetches.
+4. Freeze the selection cases and baseline before the first candidate edit.
+   Run later candidates against the same set. A selection-case change is a new
+   evaluation revision, not part of the candidate being scored.
+5. End the audit with an explicit no-change disposition for skills whose
+   evidence is already encoded or whose source is externally maintained.
 
 ## Improve one bounded behavior
 

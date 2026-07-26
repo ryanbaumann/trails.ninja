@@ -11,6 +11,15 @@ All notable changes to this project will be documented in this file.
 - Pinned the Cloud Run service to `--max-instances 1`. The gateway's in-memory per-IP rate limiters (private-demo auth brute-force, and the spend limits in front of Isochrones, Gemini, and Resend) are only correct on a single instance, but the deploy passed no instance cap and Cloud Run's default is 100, so under load every limit silently became per-instance. Also pinned `--concurrency`, `--memory`, and `--cpu` at their current defaults so a platform default change cannot raise cost or dilute the limits again.
 
 ### Added
+- Added frozen development/selection eval suites for responsive design,
+  portfolio content/design/review, Google Maps Platform, and the skill
+  improvement workflow. The deterministic gate now validates eval ownership,
+  object shape, IDs, split labels, required expectations, and both development
+  and selection coverage.
+- Added a complete local-skill evidence audit over all 350 reachable commits,
+  all 45 learning entries, the changelog, current code, tests, and live Maps
+  skill sources, with explicit promote/already-enforced/document/stale
+  dispositions.
 - Added a SkillOpt-inspired validation protocol to the Loop Engineering Coding
   Agent: a fixed development/held-out case split, repeated-trial evidence
   requirements, strict held-out improvement gate, and a repository-learning
@@ -29,6 +38,13 @@ All notable changes to this project will be documented in this file.
 - Added gateway test coverage verifying that all external image, font, and avatar hosts loaded by demo apps are permitted by their respective CSP policies.
 
 ### Changed
+- Refined six local skills with verified gaps from repository history:
+  interaction-state distinction and mobile map viewport/gesture rules,
+  canonical scheduled-publication parity, embedded-SVG theme propagation,
+  controlled browser/CSP diagnosis, current Maps 3D marker composition and
+  Places/CSP boundaries, and a bounded protocol for repository-wide skill
+  audits. Writing, presenting, and the externally maintained infographic skill
+  were left unchanged after explicit no-change review.
 - Enhanced `strava-explorer` activity sport type resolution with title pattern matching and added a distinct trail run emoji (`🏃🌲`) to both activity selection dropdowns and the stats panel header.
 - Updated `demos/isochrones` Places UI Kit integration (`gmp-place-details` and `gmp-place-autocomplete`) to use dark color scheme (`color-scheme: dark`) and dark Material theme variables (`--gmp-mat-color-surface`, `--gmp-mat-color-on-surface`, `--gmp-mat-color-primary`), matching the dark aesthetic of the app and map InfoWindow.
 - Updated `gateway/lib/staticFiles.js` `CSP_MAPS_DEMO_DIRECTIVES` to include `https://*.ggpht.com` under `img-src` (allowing Google Places photos and avatar thumbnails) and `https://*.gstatic.com` / `https://*.googleapis.com` under `style-src` for Maps demo applications.

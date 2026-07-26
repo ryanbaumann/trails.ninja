@@ -2,6 +2,35 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-07-26 - Repository-wide skill audits need a disposition ledger before prompt edits
+
+Context: A request to use all Git history, `LEARNINGS.md`, and `CHANGELOG.md` to
+improve every appropriate local skill was broader than the existing
+one-behavior skill-improvement loop.
+Learning: Comprehensive retrieval and bounded promotion are compatible. Audit
+the full evidence set first, but give every candidate an explicit disposition:
+already enforced, promote to a test, promote to a skill, retain as
+documentation, stale/contradicted, or one-off. Freeze the behavioral scenarios
+before editing, keep current code/tests and authoritative docs above old commit
+messages, and record no-change decisions for already-complete or externally
+maintained skills. An eval file is not evidence by itself; its ownership,
+development/selection split, case IDs, and expectations need deterministic
+validation.
+Evidence: `docs/SKILL_EVIDENCE_AUDIT.md` covers all 350 reachable commits and 45
+current learning entries. The same read-only Codex CLI scenario set was run
+before and after the candidate edits with `LEARNINGS.md` and `CHANGELOG.md`
+excluded. The candidate closed the seven recorded omissions while preserving
+the three held-out portability/security behaviors. `npm run skills:improve` and
+`node --test scripts/test/skill-improvement.test.mjs` validate the new eval
+contracts. An independent read-only diff review then found that an
+all-selection suite passed and a `null` eval crashed the validator; focused
+regression cases now require development coverage and turn non-object entries
+into findings.
+Use next time: For a broad learning audit, inventory widely and edit narrowly.
+Do not paste history into prompts, do not treat old contradictory fixes as
+current truth, and do not call a directory of unvalidated cases a held-out
+gate.
+
 ## 2026-07-26 - Agent-skill changes need a held-out gate, not a larger prompt
 
 Context: The repository already recorded durable coding and delivery lessons in

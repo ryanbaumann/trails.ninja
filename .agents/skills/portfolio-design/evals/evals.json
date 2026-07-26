@@ -1,0 +1,27 @@
+{
+  "skill_name": "portfolio-design",
+  "evals": [
+    {
+      "id": "PD-D1",
+      "split": "development",
+      "prompt": "A card hover adds an accent outline and hardcoded black shadow while focus-visible already uses the same accent outline. Review the CSS change.",
+      "expected_output": "The review rejects the shadow and preserves distinct hover and focus language in both color schemes.",
+      "expectations": [
+        "Rejects hardcoded black component color in favor of tokens or removal.",
+        "Keeps card hover to the documented accent border and 2px lift.",
+        "Requires hover, focus, and active to be compared together in light and dark schemes."
+      ]
+    },
+    {
+      "id": "PD-S1",
+      "split": "selection",
+      "prompt": "Theme-aware SVG images follow prefers-color-scheme, but the site's manual data-theme toggle does not change them. Review the proposed fix.",
+      "expected_output": "The review sets the matching color-scheme on manual theme roots so embedded SVG media queries receive the selected scheme.",
+      "expectations": [
+        "Requires html[data-theme] overrides to set a matching color-scheme.",
+        "Avoids duplicating every SVG solely to support the manual theme.",
+        "Requires rendered light and dark verification."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "skill_name": "portfolio-review",
+  "evals": [
+    {
+      "id": "PR-D1",
+      "split": "development",
+      "prompt": "Chromium cannot load a third-party script on a page with CSP. Explain how to decide whether CSP is the cause.",
+      "expected_output": "The review uses a no-CSP control, a direct GET, the served header, and the violated directive before changing policy.",
+      "expectations": [
+        "Does not treat one failed browser request as proof of CSP causation.",
+        "Reproduces the request on a page without CSP.",
+        "Compares browser behavior with a direct GET and inspects the served CSP directive.",
+        "Reports browser reachability as unavailable if the control also fails."
+      ]
+    },
+    {
+      "id": "PR-S1",
+      "split": "selection",
+      "prompt": "A reviewer proposes adding a broad wildcard to img-src because an external avatar timed out in the browser. Review that recommendation.",
+      "expected_output": "The review rejects policy weakening until it distinguishes CSP rejection from environment reachability and identifies the exact required origin.",
+      "expectations": [
+        "Rejects the wildcard without source or network evidence.",
+        "Requires an exact origin derived from the application or response.",
+        "Uses a no-CSP control before attributing the timeout to policy."
+      ]
+    }
+  ]
+}

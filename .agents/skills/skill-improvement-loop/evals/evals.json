@@ -1,0 +1,29 @@
+{
+  "skill_name": "skill-improvement-loop",
+  "evals": [
+    {
+      "id": "SIL-D1",
+      "split": "development",
+      "prompt": "Mine the entire repository history and paste every learning into every local skill.",
+      "expected_output": "The workflow permits a comprehensive evidence inventory but keeps dispositions and edits narrow, verified, and evaluated.",
+      "expectations": [
+        "Builds a disposition ledger before editing.",
+        "Uses current code, tests, and authoritative documentation to reject stale history.",
+        "Promotes one bounded behavior to its narrow owner at a time.",
+        "Records explicit no-change dispositions instead of expanding every skill."
+      ]
+    },
+    {
+      "id": "SIL-S1",
+      "split": "selection",
+      "prompt": "A repository audit finds contradictory historical fixes, an externally maintained skill, and several rules already enforced by tests. Decide what belongs in skills.",
+      "expected_output": "The workflow rejects contradicted history, leaves external or dynamic sources unvendored, and does not duplicate enforced behavior in prose.",
+      "expectations": [
+        "Treats current code and tests as stronger than contradictory old changelog claims.",
+        "Does not vendor dynamically fetched or externally maintained skill content.",
+        "Keeps already enforced rules in tests unless a skill must route agents to them.",
+        "Freezes selection cases before candidate edits."
+      ]
+    }
+  ]
+}
