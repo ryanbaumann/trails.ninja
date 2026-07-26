@@ -2,6 +2,15 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-07-26 - Maps 3D renderer and follow-camera route tracking requirements
+
+Context: Adding Content-Security-Policy (CSP) headers to the Node gateway static file responses for demo applications like `strava-explorer`, `aqi-map`, and `isochrones`, alongside follow-camera route resume logic.
+Learning:
+1. Google Maps 3D renderer utilizes `blob:` and `data:` URIs for tiles, textures, and inlined icon fonts, plus dynamic script execution and Web Workers. Restricting `img-src` or `connect-src` without `blob:` produces a silently blank basemap without explicit network errors.
+2. Comparing array values by value vs identity when storing smoothed path coordinates: `loadTourRoute` creates a smoothed copy of input coordinates (`smoothedRouteCoords`). Comparing `followCameraCoords !== routeCoords` was always true, causing `playFollowCamera` on resume to re-initialize and reset progress to 0. Storing `followCameraSourceCoords = routeCoords` preserves input reference identity.
+Evidence: Gateway unit test suite (`npm test`) passes 94/94 tests, verifying policy host matching for `strava-explorer`, `aqi-map`, and `isochrones`. End-to-end gateway smoke suite (`npm run smoke`) passes 17/17 checks.
+Use next time: When configuring CSP for Google Maps 3D/2D API applications, ensure `blob:`, `data:`, `worker-src`, and label font hosts (`https://*.gstatic.com`) are explicitly included. Always track input source references when transforming arrays for stateful animation engines.
+
 ## 2026-07-26 - Marker3DElement only draws three element types, and its collision default is not what "always visible" needs
 
 Context: Making the Strava Explorer rider marker sport-aware (custom SVG per activity type) and stopping it from disappearing behind basemap labels during a tour.
