@@ -6,6 +6,7 @@ import { toLatLngLiteral } from './latlng.js';
 import { DEFAULT_ALTITUDE_M, haversineKm, downsamplePath } from './geo.js';
 import { groupPhotosByProximity } from './photos.js';
 import { proxiedPhotoUrl } from './photoUrl.js';
+import { activityMarkerSvg, sportDescriptor } from './activityIcons.js';
 
 // --- Module-Level Variables ---
 let map3d = null;
@@ -14,12 +15,15 @@ let previousPolyline = null;
 let routeMarkers = [];
 let photoMarkers = new Map(); // Stores { marker, popover } pairs, key = photo.unique_id
 let trackingMarker = null;
+let trackingMarkerSport = null; // Sport key the current tracking marker artwork was built for
+let riderSportKey = 'default';
 let photoLoadSessionId = 0;
 let mapReadyPromise = null;
 let defaultOrbitActive = false;
 
 // GMP Class variables (populated in initMap)
 let Map3DElement, Marker3DElement, Marker3DInteractiveElement, Polyline3DElement, AltitudeMode, MapMode, PinElement, PopoverElement;
+let CollisionBehavior;
 let ElevationService;
 let LatLng, LatLngBounds, encoding;
 
@@ -99,7 +103,7 @@ export async function initMap(mapHostElement, apiKey) {
 
         // Import necessary classes *after* API is loaded
         ({ Map3DElement, Marker3DElement, Marker3DInteractiveElement, Polyline3DElement, AltitudeMode, MapMode, PopoverElement } = maps3dLibrary);
-        ({ PinElement } = markerLibrary); // Keep PinElement if default marker appearance is customized later
+        ({ PinElement, CollisionBehavior } = markerLibrary); // CollisionBehavior keeps route markers from being culled by basemap labels
         ({ ElevationService } = elevationLibrary);
         ({ LatLng, LatLngBounds } = coreLibrary);
         ({ encoding } = geometryLibrary);
@@ -355,6 +359,26 @@ export function displayPolyline(decodedPathLatLng) { // Expects array of LatLng 
     return routePolyline; // Return the created element
 }
 
+// `REQUIRED_AND_HIDES_OPTIONAL` keeps our markers drawn and pushes any colliding
+// basemap label out of the way instead of letting the label win. Falls back to
+// the literal enum value if the marker library shape ever changes.
+function alwaysVisibleCollision() {
+    return CollisionBehavior?.REQUIRED_AND_HIDES_OPTIONAL ?? 'REQUIRED_AND_HIDES_OPTIONAL';
+}
+
+// Marker3DElement only draws HTMLImageElement, SVGElement, or PinElement from its
+// default slot, and SVG has to be wrapped in a <template> before it is appended.
+function svgTemplateFromMarkup(svgMarkup) {
+    const svgElement = new DOMParser().parseFromString(svgMarkup, 'image/svg+xml').documentElement;
+    if (svgElement.nodeName === 'parsererror' || svgElement.querySelector('parsererror')) {
+        warn('[svgTemplateFromMarkup] Failed to parse marker SVG.');
+        return null;
+    }
+    const template = document.createElement('template');
+    template.content.append(svgElement);
+    return template;
+}
+
 function addRouteEndpointMarkers(path) {
     if (!map3d || !Marker3DElement || !AltitudeMode || path.length < 2) return;
     const endpoints = [
@@ -368,6 +392,10 @@ function addRouteEndpointMarkers(path) {
             altitudeMode: AltitudeMode.CLAMP_TO_GROUND,
             title: `${label} of activity route`,
             label,
+            collisionBehavior: alwaysVisibleCollision(),
+            collisionPriority: 50,
+            drawsWhenOccluded: true,
+            zIndex: 50,
         });
         const pin = new PinElement({
             background: color,
@@ -471,6 +499,178 @@ function resizeImageToDataUrl(imageUrl, maxDim = 100, photoCount = 1) {
     });
 }
 
+const PHOTO_DATE_FORMAT = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
+function formatPhotoDate(photo) {
+    const raw = photo?.created_at || photo?.created_at_local;
+    if (!raw) return '';
+    const date = new Date(raw);
+    return Number.isNaN(date.getTime()) ? '' : PHOTO_DATE_FORMAT.format(date);
+}
+
+function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+}
+
+/**
+ * Build the photo popover card: fixed-aspect media frame (no layout shift),
+ * skeleton + error states, caption/date meta, and gallery navigation via
+ * buttons, dots, arrow keys, and swipe.
+ * @returns {{ popover: PopoverElement, dispose: () => void }}
+ */
+function createPhotoPopover(group) {
+    const photos = group.photos;
+    const multi = photos.length > 1;
+
+    const popover = new PopoverElement({ open: false });
+    popover.style.setProperty('--gmp-popover-max-width', '440px');
+
+    // --- Header ---
+    const header = el('div', 'photo-pop-header');
+    header.slot = 'header';
+    const heading = el('h3', 'photo-pop-title', 'Activity photo');
+    const headerRight = el('div', 'photo-pop-header-right');
+    const counter = el('span', 'photo-pop-counter');
+    if (multi) headerRight.append(counter);
+
+    const closeButton = el('button', 'photo-pop-close');
+    closeButton.type = 'button';
+    closeButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    closeButton.setAttribute('aria-label', 'Close photo');
+    closeButton.addEventListener('click', () => { popover.open = false; });
+    headerRight.append(closeButton);
+    header.append(heading, headerRight);
+
+    // --- Media frame ---
+    const body = el('div', 'photo-pop-body');
+    const frame = el('button', 'photo-pop-frame');
+    frame.type = 'button';
+    frame.setAttribute('aria-label', 'Toggle full photo view');
+    const skeleton = el('div', 'photo-pop-skeleton skeleton-shimmer');
+    const image = el('img', 'photo-pop-image');
+    image.alt = '';
+    image.decoding = 'async';
+    const failure = el('p', 'photo-pop-failure', 'Photo could not be loaded');
+    failure.hidden = true;
+    frame.append(skeleton, image, failure);
+
+    image.addEventListener('load', () => { skeleton.hidden = true; failure.hidden = true; image.classList.add('is-loaded'); });
+    image.addEventListener('error', () => { skeleton.hidden = true; failure.hidden = false; image.classList.remove('is-loaded'); });
+    frame.addEventListener('click', () => {
+        const contained = frame.classList.toggle('is-contained');
+        frame.setAttribute('aria-pressed', String(contained));
+    });
+
+    const caption = el('p', 'photo-pop-caption');
+    const meta = el('p', 'photo-pop-meta');
+    body.append(frame, caption, meta);
+
+    // --- Gallery navigation ---
+    let activeIdx = 0;
+    const dots = [];
+    let prevButton = null;
+    let nextButton = null;
+
+    const show = (idx) => {
+        activeIdx = Math.max(0, Math.min(photos.length - 1, idx));
+        const photo = photos[activeIdx];
+        const rawUrl = photo.urls?.['1000'] || photo.urls?.['600'] || photo.urls?.['100'];
+
+        skeleton.hidden = false;
+        failure.hidden = true;
+        image.classList.remove('is-loaded');
+        image.src = rawUrl ? getMarkerPhotoUrl(rawUrl) : '';
+        image.alt = photo.caption
+            ? `Activity photo: ${photo.caption}`
+            : `Activity photo ${activeIdx + 1} of ${photos.length}`;
+
+        const title = photo.caption?.trim();
+        heading.textContent = title || (multi ? `Photo ${activeIdx + 1}` : 'Activity photo');
+        caption.textContent = title || '';
+        caption.hidden = !title;
+        meta.textContent = formatPhotoDate(photo);
+        meta.hidden = meta.textContent === '';
+        counter.textContent = `${activeIdx + 1} / ${photos.length}`;
+
+        if (multi) {
+            prevButton.disabled = activeIdx === 0;
+            nextButton.disabled = activeIdx === photos.length - 1;
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('is-active', i === activeIdx);
+                dot.setAttribute('aria-current', i === activeIdx ? 'true' : 'false');
+            });
+            // Warm the neighbours so paging feels instant.
+            [activeIdx - 1, activeIdx + 1].forEach((i) => {
+                const neighbour = photos[i];
+                const url = neighbour?.urls?.['1000'] || neighbour?.urls?.['600'];
+                if (url) new Image().src = getMarkerPhotoUrl(url);
+            });
+        }
+    };
+
+    let onKeyDown = null;
+    if (multi) {
+        const nav = el('div', 'photo-pop-nav');
+        prevButton = el('button', 'photo-pop-nav-btn');
+        prevButton.type = 'button';
+        prevButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
+        prevButton.setAttribute('aria-label', 'Previous photo');
+        prevButton.addEventListener('click', () => show(activeIdx - 1));
+
+        nextButton = el('button', 'photo-pop-nav-btn');
+        nextButton.type = 'button';
+        nextButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';
+        nextButton.setAttribute('aria-label', 'Next photo');
+        nextButton.addEventListener('click', () => show(activeIdx + 1));
+
+        const dotRow = el('div', 'photo-pop-dots');
+        dotRow.setAttribute('role', 'tablist');
+        dotRow.setAttribute('aria-label', 'Photos at this spot');
+        photos.forEach((_, i) => {
+            const dot = el('button', 'photo-pop-dot');
+            dot.type = 'button';
+            dot.setAttribute('aria-label', `Photo ${i + 1} of ${photos.length}`);
+            dot.addEventListener('click', () => show(i));
+            dots.push(dot);
+            dotRow.append(dot);
+        });
+
+        nav.append(prevButton, dotRow, nextButton);
+        body.append(nav);
+
+        // Swipe paging on touch devices.
+        let touchStartX = null;
+        frame.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+        frame.addEventListener('touchend', (e) => {
+            if (touchStartX === null) return;
+            const deltaX = e.changedTouches[0].clientX - touchStartX;
+            touchStartX = null;
+            if (Math.abs(deltaX) > 40) show(activeIdx + (deltaX < 0 ? 1 : -1));
+        }, { passive: true });
+
+        onKeyDown = (e) => {
+            if (!popover.open) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); show(activeIdx + 1); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); show(activeIdx - 1); }
+        };
+        document.addEventListener('keydown', onKeyDown);
+    }
+
+    popover.append(header);
+    popover.append(body);
+    show(0);
+
+    return {
+        popover,
+        dispose: () => {
+            if (onKeyDown) document.removeEventListener('keydown', onKeyDown);
+        },
+    };
+}
+
 export async function displayPhotoMarkers(photosData) { // photosData = array from Strava API
     if (!map3d || !Marker3DInteractiveElement || !PopoverElement || !AltitudeMode) {
         showError("Map or necessary 3D components not ready for photo markers.");
@@ -524,144 +724,7 @@ export async function displayPhotoMarkers(photosData) { // photosData = array fr
                 return;
             }
 
-            // Create Popover
-            const popover = new PopoverElement({
-                open: false,
-            });
-
-            // Let the popover scale wider than default if screen permits
-            popover.style.setProperty('--gmp-popover-max-width', '500px');
-
-            // Populate Popover Content
-            const popoverBody = document.createElement('div');
-            popoverBody.style.width = 'clamp(280px, 33vw, 480px)';
-            popoverBody.style.display = 'flex';
-            popoverBody.style.flexDirection = 'column';
-            popoverBody.style.gap = '8px';
-
-            const popoverImage = document.createElement('img');
-            popoverImage.style.width = '100%';
-            popoverImage.style.maxHeight = '50vh';
-            popoverImage.style.objectFit = 'contain';
-            popoverImage.style.display = 'block';
-            popoverImage.style.borderRadius = '4px';
-            popoverImage.onerror = () => { popoverImage.alt = 'Image failed to load'; };
-
-            const popoverCaption = document.createElement('p');
-            popoverCaption.style.fontSize = '12px';
-            popoverCaption.style.color = '#555';
-            popoverCaption.style.margin = '0';
-
-            popoverBody.append(popoverImage);
-            popoverBody.append(popoverCaption);
-
-            // Create popover header with a close toggle
-            const popoverHeader = document.createElement('div');
-            popoverHeader.slot = 'header';
-            popoverHeader.style.display = 'flex';
-            popoverHeader.style.justifyContent = 'space-between';
-            popoverHeader.style.alignItems = 'center';
-            popoverHeader.style.width = '100%';
-            popoverHeader.style.paddingRight = '8px';
-
-            const popoverHeading = document.createElement('h3');
-            popoverHeading.textContent = primePhoto.caption || 'Activity photo';
-            popoverHeading.style.margin = '0';
-            popoverHeading.style.fontSize = '14px';
-            popoverHeading.style.fontWeight = '600';
-
-            const closeButton = document.createElement('button');
-            closeButton.innerHTML = '&times;';
-            closeButton.style.border = 'none';
-            closeButton.style.background = 'transparent';
-            closeButton.style.fontSize = '20px';
-            closeButton.style.fontWeight = 'bold';
-            closeButton.style.cursor = 'pointer';
-            closeButton.style.padding = '4px 8px';
-            closeButton.style.lineHeight = '1';
-            closeButton.style.color = '#6b7280';
-            closeButton.style.borderRadius = '4px';
-            closeButton.style.display = 'inline-flex';
-            closeButton.style.alignItems = 'center';
-            closeButton.style.justifyContent = 'center';
-            closeButton.ariaLabel = 'Close popover';
-
-            closeButton.addEventListener('mouseenter', () => { closeButton.style.color = '#111827'; });
-            closeButton.addEventListener('mouseleave', () => { closeButton.style.color = '#6b7280'; });
-            closeButton.addEventListener('click', () => {
-                popover.open = false;
-            });
-
-            popoverHeader.appendChild(popoverHeading);
-            popoverHeader.appendChild(closeButton);
-
-            popover.append(popoverHeader);
-            popover.append(popoverBody);
-
-            // Setup pagination controls if multiple overlapping photos exist
-            if (group.photos.length > 1) {
-                const controlsRow = document.createElement('div');
-                controlsRow.style.display = 'flex';
-                controlsRow.style.justifyContent = 'space-between';
-                controlsRow.style.alignItems = 'center';
-                controlsRow.style.marginTop = '4px';
-                
-                const prevButton = document.createElement('button');
-                prevButton.textContent = '← Prev';
-                prevButton.style.padding = '4px 8px';
-                prevButton.style.fontSize = '12px';
-                prevButton.style.cursor = 'pointer';
-                prevButton.style.borderRadius = '4px';
-                prevButton.style.border = '1px solid #ccc';
-                prevButton.style.background = '#fff';
-                
-                const nextButton = document.createElement('button');
-                nextButton.textContent = 'Next →';
-                nextButton.style.padding = '4px 8px';
-                nextButton.style.fontSize = '12px';
-                nextButton.style.cursor = 'pointer';
-                nextButton.style.borderRadius = '4px';
-                nextButton.style.border = '1px solid #ccc';
-                nextButton.style.background = '#fff';
-                
-                const counter = document.createElement('span');
-                counter.style.fontSize = '12px';
-                counter.style.fontWeight = '500';
-                
-                let activeIdx = 0;
-                const updateView = (idx) => {
-                    activeIdx = idx;
-                    const activePhoto = group.photos[idx];
-                    const rawUrl = activePhoto.urls?.["1000"] || activePhoto.urls?.["600"] || activePhoto.urls?.["100"];
-                    popoverImage.src = getMarkerPhotoUrl(rawUrl);
-                    popoverCaption.textContent = activePhoto.caption || 'No caption';
-                    popoverHeading.textContent = activePhoto.caption || `Photo ${idx + 1} of ${group.photos.length}`;
-                    counter.textContent = `${activeIdx + 1} / ${group.photos.length}`;
-                    
-                    prevButton.disabled = activeIdx === 0;
-                    nextButton.disabled = activeIdx === group.photos.length - 1;
-                    prevButton.style.opacity = prevButton.disabled ? '0.5' : '1.0';
-                    nextButton.style.opacity = nextButton.disabled ? '0.5' : '1.0';
-                };
-                
-                prevButton.addEventListener('click', () => {
-                    if (activeIdx > 0) updateView(activeIdx - 1);
-                });
-                nextButton.addEventListener('click', () => {
-                    if (activeIdx < group.photos.length - 1) updateView(activeIdx + 1);
-                });
-                
-                controlsRow.appendChild(prevButton);
-                controlsRow.appendChild(counter);
-                controlsRow.appendChild(nextButton);
-                popoverBody.appendChild(controlsRow);
-                
-                updateView(0);
-            } else {
-                const rawUrl = primePhoto.urls?.["1000"] || primePhoto.urls?.["600"] || primePhoto.urls?.["100"];
-                popoverImage.src = getMarkerPhotoUrl(rawUrl);
-                popoverCaption.textContent = primePhoto.caption || 'No caption';
-            }
+            const { popover, dispose: disposePopover } = createPhotoPopover(group);
 
             // Create Marker3DInteractiveElement with popover target
             const marker = new Marker3DInteractiveElement({
@@ -671,6 +734,9 @@ export async function displayPhotoMarkers(photosData) { // photosData = array fr
                 drawsWhenOccluded: true,
                 gmpPopoverTargetElement: popover,
                 sizePreserved: true,
+                collisionBehavior: alwaysVisibleCollision(),
+                collisionPriority: 100,
+                zIndex: 100,
             });
 
             // Create custom photo thumbnail with preserved aspect ratio
@@ -706,7 +772,7 @@ export async function displayPhotoMarkers(photosData) { // photosData = array fr
             map3d.append(popover);
 
             // Store Marker and Popover References (keyed by first photo's ID)
-            photoMarkers.set(primePhotoId, { marker, popover });
+            photoMarkers.set(primePhotoId, { marker, popover, dispose: disposePopover });
             debug(`[displayPhotoMarkers] Appended marker/popover for photo ${primePhotoId}`);
         });
 
@@ -721,7 +787,8 @@ export async function displayPhotoMarkers(photosData) { // photosData = array fr
 export function clearPhotoMarkers() {
     if (photoMarkers.size > 0 && map3d) {
         debug(`[clearPhotoMarkers] Clearing ${photoMarkers.size} photo markers and popovers.`);
-        photoMarkers.forEach(({ marker, popover }) => {
+        photoMarkers.forEach(({ marker, popover, dispose }) => {
+            try { dispose?.(); } catch(e) { warn("Error disposing popover listeners", e); }
             try { map3d.removeChild(marker); } catch(e) { warn("Error removing marker", e); }
             try { map3d.removeChild(popover); } catch(e) { warn("Error removing popover", e); }
         });
@@ -731,24 +798,59 @@ export function clearPhotoMarkers() {
 
 export { downsamplePath };
 
+/**
+ * Set the sport the rider marker should be drawn for. Accepts a Strava activity
+ * object or a raw sport string; the marker is rebuilt on the next update.
+ */
+export function setRiderActivityType(activity) {
+    const { key } = sportDescriptor(activity);
+    if (key === riderSportKey) return;
+    riderSportKey = key;
+    debug(`[setRiderActivityType] Rider marker sport set to "${key}".`);
+    disposeTrackingMarker();
+}
+
+function disposeTrackingMarker() {
+    if (trackingMarker?.parentNode) {
+        try { map3d?.removeChild(trackingMarker); } catch (e) { warn('[disposeTrackingMarker] Error removing marker:', e); }
+    }
+    trackingMarker = null;
+    trackingMarkerSport = null;
+}
+
 export function updateTrackingMarker(position) {
-    if (!map3d || !Marker3DInteractiveElement || !AltitudeMode) return;
-    
+    if (!map3d || !Marker3DElement || !AltitudeMode) return;
+
+    if (trackingMarker && trackingMarkerSport !== riderSportKey) {
+        disposeTrackingMarker();
+    }
+
     if (!trackingMarker) {
         try {
+            const { label } = sportDescriptor(riderSportKey);
             trackingMarker = new Marker3DElement({
                 altitudeMode: AltitudeMode.RELATIVE_TO_GROUND,
-                title: 'Tour Position',
+                title: `${label} position on route`,
                 extruded: true,
-                drawsWhenOccluded: true
+                drawsWhenOccluded: true,
+                // The rider must never be culled by basemap labels or other markers.
+                collisionBehavior: alwaysVisibleCollision(),
+                collisionPriority: 1000,
+                // Keep the pin readable at every camera range instead of shrinking with distance.
+                sizePreserved: true,
+                zIndex: 1000,
             });
-            debug("[updateTrackingMarker] Created trackingMarker singleton volumetric Marker3DElement.");
+            const template = svgTemplateFromMarkup(activityMarkerSvg(riderSportKey));
+            if (template) trackingMarker.append(template);
+            trackingMarkerSport = riderSportKey;
+            debug(`[updateTrackingMarker] Created "${riderSportKey}" rider marker.`);
         } catch (e) {
             error("[updateTrackingMarker] Failed to initialize tracking marker:", e);
+            trackingMarker = null;
             return;
         }
     }
-    
+
     if (!position) {
         if (trackingMarker.parentNode) {
             try {

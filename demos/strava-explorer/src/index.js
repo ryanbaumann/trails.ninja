@@ -21,6 +21,7 @@ import { debug, warn, error } from './log.js';
 import { toLatLngLiteral } from './latlng.js';
 import { haversineKm, calculateElevationLoss } from './geo.js';
 import { formatDistance, formatElevation, formatSpeed, formatDuration, MILES_PER_KM, FEET_PER_METER } from './units.js';
+import { normalizeSportType, sportEmoji } from './activityIcons.js';
 
 installAnalytics(import.meta.env.VITE_ANALYTICS_MEASUREMENT_ID);
 
@@ -571,10 +572,13 @@ function setupBottomSheet() {
     const getHeights = () => {
         const vh = window.visualViewport?.height || window.innerHeight;
         const safeBottom = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom')) || 0;
+        // Taller snap points than the original 18% / 56%: the peek state now shows
+        // the handle plus the header and first control row, and the half state
+        // fits the stats grid and player without a second drag.
         return {
-            peek: Math.max(112, vh * 0.18),
-            half: Math.max(320, vh * 0.56),
-            full: Math.max(360, vh - 16 - safeBottom)
+            peek: Math.max(140, vh * 0.24),
+            half: Math.max(380, vh * 0.64),
+            full: Math.max(440, vh - 12 - safeBottom)
         };
     };
 
@@ -674,13 +678,6 @@ function renderActivityDropdown() {
     selectList.innerHTML = '';
 
     // Helpers for demo data lacking standard properties
-    const getSportType = (activity) => {
-        if (activity.type) return activity.type.toLowerCase();
-        if (activity.id === 'demo-alpine-ride') return 'ride';
-        if (activity.id === 'demo-coastal-run') return 'run';
-        return '';
-    };
-
     const getActivityDate = (activity) => {
         if (activity.start_date) return new Date(activity.start_date);
         if (activity.id === 'demo-alpine-ride') return new Date('2026-07-03T10:00:00Z');
@@ -694,10 +691,10 @@ function renderActivityDropdown() {
     // Apply Sport Filter Chip
     if (selectedSportFilter !== 'all') {
         gpsActivities = gpsActivities.filter(activity => {
-            const type = getSportType(activity);
-            if (selectedSportFilter === 'ride') return type === 'ride' || type === 'virtualride';
-            if (selectedSportFilter === 'run') return type === 'run';
-            if (selectedSportFilter === 'hike') return type === 'hike';
+            const type = normalizeSportType(activity);
+            if (selectedSportFilter === 'ride') return type.includes('ride');
+            if (selectedSportFilter === 'run') return type.includes('run');
+            if (selectedSportFilter === 'hike') return type === 'hike' || type === 'walk';
             return true;
         });
     }
@@ -753,11 +750,8 @@ function renderActivityDropdown() {
             option.value = activity.id;
             
             // Format labels with Emojis & Dynamic formats (D4)
-            const sportType = getSportType(activity);
-            let emoji = '🏃';
-            if (sportType === 'ride' || sportType === 'virtualride') emoji = '🚴';
-            else if (sportType === 'hike') emoji = '🥾';
-            
+            const emoji = sportEmoji(activity);
+
             const date = getActivityDate(activity);
             const dateStr = date.toLocaleString('default', { month: 'short', day: '2-digit' });
             const distStr = formatDistance(activity.distance, useImperial);
@@ -765,9 +759,7 @@ function renderActivityDropdown() {
 
             // Avoid double emoji if activity.name already contains it
             let cleanName = activity.name || 'Unnamed Activity';
-            if (cleanName.includes('🚴') || cleanName.includes('🏃') || cleanName.includes('🥾')) {
-                cleanName = cleanName.replace(/[🚴🏃🥾]/g, '').trim();
-            }
+            cleanName = cleanName.replace(/[🚴🚵🏃🥾🚶🏊🛶📍]|⛷️?/gu, '').trim();
 
             option.textContent = `${emoji} ${cleanName} - ${dateStr} - ${distStr} (${elevStr})`;
             
@@ -1376,6 +1368,9 @@ async function displayDetailedActivity(activityData, streams) {
     // Cache activity data for metric/imperial dynamic updates
     currentActivityData = activityData;
     currentStreams = streams;
+
+    // Rider marker artwork follows the activity's sport (MTB vs trail run vs hike ...).
+    gmp.setRiderActivityType(activityData);
 
     const decodedPathLatLng = gmp.decodePolyline(activityData.map.polyline);
     if (decodedPathLatLng.length > 0) {
