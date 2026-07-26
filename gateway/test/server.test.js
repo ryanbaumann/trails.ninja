@@ -4,7 +4,7 @@ import http from 'node:http';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { server, publicApps, appsByPathLength } from '../server.js';
+import { server, publicApps, appsByPathLength, apps } from '../server.js';
 import { toPublicApp } from '../lib/apps.js';
 import { AUTH_COOKIE_NAME, setAuthCookie } from '../lib/auth.js';
 
@@ -29,6 +29,29 @@ function postForm(port, path, form, extraHeaders = {}) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(body),
+        ...extraHeaders,
+      },
+    }, (res) => {
+      const chunks = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => resolve({ res, body: Buffer.concat(chunks).toString('utf8') }));
+    });
+    req.on('error', reject);
+    req.end(body);
+  });
+}
+
+function postJson(port, path, payload, extraHeaders = {}) {
+  const body = JSON.stringify(payload);
+  return new Promise((resolve, reject) => {
+    const req = http.request({
+      hostname: 'localhost',
+      port,
+      path,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(body),
         ...extraHeaders,
       },
@@ -67,10 +90,63 @@ test('server includes CORS headers on photo proxy binary response', async () => 
     assert.equal(res.statusCode, 200);
     assert.equal(res.headers['access-control-allow-origin'], '*');
     assert.equal(res.headers['cross-origin-resource-policy'], 'cross-origin');
-    
+    // Regression: applySecurityHeaders() sets a default Content-Security-Policy
+    // earlier in the same handler (via applySecurityHeaders(response) before
+    // writeHead), but this binary response needs its own sandboxed CSP. Node
+    // gives writeHead()'s own headers precedence over setHeader() for
+    // duplicate names, so the sandbox value here must win, not the default.
+    assert.equal(res.headers['content-security-policy'], 'sandbox');
+
   } finally {
     globalThis.fetch = originalFetch;
     server.close();
+  }
+});
+
+test('Strava token endpoints reject a mismatched Origin but allow same-origin and originless POSTs', async () => {
+  const previous = { STRAVA_CLIENT_ID: process.env.STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET: process.env.STRAVA_CLIENT_SECRET };
+  process.env.STRAVA_CLIENT_ID = 'test-client-id';
+  process.env.STRAVA_CLIENT_SECRET = 'test-client-secret';
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ access_token: 'abc' }) });
+  server.listen(0);
+  const port = server.address().port;
+
+  try {
+    // Cross-site: Origin present and does not match Host -> rejected.
+    const crossSite = await postJson(port, '/api/strava/token', { code: 'abc' }, { Origin: 'https://evil.example' });
+    assert.equal(crossSite.res.statusCode, 403);
+    assert.match(crossSite.body, /Invalid request origin/);
+
+    // Same-origin, as the strava-explorer client always calls it -> allowed.
+    const sameOrigin = await postJson(port, '/api/strava/token', { code: 'abc' }, { Origin: `http://localhost:${port}` });
+    assert.equal(sameOrigin.res.statusCode, 200);
+
+    // No Origin header at all (non-browser API caller) -> allowed, not rejected.
+    const noOrigin = await postJson(port, '/api/strava/refresh', { refresh_token: 'abc' });
+    assert.equal(noOrigin.res.statusCode, 200);
+
+    // The photo GET route is untouched by the origin check.
+    globalThis.fetch = async () => ({
+      ok: true, status: 200,
+      headers: new Headers({ 'content-type': 'image/jpeg', 'content-length': '3' }),
+      arrayBuffer: async () => new ArrayBuffer(3),
+    });
+    const photo = await new Promise((resolve) => {
+      http.get({
+        hostname: 'localhost', port,
+        path: '/api/strava/photo?url=https://dgtzuqphqg23d.cloudfront.net/test.jpg',
+        headers: { Origin: 'https://evil.example' },
+      }, resolve);
+    });
+    assert.equal(photo.statusCode, 200);
+  } finally {
+    globalThis.fetch = originalFetch;
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+    await new Promise((resolve) => server.close(resolve));
   }
 });
 
@@ -363,12 +439,25 @@ test('subscribe route validates email, honors the honeypot, and requires provide
     const alreadySubscribed = await postForm(port, '/api/subscribe', { email: 'ada@example.com' }, { 'x-forwarded-for': '4.4.4.3, proxy' });
     assert.equal(alreadySubscribed.res.statusCode, 303);
     assert.equal(alreadySubscribed.res.headers.location, '/subscribed/?ok=1');
+    // Regression: a 409 (contact already exists) must re-opt the topic and
+    // segment but must NOT PATCH the contact's own `unsubscribed` flag —
+    // that PATCH is what silently re-subscribed someone who had opted out.
     assert.deepEqual(retryCalls.map((call) => [call.method, call.url]), [
       ['POST', 'https://api.resend.com/contacts'],
-      ['PATCH', 'https://api.resend.com/contacts/ada%40example.com'],
       ['PATCH', 'https://api.resend.com/contacts/ada%40example.com/topics'],
       ['POST', 'https://api.resend.com/contacts/ada%40example.com/segments/test-segment-id'],
     ]);
+    assert.ok(
+      !retryCalls.some((call) => call.url === 'https://api.resend.com/contacts/ada%40example.com'),
+      'must never PATCH the bare contact resource on a 409 (that is the unsubscribed:false re-opt-in call)',
+    );
+    // retryCalls[0] is the initial create POST, which legitimately sets
+    // unsubscribed:false for a brand-new contact; only the 409 follow-up
+    // calls (topics, segments) must never touch that field.
+    assert.ok(
+      !retryCalls.slice(1).some((call) => call.body && Object.prototype.hasOwnProperty.call(call.body, 'unsubscribed')),
+      'no follow-up request on the 409 retry path may set `unsubscribed`',
+    );
 
     globalThis.fetch = async () => ({ ok: false, status: 500 });
     const providerError = await postForm(port, '/api/subscribe', { email: 'ada@example.com' }, { 'x-forwarded-for': '4.4.4.4, proxy' });
@@ -472,4 +561,33 @@ test('private app with unset password env serves a styled 503 with the unavailab
     appsByPathLength.splice(0, appsByPathLength.length, ...originalByPath);
     await new Promise((resolve) => server.close(resolve));
   }
+});
+
+// The gateway serves the relaxed Maps CSP based on the manifest's explicit
+// `csp` field, never on the display `tags`. Someone rewriting tags for
+// presentation or SEO must not be able to change a security policy as a side
+// effect, and a new Maps demo that forgets the field must fail validation
+// rather than ship with a CSP that blocks the Maps loader.
+test('Maps CSP selection is driven by the manifest csp field, not display tags', () => {
+  const mapsApps = apps.filter((app) => app.csp === 'maps');
+  assert.ok(mapsApps.length >= 1, 'expected at least one app declaring csp: maps');
+
+  for (const app of mapsApps) {
+    assert.equal(app.csp, 'maps');
+  }
+
+  // Every non-external app tagged google-maps-platform must declare the
+  // field. This is the invariant scripts/validate-apps.mjs enforces; asserting
+  // it here too means the gateway's own suite fails if the manifest drifts.
+  const taggedMapsApps = apps.filter(
+    (app) => app.tags?.includes('google-maps-platform') && !app.path.startsWith('http'),
+  );
+  for (const app of taggedMapsApps) {
+    assert.equal(app.csp, 'maps', `${app.name} is tagged google-maps-platform but does not declare csp: maps`);
+  }
+
+  // An app carrying the tag but no csp field must NOT get the Maps policy —
+  // proving selection reads the field, not the tag.
+  const tagOnly = { name: 'tag-only', tags: ['google-maps-platform'], path: '/tag-only/' };
+  assert.notEqual(tagOnly.csp, 'maps');
 });

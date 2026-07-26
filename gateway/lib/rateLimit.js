@@ -52,6 +52,14 @@ export const RATE_LIMIT_POLICIES = Object.freeze({
   contact: Object.freeze({ windowMs: 60_000, max: 5 }),
   subscribe: Object.freeze({ windowMs: 60_000, max: 5 }),
   writer: Object.freeze({ windowMs: 60_000, max: 5 }),
+  // Save is a plain form-submit "Save" button, not a keystroke-driven
+  // autosave (see the writer dashboard markup in portfolio/build.mjs — one
+  // <form action="/api/writer/save"> with no JS interval timer), but an
+  // editor iterating on a draft plausibly clicks it more than 5 times a
+  // minute. It's still gated behind the Google-authenticated writer
+  // session, so a looser bucket doesn't open new abuse surface; sized to
+  // match the existing `oauth` bucket rather than inventing a new number.
+  writerSave: Object.freeze({ windowMs: 60_000, max: 20 }),
   oauth: Object.freeze({ windowMs: 60_000, max: 20 }),
   isochrones: Object.freeze({ windowMs: 60_000, max: 30 }),
   photo: Object.freeze({ windowMs: 60_000, max: 120 }),
@@ -60,7 +68,8 @@ export const RATE_LIMIT_POLICIES = Object.freeze({
 export function rateLimitPolicyForPath(pathname) {
   if (pathname === '/api/contact') return 'contact';
   if (pathname === '/api/subscribe') return 'subscribe';
-  if (pathname === '/api/writer/publish') return 'writer';
+  if (pathname === '/api/writer/publish' || pathname === '/api/writer/review' || pathname === '/api/writer/social') return 'writer';
+  if (pathname === '/api/writer/save') return 'writerSave';
   if (pathname === '/api/isochrones') return 'isochrones';
   if (pathname === '/api/photo-proxy' || pathname === '/api/strava/photo') return 'photo';
   if (pathname.startsWith('/api/strava/')) return 'oauth';

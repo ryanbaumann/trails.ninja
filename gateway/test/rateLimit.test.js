@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { clientIp, createRateLimiter, rateLimitPolicyForPath } from '../lib/rateLimit.js';
+import { clientIp, createRateLimiter, rateLimitPolicyForPath, RATE_LIMIT_POLICIES } from '../lib/rateLimit.js';
 
 test('createRateLimiter allows up to max requests per window then blocks', () => {
   const limiter = createRateLimiter({ windowMs: 60_000, max: 3 });
@@ -18,6 +18,20 @@ test('rateLimitPolicyForPath assigns independent route policies', () => {
   assert.equal(rateLimitPolicyForPath('/api/photo-proxy'), 'photo');
   assert.equal(rateLimitPolicyForPath('/api/isochrones'), 'isochrones');
   assert.equal(rateLimitPolicyForPath('/api/apps'), null);
+});
+
+// Regression: publish/save/review/social used to leave three of the four
+// writer endpoints unmapped (and therefore unlimited).
+test('rateLimitPolicyForPath maps every writer form endpoint', () => {
+  assert.equal(rateLimitPolicyForPath('/api/writer/publish'), 'writer');
+  assert.equal(rateLimitPolicyForPath('/api/writer/review'), 'writer');
+  assert.equal(rateLimitPolicyForPath('/api/writer/social'), 'writer');
+  assert.equal(rateLimitPolicyForPath('/api/writer/save'), 'writerSave');
+});
+
+test('writerSave policy is more generous than the other writer actions but still bounded', () => {
+  assert.ok(RATE_LIMIT_POLICIES.writerSave.max > RATE_LIMIT_POLICIES.writer.max);
+  assert.equal(RATE_LIMIT_POLICIES.writerSave.windowMs, 60_000);
 });
 
 test('clientIp ignores spoofed X-Forwarded-For prefixes on Cloud Run', () => {

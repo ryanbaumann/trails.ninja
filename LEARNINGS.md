@@ -2,6 +2,27 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-07-26 - A comment that names a platform default is a claim, and this one was wrong
+
+Context: `gateway/server.js` justified its in-memory per-IP rate limiters with "On Cloud Run with max-instances=1 (the default for this portfolio) that's fine." Cloud Run's actual default is max-instances=100, and `deploy.yml` passed no instance cap at all.
+Learning: The comment was not describing a configuration, it was asserting one that nothing enforced. Every limit it justified (private-demo auth brute-force, and the spend caps in front of Isochrones, Gemini, and Resend) silently became per-instance under load, and the same load that triggered an attack also scaled out the instances that diluted the defence. When a correctness argument depends on an external setting, the setting has to be pinned in the repo and the comment has to point at where it is pinned, or the argument is only true by luck.
+Evidence: `gcloud run deploy` in `.github/workflows/deploy.yml` listed `--min-instances 0` and `--cpu-boost` and no `--max-instances`; Cloud Run's documented default is 100. Fixed by pinning `--max-instances 1` and rewriting the comment to say it is pinned in deploy.yml, not defaulted.
+Use next time: When a comment says "the default is X," check whether the repo sets X. If it does not, either set it or delete the claim. Treat a security argument resting on an unpinned default as an open finding.
+
+## 2026-07-26 - Do not let a security policy depend on display metadata
+
+Context: Adding per-app Content-Security-Policy, the first implementation selected the relaxed Google Maps policy with `app.tags?.includes('google-maps-platform')`. It worked, and every test passed.
+Learning: `tags` in apps.json is presentation metadata: it renders as card chips and feeds JSON-LD keywords. Anyone editing tags for wording, SEO, or tidiness would have silently changed a security policy, and nothing in the suite would have noticed. The fix was a dedicated `csp` manifest field plus validation in `scripts/validate-apps.mjs` that fails in both directions: an unknown value, and a Maps-tagged app that forgot to declare it. The general rule is that a security decision must read a field whose only purpose is that decision.
+Evidence: `grep -rn "\.tags"` showed tags consumed only by card rendering (`portfolio/build.mjs`), JSON-LD keywords, and `toPublicApp`. Deleting `"csp": "maps"` from aqi-map now fails `node scripts/validate-apps.mjs` with an explicit message, verified by removing it and restoring it.
+Use next time: Before keying behavior off a manifest field, grep who else writes it. If the field exists to be displayed, add a new one for the decision.
+
+## 2026-07-26 - Chromium in this container cannot reach third-party origins, so browser CSP checks are only half a verification
+
+Context: Verifying the new CSP by rendering pages and watching for violations, the giscus comments script reported a failed request on a note page, which looked exactly like a CSP block.
+Learning: It was not CSP. Loading the same script from a page with no CSP at all also timed out, while `curl` fetched it successfully, because curl uses `HTTPS_PROXY` and the Playwright Chromium launched here does not. A failed third-party request in this environment is ambiguous by default, and reading it as a policy failure would have sent someone loosening a correct policy.
+Evidence: `page.setContent('<html>…')` with no CSP, then injecting `https://giscus.app/client.js`, returned `timeout`; `curl https://giscus.app/client.js` returned 200. Same-origin assets and the Maps demo pages rendered clean.
+Use next time: Before blaming CSP for a blocked third-party request, reproduce it on a page with no CSP. Verify third-party directives by inspecting the served header, and treat in-browser confirmation of external origins as unavailable here.
+
 ## 2026-07-25 - A hover state that borrows the focus ring's language removes an accessibility affordance
 
 Context: `.card:hover` had grown to a 4px lift, a transparent border, a 2px accent ring, and two hardcoded `rgba(0,0,0,...)` shadow layers, against a design skill that specifies border accent plus a 2px lift and nothing more.

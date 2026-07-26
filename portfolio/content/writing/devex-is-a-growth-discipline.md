@@ -5,7 +5,7 @@ summary: The growth loop starts when DevX owns repeated developer friction, ship
 date: 2026-07-14
 updated: 2026-07-20
 canonical: https://ryanbaumann.dev/writing/devx-is-a-growth-discipline/
-image: /assets/devx-growth-header.png
+image: /assets/devx-growth-header.webp
 imageAlt: A four-stage DevX loop moves from observed friction to a shipped fix, distribution in builder workflows, and rising measured outcomes.
 socialImage: /social/devx-growth-discipline.jpg
 shareTitle: DevX Is a Growth Function
@@ -41,6 +41,6 @@ Traditional feedback loops are slow. While interviews, support themes, and devel
 
 Evals don't replace user research, because no single score explains a human builder. An eval delta confirms that the experience can complete the task mechanically. Product telemetry tells us whether builders actually found that path, finished the work, and returned. Finally, direct research explains why people behaved that way. Together, these signals let a DevX team test specific hypotheses and measure the real outcome.
 
-![An agent evaluation loop moves from a representative task through an agent trace and rubric comparison to a ship-or-hold decision, then repeats using telemetry and research.](/assets/devx-eval-loop.png)
+![An agent evaluation loop moves from a representative task through an agent trace and rubric comparison to a ship-or-hold decision, then repeats using telemetry and research.](/assets/devx-eval-loop.webp)
 
 This is the discipline: stop counting output as progress by default. Own the friction, solve it, improve the product, ship the better experience into the workflow, and measure the impact. Then run the loop again. We're still experimenting with every part of it, and that's the point.

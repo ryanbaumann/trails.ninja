@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -115,4 +115,32 @@ test('checkScheduledPublish end to end: reports due against a fixture with a new
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+// Drift canary. LEARNINGS.md 2026-07-25 ("A publication gate copied by hand
+// drifts from the one the build uses") records this exact failure mode: two
+// code paths answering the same question about content state, where the copy
+// silently goes wrong for the case nobody tested.
+//
+// findDueEntries() reimplements portfolio/build.mjs's isPublished() because
+// build.mjs cannot be imported (it is a top-level script with build side
+// effects, and design rule 7 keeps portfolio/ extractable, so it must not
+// import from scripts/). This test pins the source text of isPublished so any
+// edit to it fails here loudly instead of silently desynchronising the
+// scheduled-deploy gate — which would mean a post never going live.
+test('build.mjs isPublished has not drifted from findDueEntries reimplementation', () => {
+  const buildSource = readFileSync(
+    new URL('../../portfolio/build.mjs', import.meta.url),
+    'utf8',
+  );
+  const match = buildSource.match(/function isPublished\(entry\) \{([\s\S]*?)\n\}/);
+  assert.ok(match, 'could not find isPublished() in portfolio/build.mjs');
+
+  const normalized = match[1].split('\n').map((line) => line.trim()).filter(Boolean).join(' ');
+  assert.equal(
+    normalized,
+    "if (entry.meta.draft === true) return false; if (!entry.meta.publishAt) return true; return new Date(entry.meta.publishAt).valueOf() <= BUILD_TIME.valueOf();",
+    'portfolio/build.mjs isPublished() changed. Update findDueEntries() in '
+    + 'scripts/lib/scheduled-publish.mjs to match, then update this expected string.',
+  );
 });

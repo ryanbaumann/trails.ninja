@@ -1,6 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { safeResolve, cacheControlFor, mimeTypeFor } from '../lib/staticFiles.js';
+import { safeResolve, cacheControlFor, mimeTypeFor, applySecurityHeaders, CSP_POLICIES } from '../lib/staticFiles.js';
+
+function fakeResponse() {
+  const headers = new Map();
+  return {
+    headers,
+    setHeader(name, value) { headers.set(name.toLowerCase(), value); },
+    getHeader(name) { return headers.get(name.toLowerCase()); },
+  };
+}
 
 test('safeResolve refuses to escape the base directory', () => {
   assert.equal(safeResolve('/srv/app', '../../etc/passwd'), null);
@@ -35,4 +44,41 @@ test('mimeTypeFor maps common extensions', () => {
   assert.equal(mimeTypeFor('a.js'), 'text/javascript; charset=utf-8');
   assert.equal(mimeTypeFor('a.css'), 'text/css; charset=utf-8');
   assert.equal(mimeTypeFor('a.unknownext'), 'application/octet-stream');
+});
+
+test('applySecurityHeaders sends a locked-down default CSP with X-Frame-Options as backup', () => {
+  const response = fakeResponse();
+  applySecurityHeaders(response);
+  const csp = response.getHeader('content-security-policy');
+  assert.match(csp, /default-src 'self'/);
+  assert.match(csp, /base-uri 'self'/);
+  assert.match(csp, /object-src 'none'/);
+  assert.match(csp, /frame-ancestors 'self'/);
+  assert.match(csp, /googletagmanager\.com/);
+  assert.match(csp, /giscus\.app/);
+  // Not the Maps allowlist — the default policy should stay tight.
+  assert.doesNotMatch(csp, /googleapis\.com/);
+  assert.equal(response.getHeader('x-frame-options'), 'SAMEORIGIN');
+});
+
+test('applySecurityHeaders accepts the Maps demo CSP override for demo app static assets', () => {
+  const response = fakeResponse();
+  applySecurityHeaders(response, { csp: CSP_POLICIES.mapsDemo });
+  const csp = response.getHeader('content-security-policy');
+  assert.match(csp, /maps.*googleapis\.com|\*\.googleapis\.com/);
+  assert.match(csp, /blob:/);
+  assert.match(csp, /frame-ancestors 'self'/);
+});
+
+test('applySecurityHeaders sets Content-Security-Policy via setHeader (not writeHead)', () => {
+  // applySecurityHeaders only ever calls setHeader(), never writeHead(), so
+  // a caller further down the same request handler (the Strava photo-proxy
+  // binary response) can still pass its own Content-Security-Policy directly
+  // to writeHead() and have it win — Node gives writeHead()'s own headers
+  // precedence over setHeader() for duplicate names. Proven end-to-end
+  // against a real server in server.test.js
+  // ("server includes CORS headers on photo proxy binary response").
+  const response = fakeResponse();
+  applySecurityHeaders(response);
+  assert.equal(response.getHeader('content-security-policy'), CSP_POLICIES.default);
 });
