@@ -277,6 +277,8 @@ describe('src/activityIcons.js', () => {
     test('prefers sport_type over the legacy type field', () => {
         expect(icons.normalizeSportType({ type: 'Ride', sport_type: 'MountainBikeRide' })).toBe('mountainbikeride');
         expect(icons.normalizeSportType({ type: 'Ride' })).toBe('ride');
+        expect(icons.normalizeSportType({ type: 'Run', name: 'Morning Trail Run' })).toBe('trailrun');
+        expect(icons.normalizeSportType({ type: 'Ride', name: 'Weekend MTB Loop' })).toBe('mountainbikeride');
     });
 
     test('falls back to demo activities and then to default', () => {

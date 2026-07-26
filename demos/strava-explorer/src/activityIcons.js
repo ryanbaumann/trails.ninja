@@ -149,9 +149,27 @@ export function normalizeSportType(activity) {
         ? activity
         : activity.sport_type || activity.type || '';
     const key = String(raw).toLowerCase().replace(/[^a-z]/g, '');
+    const resolvedKey = SPORT_ALIASES[key] || (SPORTS[key] ? key : null);
 
-    if (SPORT_ALIASES[key]) return SPORT_ALIASES[key];
-    if (SPORTS[key]) return key;
+    const name = typeof activity === 'object' ? String(activity.name || '') : '';
+
+    // Upgrade generic 'run' or 'ride' when title explicitly mentions trail/mtb/gravel
+    if (resolvedKey === 'run' || !resolvedKey) {
+        if (/trail/i.test(name)) return 'trailrun';
+    }
+    if (resolvedKey === 'ride' || !resolvedKey) {
+        if (/mtb|mountain/i.test(name)) return 'mountainbikeride';
+        if (/gravel/i.test(name)) return 'gravelride';
+    }
+
+    if (resolvedKey) return resolvedKey;
+
+    if (/ride|bike|cycling/i.test(name)) return 'ride';
+    if (/run|jog/i.test(name)) return 'run';
+    if (/hike|trek/i.test(name)) return 'hike';
+    if (/walk/i.test(name)) return 'walk';
+    if (/ski/i.test(name)) return 'alpineski';
+    if (/swim/i.test(name)) return 'swim';
 
     const id = typeof activity === 'object' ? String(activity.id ?? '') : '';
     if (id === 'demo-alpine-ride') return 'ride';
