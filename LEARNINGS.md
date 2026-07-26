@@ -2,6 +2,15 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-07-26 - Places UI Kit components require matching color-scheme and complete CSP image origins
+
+Context: Auditing the `isochrones` demo for CSP compliance and Places UI Kit UI/UX consistency.
+Learning:
+1. `gmp-place-details` defaults to light mode unless explicitly styled with `color-scheme: dark` and dark theme variables (`--gmp-mat-color-surface`, `--gmp-mat-color-on-surface`, etc.), which caused it to render as a white box inside dark Google Maps InfoWindows.
+2. Places API photos and reviewer avatars are served from `https://*.ggpht.com` in addition to `*.googleusercontent.com`. Omitting `https://*.ggpht.com` from `img-src` in `CSP_MAPS_DEMO_DIRECTIVES` blocked place details imagery under CSP.
+Evidence: `demos/isochrones/test/place-details.test.js` updated and passing; `gateway/test/staticFiles.test.js` (104 tests) and `scripts/smoke.mjs` (18 tests) passing.
+Use next time: When integrating Places UI Kit components (`gmp-place-details`, `gmp-place-autocomplete`), set `color-scheme: dark` and explicit `--gmp-mat-color-*` custom properties to match dark themes, and include `https://*.ggpht.com` in `img-src` for Places photos.
+
 ## 2026-07-26 - Maps 3D renderer and follow-camera route tracking requirements
 
 Context: Adding Content-Security-Policy (CSP) headers to the Node gateway static file responses for demo applications like `strava-explorer`, `aqi-map`, and `isochrones`, alongside follow-camera route resume logic.

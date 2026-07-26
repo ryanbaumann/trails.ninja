@@ -2,7 +2,12 @@ const PLACE_DETAILS_STYLE = [
   'width: min(360px, calc(100vw - 64px))',
   'height: min(440px, calc(100vh - 180px))',
   'border: 0',
-  'color-scheme: light',
+  'color-scheme: dark',
+  'font-family: inherit',
+  '--gmp-mat-color-surface: #0f172a',
+  '--gmp-mat-color-on-surface: #f8fafc',
+  '--gmp-mat-color-on-surface-variant: #94a3b8',
+  '--gmp-mat-color-primary: #22d3ee',
 ].join('; ');
 
 export function createPlaceDetailsContent(place, documentRef = document) {
