@@ -108,9 +108,37 @@ select:disabled { opacity: 0.55; }
   --gmp-mat-color-surface: rgba(2, 6, 23, 0.9);
   --gmp-mat-color-on-surface: #f8fafc;
   --gmp-mat-color-on-surface-variant: #94a3b8;
+  --gmp-mat-color-primary: #22d3ee;
   color-scheme: dark;
+  font-family: inherit;
 }
 [id^="search-slot-"] gmp-place-autocomplete::part(input) { min-height: 46px; }
+
+gmp-place-details {
+  display: block;
+  color-scheme: dark;
+  font-family: inherit;
+  --gmp-mat-color-surface: #0f172a;
+  --gmp-mat-color-on-surface: #f8fafc;
+  --gmp-mat-color-on-surface-variant: #94a3b8;
+  --gmp-mat-color-primary: #22d3ee;
+}
+
+.gm-style-iw-c {
+  background-color: #0f172a !important;
+  border: 1px solid rgba(148, 163, 184, 0.25) !important;
+  border-radius: 1.15rem !important;
+  box-shadow: 0 20px 50px rgba(2, 6, 23, 0.6) !important;
+  padding: 8px !important;
+}
+
+.gm-style-iw-tc::after {
+  background-color: #0f172a !important;
+}
+
+.gm-ui-hover-effect {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
 
 .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.7rem; }
 .duration-control { margin-top: 0.9rem; }
