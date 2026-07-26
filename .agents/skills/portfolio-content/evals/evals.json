@@ -1,0 +1,27 @@
+{
+  "skill_name": "portfolio-content",
+  "evals": [
+    {
+      "id": "PC-D1",
+      "split": "development",
+      "prompt": "A new content automation decides whether a scheduled post is public by checking draft alone. Review the implementation plan.",
+      "expected_output": "The review rejects the draft-only predicate and requires parity with the build's canonical publication semantics.",
+      "expectations": [
+        "Requires reuse of isPublished() or a pinned parity test against it.",
+        "Covers draft, immediate publication, and future publishAt states.",
+        "Tests before, at, and after the UTC publication boundary."
+      ]
+    },
+    {
+      "id": "PC-S1",
+      "split": "selection",
+      "prompt": "Social staging skips any entry with draft false, including an entry scheduled for next week. Review the state model.",
+      "expected_output": "The review recognizes a future scheduled entry as unpublished and prevents the secondary publication predicate from drifting.",
+      "expectations": [
+        "Does not equate draft false with already public.",
+        "Requires a future publishAt regression case.",
+        "Keeps the staging behavior aligned with the canonical build predicate."
+      ]
+    }
+  ]
+}

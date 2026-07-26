@@ -160,6 +160,30 @@ Violating ANY of these causes a silent failure or crash. You must check this lis
 - **CF9 — `mapId` Requirement:** `<Map mapId="…">` is **mandatory** whenever you render `AdvancedMarkerElement`. Without it, markers silently fail to appear. Use a valid Cloud-styled map ID or `"DEMO_MAP_ID"`. Conversely, **MUST NOT** pass an arbitrary/unregistered `mapId` when not using advanced markers, as it will throw `ApiProjectMapError` and crash the map.
 - **CF10 — Locale & Region:** For international apps, explicitly set `language` and `region` on the loader or `<APIProvider>`. Otherwise, results are biased to the IP's locale.
 - **CF11 — Avoid `gmpx-*` Extended Component Library:** If MCP returns samples using `<gmpx-store-locator>` or similar `gmpx-*` Lit components, **do not use them**. They wrap the deprecated Places library. Re-query MCP with `"using Places API (New)"` to get current patterns.
+- **CF12 — 3D Custom Marker Composition and Visibility:** A
+  `Marker3DElement` draws only `HTMLImageElement`, `SVGElement`, and
+  `PinElement` children; wrap image and SVG children in an
+  `HTMLTemplateElement` before appending them. Other DOM children are silently
+  ignored. For an app marker that must win collisions, evaluate
+  `REQUIRED_AND_HIDES_OPTIONAL`, `sizePreserved`, `drawsWhenOccluded`, and
+  `collisionPriority` together. `REQUIRED` is only the default draw
+  requirement; it does not hide a colliding basemap label. Verify
+  `collisionPriority` against the selected release channel because the current
+  reference exposes it on beta.
+
+### Repository web integration checks
+
+- In a dark host, Places UI Kit elements need an explicit matching
+  `color-scheme` plus the relevant `--gmp-mat-color-*` surface and text tokens;
+  do not assume the host page theme crosses the component boundary.
+- Derive CSP from the app's actual outbound scripts, connections, images,
+  frames, workers, and runtime schemes. In this repository, Places media and
+  reviewer avatars currently require `https://*.ggpht.com`, while the Maps
+  renderer uses `blob:`/`data:` resources as covered by the gateway tests.
+  Re-verify these origins when the integration changes.
+- Never select a security policy from display tags. Use the dedicated `csp`
+  manifest field, validate it, and keep source-derived gateway/smoke
+  assertions for every allowed origin.
 
 
 ## 6. Use Case Product Mapping

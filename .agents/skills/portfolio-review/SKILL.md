@@ -32,6 +32,11 @@ Before making or reviewing a material change, define success across three dimens
 
 - Run the portfolio build to validate internal links, assets, duplicate slugs, canonical rules, and aliases.
 - Open material external links or fetch them with a real GET. Confirm the destination supports the adjacent claim; do not treat a successful status alone as evidence.
+- A failed third-party browser request is not proof of a CSP violation in this
+  environment. Reproduce the same request on a page without CSP, compare it
+  with a direct GET, and inspect the served header and violated directive
+  before changing an allowlist. If the no-CSP control also fails, report
+  browser reachability as unavailable instead of weakening the policy.
 - For a renamed page, verify the new canonical and social URLs in rendered HTML and test every old path, with and without a trailing slash, for an HTTP 308 to the clean root-relative target. Confirm query strings survive.
 - Keep one canonical owner. Do not publish duplicate local and external canonicals.
 

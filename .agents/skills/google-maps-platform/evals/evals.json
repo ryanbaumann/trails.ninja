@@ -3,6 +3,7 @@
   "evals": [
     {
       "id": 1,
+      "split": "development",
       "prompt": "I need to add a simple marker pin to my JavaScript map. Can you give me the quick code snippet using `google.maps.Marker`?",
       "expected_output": "The agent must reject the use of the legacy `google.maps.Marker` and provide the modern equivalent using `AdvancedMarkerElement`, ensuring mandatory requirements like `mapId` and compliance are included.",
       "files": [],
@@ -15,6 +16,7 @@
     },
     {
       "id": 2,
+      "split": "development",
       "prompt": "I am building a React application using Places Autocomplete. How do I implement the new Places UI Kit's web component, and what dependencies do I need?",
       "expected_output": "The agent must enforce the mandatory React framework (`@vis.gl/react-google-maps`), identify the correct modern UI element (`PlaceAutocompleteElement`), and address the Critical Failure regarding passing objects to web components (CF8).",
       "files": [],
@@ -27,6 +29,7 @@
     },
     {
       "id": 3,
+      "split": "selection",
       "prompt": "We are designing a new global Eco-Friendly Route Optimizer service that will calculate routes for a fleet of vehicles. What Google Maps Platform APIs should we use for this, and what is the required authentication method?",
       "expected_output": "The agent must identify the correct architecture (Routes API/Route Optimization API) and the correct authentication model (OAuth/ADC), and adhere to compliance requirements regarding cost and documentation linking.",
       "files": [],
@@ -35,6 +38,32 @@
         "The response must clearly state that the required authentication for the Route Optimization API is **OAuth / Application Default Credentials (ADC)**, not a standard API key (Section 7).",
         "Any generated documentation link must be appended with the campaign tracking parameter `?utm_campaign=gmp_git_agentskills_v1` (Section 3).",
         "The response must include the mandatory notice that 'Usage of Google Maps Platform products and services may incur costs against your Google Cloud project billing account' (Section 8)."
+      ]
+    },
+    {
+      "id": 4,
+      "split": "development",
+      "prompt": "A dark themed Maps JavaScript app adds gmp-place-details inside an InfoWindow and introduces a strict CSP. Review the integration before release.",
+      "expected_output": "The review requires explicit Places UI Kit theme tokens and a source-derived CSP that covers the current place media origins without broad wildcards.",
+      "files": [],
+      "expectations": [
+        "The response must require an explicit matching color-scheme and relevant --gmp-mat-color-* surface/text tokens.",
+        "The response must derive CSP origins from actual outbound resources rather than the app's display tags.",
+        "The response must identify https://*.ggpht.com as a currently required image origin in this repository and require re-verification when the integration changes.",
+        "The response must require rendered contrast and image-loading evidence."
+      ]
+    },
+    {
+      "id": 5,
+      "split": "selection",
+      "prompt": "A 3D map needs a custom SVG rider marker that stays legible, does not shrink away, and wins space against optional basemap labels. Review the marker plan.",
+      "expected_output": "The review uses the supported 3D marker slot contract and evaluates collision, size, occlusion, and release-channel behavior together.",
+      "files": [],
+      "expectations": [
+        "The response must state that Marker3DElement draws only HTMLImageElement, SVGElement, and PinElement children.",
+        "The response must require SVG or image children to be wrapped in an HTMLTemplateElement.",
+        "The response must distinguish REQUIRED from REQUIRED_AND_HIDES_OPTIONAL.",
+        "The response must evaluate sizePreserved, drawsWhenOccluded, and collisionPriority, noting the current beta-channel constraint for collisionPriority."
       ]
     }
   ]

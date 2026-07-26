@@ -1,0 +1,28 @@
+{
+  "skill_name": "frontend-responsive-design",
+  "evals": [
+    {
+      "id": "FRD-D1",
+      "split": "development",
+      "prompt": "Review a mobile map demo that uses 100vh, a draggable bottom sheet, 36px controls, and animated camera transitions.",
+      "expected_output": "The review identifies dynamic viewport, safe-area, touch-target, gesture, panel-scroll, and reduced-motion requirements.",
+      "expectations": [
+        "Requires 100svh or 100dvh rather than assuming 100vh is stable on mobile.",
+        "Requires at least 44x44 CSS pixel hit areas and safe-area padding.",
+        "Checks that bottom-sheet drag, page scroll, and map gestures do not conflict.",
+        "Requires a reduced-motion camera path and rendered narrow-viewport evidence."
+      ]
+    },
+    {
+      "id": "FRD-S1",
+      "split": "selection",
+      "prompt": "A responsive interaction pass approves hover, focus, and active screenshots one at a time. Review the verification plan.",
+      "expected_output": "The review requires related interaction states to be rendered together across schemes and viewports.",
+      "expectations": [
+        "Requires hover, focus, and active to remain visually distinguishable.",
+        "Requires light and dark scheme checks at narrow and wide viewports.",
+        "Does not accept isolated screenshots as sufficient evidence."
+      ]
+    }
+  ]
+}

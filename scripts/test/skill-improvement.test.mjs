@@ -41,3 +41,101 @@ test('rejects template metadata, mismatched names, and stale agent metadata', ()
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('validates development and frozen selection eval coverage', () => {
+  const root = mkdtempSync(join(tmpdir(), 'skill-improvement-'));
+  try {
+    const directory = join(root, 'example-skill');
+    writeSkill(directory);
+    mkdirSync(join(directory, 'evals'));
+    writeFileSync(join(directory, 'evals', 'evals.json'), JSON.stringify({
+      skill_name: 'example-skill',
+      evals: [
+        {
+          id: 'D1',
+          split: 'development',
+          prompt: 'Exercise the behavior.',
+          expected_output: 'The behavior is handled.',
+          expectations: ['The response handles the behavior.'],
+        },
+        {
+          id: 'S1',
+          split: 'selection',
+          prompt: 'Exercise a held-out variant.',
+          expected_output: 'The held-out behavior is handled.',
+          expectations: ['The response handles the held-out variant.'],
+        },
+      ],
+    }));
+    assert.deepEqual(validateSkillDirectory(directory), []);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('rejects malformed eval suites and missing selection coverage', () => {
+  const root = mkdtempSync(join(tmpdir(), 'skill-improvement-'));
+  try {
+    const directory = join(root, 'example-skill');
+    writeSkill(directory);
+    mkdirSync(join(directory, 'evals'));
+    writeFileSync(join(directory, 'evals', 'evals.json'), JSON.stringify({
+      skill_name: 'wrong-skill',
+      evals: [
+        {
+          id: 'D1',
+          split: 'development',
+          prompt: 'Exercise the behavior.',
+          expected_output: '',
+          expectations: [],
+        },
+        {
+          id: 'D1',
+          split: 'candidate',
+          prompt: '',
+          expected_output: 'A result.',
+          expectations: ['A check.'],
+        },
+      ],
+    }));
+    assert.deepEqual(validateSkillDirectory(directory), [
+      'evals skill_name must equal directory name (example-skill)',
+      'eval 1 must include expected_output',
+      'eval 1 must include non-empty string expectations',
+      'eval 2 id must be unique (D1)',
+      'eval 2 split must be development or selection',
+      'eval 2 must include a prompt',
+      'evals/evals.json must preserve at least one frozen selection case',
+    ]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('rejects non-object evals and suites without development coverage', () => {
+  const root = mkdtempSync(join(tmpdir(), 'skill-improvement-'));
+  try {
+    const directory = join(root, 'example-skill');
+    writeSkill(directory);
+    mkdirSync(join(directory, 'evals'));
+    writeFileSync(join(directory, 'evals', 'evals.json'), JSON.stringify({
+      skill_name: 'example-skill',
+      evals: [
+        null,
+        {
+          id: 'S1',
+          split: 'selection',
+          prompt: 'Exercise a held-out variant.',
+          expected_output: 'A result.',
+          expectations: ['A check.'],
+        },
+      ],
+    }));
+    assert.deepEqual(validateSkillDirectory(directory), [
+      'eval 1 must be an object',
+      'evals/evals.json must contain at least one development case',
+    ]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
