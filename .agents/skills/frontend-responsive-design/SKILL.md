@@ -1,3 +1,8 @@
+---
+name: frontend-responsive-design
+description: Design and review responsive frontend layouts, styling, accessibility, interaction behavior, Tailwind usage, and visual QA for the portfolio and demo apps. Use before changing layout, CSS, semantic HTML, map controls, responsive behavior, or other perceptible frontend interactions.
+---
+
 # Frontend Responsive Design Skill
 
 Use this skill for tasks involving layout, styling, accessibility, responsive behavior, Tailwind utility usage, HTML structure, visual QA, or frontend interaction design in either app.

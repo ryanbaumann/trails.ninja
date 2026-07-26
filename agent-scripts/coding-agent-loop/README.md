@@ -82,14 +82,20 @@ Run the deterministic structural check with `bash evals/check.sh`.
 
 ## Evaluation status
 
-The checked-in suite defines 16 regression scenarios and a 20-point rubric. The
-deterministic structural check passes, and a separate read-only agent review
-identified issues that were corrected. That correlated review is not independent
-proof, and no behavioral trial results are recorded yet. This package does not
-claim a statistically meaningful cross-model behavioral benchmark.
-Run repeated trials in your target harness and record the exact prompt, model,
-reasoning effort, tools, permissions, environment, transcripts, diffs, and final
-state before treating it as production-qualified.
+The checked-in suite defines 17 regression scenarios and a 20-point rubric.
+For a revision, C01–C13 are the development cases and C14–C17 are a held-out
+selection gate: accept only a bounded prompt edit that strictly improves the
+held-out result with no safety regression. The deterministic structural check
+passes, and a separate read-only agent review identified issues that were
+corrected. That correlated review is not independent proof, and no behavioral
+trial results are recorded yet. This package does not claim a statistically
+meaningful cross-model behavioral benchmark.
+Run repeated trials in your target harness and record the exact prompt, case
+split, fixture, model, reasoning effort, tools, permissions, environment,
+transcripts, diffs, scores, and final state before treating it as
+production-qualified. A repository's versioned learning log is a useful source
+for new cases, but retrieve it narrowly and verify each claim against current
+evidence before encoding it into the contract.
 
 ## Design basis
 

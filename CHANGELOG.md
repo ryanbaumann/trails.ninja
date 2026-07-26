@@ -11,6 +11,17 @@ All notable changes to this project will be documented in this file.
 - Pinned the Cloud Run service to `--max-instances 1`. The gateway's in-memory per-IP rate limiters (private-demo auth brute-force, and the spend limits in front of Isochrones, Gemini, and Resend) are only correct on a single instance, but the deploy passed no instance cap and Cloud Run's default is 100, so under load every limit silently became per-instance. Also pinned `--concurrency`, `--memory`, and `--cpu` at their current defaults so a platform default change cannot raise cost or dilute the limits again.
 
 ### Added
+- Added a SkillOpt-inspired validation protocol to the Loop Engineering Coding
+  Agent: a fixed development/held-out case split, repeated-trial evidence
+  requirements, strict held-out improvement gate, and a repository-learning
+  retrieval regression case. This is local, reviewable prompt evaluation; it
+  does not harvest agent transcripts or send repository history to a provider.
+- Added the repository-local `skill-improvement-loop` skill and `npm run
+  skills:improve` gate for validating local skill metadata before committing
+  agent-skill or instruction changes.
+- Completed frontmatter for the responsive-design skill and aligned the
+  portfolio-review Codex adapter with its vendor-neutral manifest, so the new
+  skill gate can validate every local skill consistently.
 - Added `llms.txt` and per-note markdown mirrors (`/writing/<slug>/index.md`) to the build, so answer engines and coding agents can read the site without paying to parse HTML. Both follow the same publish filters as the sitemap and are omitted from the private writer build.
 - Hardened the RSS feed with an `atom:link` self reference, `language`, `lastBuildDate`, and full `content:encoded` bodies rendered by the same markdown renderer the detail pages use, with relative URLs absolutized.
 - Added `lastmod` to the sitemap's homepage and collection index entries, `BreadcrumbList` JSON-LD and `mainEntityOfPage`/`keywords` on detail pages, and `og:locale` plus scheme-aware `theme-color` tags read from the stylesheet rather than hardcoded.

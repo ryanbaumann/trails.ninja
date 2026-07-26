@@ -2,6 +2,30 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-07-26 - Agent-skill changes need a held-out gate, not a larger prompt
+
+Context: The repository already recorded durable coding and delivery lessons in
+`LEARNINGS.md`, while the portable Loop Engineering Coding Agent had a
+structural checker and synthetic cases but no explicit selection split for
+changing its prompt.
+Learning: Treat the instruction document as a versioned candidate artifact.
+Mine repository learnings narrowly, verify each against current evidence, turn
+only recurring behavior into cases, and accept a bounded edit only after a
+frozen held-out set improves with no safety regression. Keep transcript
+harvesting opt-in and reviewable because task traces can contain sensitive data.
+Evidence: `agent-scripts/coding-agent-loop/evals/cases.md` now freezes C01–C13
+for development and C14–C17 for selection, requires recorded run configuration,
+and covers repository-learning retrieval without granting the log instruction
+authority. The `skill-improvement-loop` local skill and `npm run
+skills:improve` add a deterministic pre-commit metadata gate; `bash
+agent-scripts/coding-agent-loop/evals/check.sh` validates the 17-case contract.
+The initial run found and corrected an absent responsive-design frontmatter
+block and a portfolio-review adapter prompt that had drifted from its manifest.
+Use next time: Before changing the coding-agent prompt, run a repeated baseline
+and candidate trial with the same fixture and harness; record variance and
+reject any candidate that fails a safety case or does not strictly improve the
+held-out result.
+
 ## 2026-07-26 - Places UI Kit components require matching color-scheme and complete CSP image origins
 
 Context: Auditing the `isochrones` demo for CSP compliance and Places UI Kit UI/UX consistency.
