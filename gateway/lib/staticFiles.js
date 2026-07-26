@@ -57,94 +57,6 @@ export function cacheControlFor(filePath) {
   return 'public, max-age=3600';
 }
 
-// ---------------------------------------------------------------------------
-// Content-Security-Policy: per-app directive sets, serializer, and helpers.
-// ---------------------------------------------------------------------------
-
-function extendDirectives(base, overrides) {
-  const merged = { ...base };
-  for (const [key, values] of Object.entries(overrides)) {
-    merged[key] = [...(merged[key] || []), ...values];
-  }
-  return merged;
-}
-
-function serializeCsp(directives) {
-  return Object.entries(directives)
-    .map(([key, values]) => `${key} ${values.join(' ')}`)
-    .join('; ');
-}
-
-const CSP_DEFAULT_DIRECTIVES = {
-  'default-src': ["'self'"],
-  'frame-ancestors': ["'self'"],
-  'script-src': ["'self'"],
-  'style-src': ["'self'", "'unsafe-inline'"],
-  'img-src': ["'self'", 'data:'],
-  'connect-src': ["'self'"],
-  'font-src': ["'self'"],
-};
-
-// Maps JS API (2D & 3D) needs script-eval, dynamic stylesheet injection, and
-// fetches to several Google hosts. The 3D renderer also uses Web Workers and
-// blob: URLs for tiles and textures.
-const CSP_MAPS_DEMO_DIRECTIVES = extendDirectives(CSP_DEFAULT_DIRECTIVES, {
-  'script-src': ["'unsafe-inline'", "'unsafe-eval'", 'https://*.googleapis.com', 'https://*.gstatic.com', 'https://*.google.com', 'https://*.ggpht.com', 'https://*.googleusercontent.com', 'blob:'],
-  'style-src': ['https://fonts.googleapis.com'],
-  // Maps JS draws tiles, Street View imagery, and marker glyphs from all four
-  // Google image hosts, and the 3D renderer hands some textures to the page as
-  // blob: URLs — a missing blob: here shows up as a blank basemap, not an
-  // obvious error.
-  'img-src': ['blob:', 'https://*.googleapis.com', 'https://*.gstatic.com', 'https://*.google.com', 'https://*.ggpht.com', 'https://*.googleusercontent.com'],
-  'connect-src': ['https://*.googleapis.com', 'https://*.google.com', 'https://*.gstatic.com', 'https://*.ggpht.com', 'https://*.googleusercontent.com', 'data:', 'blob:'],
-  'worker-src': ["'self'", 'blob:'],
-  'frame-src': ['https://*.google.com'],
-  // Maps' own stylesheets pull Roboto from fonts.gstatic.com, but the 3D
-  // renderer also fetches label fonts from maps.gstatic.com and inlines some
-  // icon fonts as data: URIs — a font-src pinned to fonts.gstatic.com alone
-  // blocks the 3D label glyphs.
-  'font-src': ['data:', 'https://*.gstatic.com'],
-});
-
-// The exact hosts strava-explorer reaches without going through the gateway:
-//  - www.strava.com          — the v3 REST API (STRAVA_API_BASE_URL default)
-//  - the athlete avatar set on login (src/index.js athlete.profile_medium).
-//    Activity photos are proxied same-origin via /api/photo-proxy, but the
-//    avatar is not, and Strava serves it from whichever host the athlete's
-//    account is linked to. Uploaded avatars come from dgtzuqphqg23d, Strava's
-//    stock avatars from the older d3nn82uaxijpm6 bucket, and social sign-ins
-//    keep the provider's own CDN — which is why a signed-in athlete could see
-//    an img-src violation on a policy that only listed the upload bucket.
-//    STRAVA_AVATAR_HOSTS in src/photoUrl.js is the client-side copy of this
-//    list; gateway/test/staticFiles.test.js derives these from it.
-//  - picsum.photos           — placeholder imagery for the signed-out demo
-//    tour (src/demoData.js), the first thing every visitor sees.
-const CSP_STRAVA_DEMO_DIRECTIVES = extendDirectives(CSP_MAPS_DEMO_DIRECTIVES, {
-  'connect-src': ['https://www.strava.com'],
-  'img-src': [
-    'https://dgtzuqphqg23d.cloudfront.net',
-    'https://d3nn82uaxijpm6.cloudfront.net',
-    'https://graph.facebook.com',
-    'https://picsum.photos',
-  ],
-});
-
-const CSP_DEFAULT = serializeCsp(CSP_DEFAULT_DIRECTIVES);
-const CSP_MAPS_DEMO = serializeCsp(CSP_MAPS_DEMO_DIRECTIVES);
-const CSP_STRAVA_DEMO = serializeCsp(CSP_STRAVA_DEMO_DIRECTIVES);
-
-export const CSP_POLICIES = {
-  default: CSP_DEFAULT_DIRECTIVES,
-  mapsDemo: CSP_MAPS_DEMO_DIRECTIVES,
-  stravaDemo: CSP_STRAVA_DEMO_DIRECTIVES,
-};
-
-export const CSP_STRINGS = {
-  default: CSP_DEFAULT,
-  mapsDemo: CSP_MAPS_DEMO,
-  stravaDemo: CSP_STRAVA_DEMO,
-};
-
 export const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
@@ -248,14 +160,19 @@ function serializeCsp(directives) {
 
 // The exact hosts strava-explorer reaches without going through the gateway:
 //  - www.strava.com          — the v3 REST API (STRAVA_API_BASE_URL default)
-//  - dgtzuqphqg23d.cloudfront.net — the athlete avatar set on login
+//  - dgtzuqphqg23d.cloudfront.net, d3nn82uaxijpm6.cloudfront.net, graph.facebook.com — the athlete avatar set on login
 //    (src/index.js athlete.profile_medium). Activity photos on this host are
 //    proxied same-origin via /api/photo-proxy, but the avatar is not.
 //  - picsum.photos           — placeholder imagery for the signed-out demo
 //    tour (src/demoData.js), the first thing every visitor sees.
 const CSP_STRAVA_DEMO_DIRECTIVES = extendDirectives(CSP_MAPS_DEMO_DIRECTIVES, {
   'connect-src': ['https://www.strava.com'],
-  'img-src': ['https://dgtzuqphqg23d.cloudfront.net', 'https://picsum.photos'],
+  'img-src': [
+    'https://dgtzuqphqg23d.cloudfront.net',
+    'https://d3nn82uaxijpm6.cloudfront.net',
+    'https://graph.facebook.com',
+    'https://picsum.photos',
+  ],
 });
 
 const CSP_DEFAULT = serializeCsp(CSP_DEFAULT_DIRECTIVES);

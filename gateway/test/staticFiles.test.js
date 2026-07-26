@@ -1,5 +1,28 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+<<<<<<< HEAD
+=======
+import { safeResolve, cacheControlFor, mimeTypeFor, CSP_POLICIES, CSP_STRINGS, cspForApp, applySecurityHeaders } from '../lib/staticFiles.js';
+
+test('cspForApp maps app names to correct CSP strings', () => {
+  assert.equal(cspForApp('strava-explorer'), CSP_STRINGS.stravaDemo);
+  assert.equal(cspForApp('aqi-map'), CSP_STRINGS.mapsDemo);
+  assert.equal(cspForApp('isochrones'), CSP_STRINGS.mapsDemo);
+  assert.equal(cspForApp('fieldwork'), CSP_STRINGS.default);
+  assert.equal(cspForApp('unknown'), CSP_STRINGS.default);
+});
+
+test('applySecurityHeaders sets Content-Security-Policy header when provided', () => {
+  const headers = {};
+  const mockResponse = {
+    setHeader(name, value) {
+      headers[name] = value;
+    },
+  };
+  applySecurityHeaders(mockResponse, { csp: CSP_STRINGS.stravaDemo });
+  assert.equal(headers['Content-Security-Policy'], CSP_STRINGS.stravaDemo);
+});
+>>>>>>> 0b803b6 (feat: Wire Content-Security-Policy header to static file responses per app)
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
