@@ -8,6 +8,7 @@ export const STRAVA_PHOTO_HOST = 'dgtzuqphqg23d.cloudfront.net';
 export const STRAVA_AVATAR_HOSTS = Object.freeze([
     'dgtzuqphqg23d.cloudfront.net',
     'd3nn82uaxijpm6.cloudfront.net',
+    'dgalywyr863hv.cloudfront.net',
     'graph.facebook.com',
     'lh3.googleusercontent.com',
 ]);
@@ -28,7 +29,10 @@ export function athleteAvatarUrl(profileUrl) {
     try {
         const url = new URL(profileUrl);
         if (url.protocol !== 'https:' || url.username || url.password) return null;
-        return STRAVA_AVATAR_HOSTS.includes(url.hostname) ? url.href : null;
+        if (url.hostname.endsWith('.cloudfront.net') || url.hostname.endsWith('.googleusercontent.com') || STRAVA_AVATAR_HOSTS.includes(url.hostname)) {
+            return url.href;
+        }
+        return null;
     } catch {
         // Relative value (`avatar/athlete/medium.png`) or otherwise unparseable.
         return null;

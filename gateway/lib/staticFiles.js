@@ -168,6 +168,7 @@ function serializeCsp(directives) {
 const CSP_STRAVA_DEMO_DIRECTIVES = extendDirectives(CSP_MAPS_DEMO_DIRECTIVES, {
   'connect-src': ['https://www.strava.com'],
   'img-src': [
+    'https://*.cloudfront.net',
     'https://dgtzuqphqg23d.cloudfront.net',
     'https://d3nn82uaxijpm6.cloudfront.net',
     'https://graph.facebook.com',

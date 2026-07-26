@@ -126,7 +126,12 @@ export async function initMap(mapHostElement, apiKey) {
         // E3: Listen for gmp-error to show error notices
         map3d.addEventListener('gmp-error', (e) => {
             error("Map3DElement error:", e);
-            showError("Google Maps 3D error. Your browser or hardware may not support Photorealistic 3D Maps.");
+            const detailStr = String(e.detail?.error?.message || e.detail?.error || e.message || e);
+            if (detailStr.includes('ApiTargetBlockedMapError')) {
+                showError("Google Maps API Key Error (ApiTargetBlockedMapError): The API key is not authorized for Photorealistic 3D Maps. Please check your Google Maps Platform API key restrictions.");
+            } else {
+                showError("Google Maps 3D error. Your browser, hardware, or API key configuration may not support Photorealistic 3D Maps.");
+            }
         });
 
         // E3: Listen for gmp-steadystate event before triggering route flights
@@ -810,16 +815,19 @@ export function setRiderActivityType(activity) {
     disposeTrackingMarker();
 }
 
+let trackingMarkerFailed = false;
+
 function disposeTrackingMarker() {
     if (trackingMarker?.parentNode) {
         try { map3d?.removeChild(trackingMarker); } catch (e) { warn('[disposeTrackingMarker] Error removing marker:', e); }
     }
     trackingMarker = null;
     trackingMarkerSport = null;
+    trackingMarkerFailed = false;
 }
 
 export function updateTrackingMarker(position) {
-    if (!map3d || !Marker3DElement || !AltitudeMode) return;
+    if (!map3d || !Marker3DElement || !AltitudeMode || trackingMarkerFailed) return;
 
     if (trackingMarker && trackingMarkerSport !== riderSportKey) {
         disposeTrackingMarker();
@@ -843,10 +851,12 @@ export function updateTrackingMarker(position) {
             const template = svgTemplateFromMarkup(activityMarkerSvg(riderSportKey));
             if (template) trackingMarker.append(template);
             trackingMarkerSport = riderSportKey;
+            trackingMarkerFailed = false;
             debug(`[updateTrackingMarker] Created "${riderSportKey}" rider marker.`);
         } catch (e) {
             error("[updateTrackingMarker] Failed to initialize tracking marker:", e);
             trackingMarker = null;
+            trackingMarkerFailed = true;
             return;
         }
     }
