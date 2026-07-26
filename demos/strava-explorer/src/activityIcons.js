@@ -153,6 +153,14 @@ export function normalizeSportType(activity) {
     if (SPORT_ALIASES[key]) return SPORT_ALIASES[key];
     if (SPORTS[key]) return key;
 
+    const name = typeof activity === 'object' ? String(activity.name || '') : '';
+    if (/ride|bike|cycling/i.test(name)) return 'ride';
+    if (/run|jog/i.test(name)) return 'run';
+    if (/hike|trek/i.test(name)) return 'hike';
+    if (/walk/i.test(name)) return 'walk';
+    if (/ski/i.test(name)) return 'alpineski';
+    if (/swim/i.test(name)) return 'swim';
+
     const id = typeof activity === 'object' ? String(activity.id ?? '') : '';
     if (id === 'demo-alpine-ride') return 'ride';
     if (id === 'demo-coastal-run') return 'run';
