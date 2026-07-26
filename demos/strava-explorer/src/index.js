@@ -759,7 +759,7 @@ function renderActivityDropdown() {
 
             // Avoid double emoji if activity.name already contains it
             let cleanName = activity.name || 'Unnamed Activity';
-            cleanName = cleanName.replace(/[🚴🚵🏃🥾🚶🏊🛶📍]|⛷️?/gu, '').trim();
+            cleanName = cleanName.replace(/[🚴🚵🏃🥾🚶🏊🛶📍🌲⚡]|⛷️?/gu, '').trim();
 
             option.textContent = `${emoji} ${cleanName} - ${dateStr} - ${distStr} (${elevStr})`;
             
@@ -1470,7 +1470,12 @@ function updateStatsUI(activityData, altitudeStream) {
         totalLossStr = formatElevation(calculatedLossMeters, useImperial);
     }
 
-    if (activityNameEl) activityNameEl.textContent = activityData.name || 'Unnamed Activity';
+    if (activityNameEl) {
+        const emoji = sportEmoji(activityData);
+        let cleanName = activityData.name || 'Unnamed Activity';
+        cleanName = cleanName.replace(/[🚴🚵🏃🥾🚶🏊🛶📍🌲⚡]|⛷️?/gu, '').trim();
+        activityNameEl.textContent = `${emoji} ${cleanName}`;
+    }
     if (activityDistEl) activityDistEl.textContent = distanceStr;
     if (activityTimeEl) activityTimeEl.textContent = movingTimeFormatted;
     if (activityElevEl) activityElevEl.textContent = elevationGainStr;

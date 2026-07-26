@@ -196,7 +196,11 @@ export function sportDescriptor(activity) {
  */
 export function sportEmoji(activity) {
     const key = normalizeSportType(activity);
-    if (key.includes('ride')) return key === 'mountainbikeride' ? '🚵' : '🚴';
+    if (key === 'mountainbikeride') return '🚵';
+    if (key === 'gravelride') return '🚴'; // Gravel doesn't have a distinct emoji, but let's stick to standard 🚴 for ride
+    if (key === 'ebikeride') return '🚴⚡';
+    if (key === 'trailrun') return '🏃🌲';
+    if (key.includes('ride')) return '🚴';
     if (key === 'hike') return '🥾';
     if (key === 'walk') return '🚶';
     if (key.includes('ski') || key === 'snowboard') return '⛷️';

@@ -308,7 +308,7 @@ describe('src/activityIcons.js', () => {
     test('sport emoji stays in sync with the marker sport', () => {
         expect(icons.sportEmoji({ sport_type: 'MountainBikeRide' })).toBe('🚵');
         expect(icons.sportEmoji({ sport_type: 'Ride' })).toBe('🚴');
-        expect(icons.sportEmoji({ sport_type: 'TrailRun' })).toBe('🏃');
+        expect(icons.sportEmoji({ sport_type: 'TrailRun' })).toBe('🏃🌲');
         expect(icons.sportEmoji({ sport_type: 'Hike' })).toBe('🥾');
     });
 });
