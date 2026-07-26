@@ -46,6 +46,18 @@ for (const app of apps) {
     }
   }
 
+  // The gateway picks a Content-Security-Policy from this field, never from
+  // `tags` (see the comment at the CSP selection in gateway/server.js). Both
+  // directions are checked: an unknown value would silently fall back to the
+  // strict default policy and break the app, and a Maps demo that forgets the
+  // field would be served a CSP that blocks the Maps JS API loader.
+  if (app.csp !== undefined && app.csp !== 'maps') {
+    fail(`${label}: csp must be "maps" when present (got ${JSON.stringify(app.csp)})`);
+  }
+  if (app.tags?.includes('google-maps-platform') && !app.path.startsWith('http') && app.csp !== 'maps') {
+    fail(`${label}: apps loading the Maps JS API must declare "csp": "maps" so the gateway serves the Maps CSP`);
+  }
+
   if (app.api?.type === 'gateway') {
     const route = app.api.path || app.api.prefix;
     if (!GATEWAY_SERVER.includes(route)) fail(`${label}: declared gateway API is not registered in gateway/server.js (${route})`);

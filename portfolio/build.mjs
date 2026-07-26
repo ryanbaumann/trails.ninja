@@ -460,6 +460,18 @@ function hasDetailPage(entry) {
 
 const CSS = readFileSync(join(ROOT, 'style.css'), 'utf8');
 
+// Read the actual light/dark background tokens out of style.css (rather than
+// hardcoding a second copy) so <meta name="theme-color"> can't drift from
+// the design system it's describing.
+function themeColor(css, darkMode) {
+  const scope = darkMode
+    ? css.match(/@media \(prefers-color-scheme: dark\) \{\s*:root \{([^}]*)\}/)?.[1]
+    : css.match(/:root \{([^}]*)\}/)?.[1];
+  return scope?.match(/--bg:\s*(#[0-9a-fA-F]{3,8})/)?.[1] || (darkMode ? '#030712' : '#faf9f6');
+}
+const THEME_COLOR_LIGHT = themeColor(CSS, false);
+const THEME_COLOR_DARK = themeColor(CSS, true);
+
 function layout({ title, description, content, active = '', canonical, ogImage, ogImageAlt, shareTitle, shareSummary, ogType, articleDate, articleUpdated, robots, jsonLd, contactDelivery }) {
   const navItems = [
     { href: `${BASE}writing/`, label: 'Notes', key: 'writing' },
@@ -496,6 +508,12 @@ function layout({ title, description, content, active = '', canonical, ogImage, 
     imageDimensions ? `<meta property="og:image:height" content="${imageDimensions.height}" />` : '',
     imageMime ? `<meta property="og:image:type" content="${imageMime}" />` : '',
   ].filter(Boolean).join('\n');
+
+  const localeTags = [
+    `<meta property="og:locale" content="en_US" />`,
+    `<meta name="theme-color" content="${THEME_COLOR_LIGHT}" media="(prefers-color-scheme: light)" />`,
+    `<meta name="theme-color" content="${THEME_COLOR_DARK}" media="(prefers-color-scheme: dark)" />`,
+  ].join('\n');
 
   const twitterTags = [
     `<meta name="twitter:card" content="${twitterCardType}" />`,
@@ -537,6 +555,7 @@ ${ogUrlTag}
 ${ogImageTag}
 ${ogImageAltTag}
 ${ogImageDetails}
+${localeTags}
 ${twitterTags}
 ${articleTags ? articleTags + '\n' : ''}<link rel="icon" href="${BASE}favicon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="${BASE}apple-touch-icon.png" />
@@ -728,7 +747,50 @@ function getImageDimensions(imagePath) {
     }
   }
 
+  if (imagePath.endsWith('.webp')) {
+    try {
+      const dims = parseWebpDimensions(readFileSync(imagePath));
+      if (dims) return dims;
+    } catch (e) {
+      console.warn(`[build.mjs] failed to parse WebP dimensions for ${imagePath}:`, e.message);
+    }
+  }
+
   return { width: 960, height: 600 };
+}
+
+// WebP wraps one of three payloads in a RIFF container: lossy ("VP8 "),
+// lossless ("VP8L"), or extended ("VP8X", used for alpha/animation/metadata).
+// Each packs width/height differently, so each gets its own byte offsets.
+function parseWebpDimensions(buffer) {
+  if (buffer.length < 16) return null;
+  if (buffer.toString('ascii', 0, 4) !== 'RIFF' || buffer.toString('ascii', 8, 12) !== 'WEBP') return null;
+  const fourCc = buffer.toString('ascii', 12, 16);
+
+  if (fourCc === 'VP8X' && buffer.length >= 30) {
+    // Payload (10 bytes, starting at 20): 1 flags byte, 3 reserved bytes,
+    // then 24-bit little-endian width-minus-one and height-minus-one.
+    return { width: buffer.readUIntLE(24, 3) + 1, height: buffer.readUIntLE(27, 3) + 1 };
+  }
+
+  if (fourCc === 'VP8L' && buffer.length >= 25) {
+    // Payload starts with a 0x2F signature byte, then a 32-bit little-endian
+    // field packing 14-bit width-minus-one, 14-bit height-minus-one, a 1-bit
+    // alpha flag, and a 3-bit version number, in that bit order (LSB first).
+    if (buffer[20] !== 0x2f) return null;
+    const packed = buffer.readUInt32LE(21);
+    return { width: (packed & 0x3fff) + 1, height: ((packed >> 14) & 0x3fff) + 1 };
+  }
+
+  if (fourCc === 'VP8 ' && buffer.length >= 30) {
+    // Payload: 3-byte frame tag, then the 3-byte VP8 key-frame start code
+    // (0x9d 0x01 0x2a), then two 16-bit little-endian fields whose low 14
+    // bits are width/height (the top 2 bits are an unrelated scale factor).
+    if (buffer[23] !== 0x9d || buffer[24] !== 0x01 || buffer[25] !== 0x2a) return null;
+    return { width: buffer.readUInt16LE(26) & 0x3fff, height: buffer.readUInt16LE(28) & 0x3fff };
+  }
+
+  return null;
 }
 
 function gridCard(collection, entry) {
@@ -977,13 +1039,28 @@ function jsonLdBlogPosting(entry, pageUrl) {
     headline: entry.meta.title,
     description: entry.meta.summary || '',
     url: pageUrl,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
     author: { '@type': 'Person', name: site.name, url: absoluteUrl('/') },
     publisher: { '@type': 'Person', name: site.name },
   };
   if (entry.meta.date) ld.datePublished = `${entry.meta.date}T00:00:00Z`;
   if (entry.meta.updated) ld.dateModified = `${entry.meta.updated}T00:00:00Z`;
   if (entry.meta.image) ld.image = absoluteUrl(entry.meta.image);
+  if (entry.meta.tags?.length) ld.keywords = entry.meta.tags.join(', ');
   return ld;
+}
+
+// Home > collection > entry, for the detail-page rich result.
+function jsonLdBreadcrumbList(collection, entry, pageUrl) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: brand, item: absoluteUrl('/') },
+      { '@type': 'ListItem', position: 2, name: collection.label, item: absoluteUrl(`/${collection.name}/`) },
+      { '@type': 'ListItem', position: 3, name: entry.meta.title, item: pageUrl },
+    ],
+  };
 }
 
 function jsonLdCreativeWork(entry, pageUrl) {
@@ -1039,6 +1116,10 @@ function detailPage(collection, entry, activeKey) {
   if (isWriting) jsonLd = jsonLdBlogPosting(entry, pageUrl);
   else if (isWork || isScript) jsonLd = jsonLdCreativeWork(entry, pageUrl);
   else if (isTalk) jsonLd = jsonLdArticle(entry, pageUrl);
+  // layout() accepts either one JSON-LD object or an array of them (already
+  // used for the homepage's Person+WebSite pair); pair each detail page's
+  // primary type with a BreadcrumbList the same way.
+  const jsonLdBlocks = jsonLd ? [jsonLd, jsonLdBreadcrumbList(collection, entry, pageUrl)] : jsonLd;
 
   const content = `<article class="prose">
   <p class="eyebrow">${escapeHtml(collection.label)}</p>
@@ -1065,7 +1146,7 @@ function detailPage(collection, entry, activeKey) {
     articleDate: meta.date || null,
     articleUpdated: meta.updated || null,
     robots: meta.noindex ? 'noindex, follow' : null,
-    jsonLd,
+    jsonLd: jsonLdBlocks,
   }));
 }
 
@@ -1481,38 +1562,61 @@ function absoluteUrl(pathOrUrl) {
   return new URL(pathOrUrl.replace(/^\//, ''), site.siteUrl || BASE).toString();
 }
 
+// Feed items reuse the same markdownToHtml() rendering the detail pages use
+// (not a second, differently configured renderer), then absolutize any
+// root-relative asset/link targets since the feed is read off-site.
+function absolutizeMarkupUrls(html) {
+  return html.replace(/((?:src|href)=")(\/[^"]*)"/g, (_, prefix, path) => `${prefix}${escapeHtml(absoluteUrl(path))}"`);
+}
+
 function rssFeed(entries) {
+  const feedUrl = absoluteUrl('/feed.xml');
   const items = entries
     .filter((entry) => !entry.meta.noindex)
-    .map((entry) => `<item>
+    .map((entry) => {
+      const contentEncoded = hasDetailPage(entry)
+        ? `\n      <content:encoded><![CDATA[${absolutizeMarkupUrls(markdownToHtml(entry.body))}]]></content:encoded>`
+        : '';
+      return `<item>
       <title>${escapeHtml(entry.meta.title)}</title>
       <link>${escapeHtml(absoluteUrl(entryUrl('writing', entry)))}</link>
       <guid>${escapeHtml(absoluteUrl(entry.meta.canonical || entryUrl('writing', entry)))}</guid>
       <pubDate>${new Date(`${entry.meta.date}T00:00:00Z`).toUTCString()}</pubDate>
-      <description>${escapeHtml(entry.meta.summary || '')}</description>
-    </item>`)
+      <description>${escapeHtml(entry.meta.summary || '')}</description>${contentEncoded}
+    </item>`;
+    })
     .join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0"><channel>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel>
 <title>${escapeHtml(brand)} by ${escapeHtml(site.name)}</title>
 <link>${escapeHtml(absoluteUrl('/writing/'))}</link>
 <description>${escapeHtml(site.sectionIntros?.writing || site.description)}</description>
+<language>en-us</language>
+<lastBuildDate>${BUILD_TIME.toUTCString()}</lastBuildDate>
+<atom:link href="${escapeHtml(feedUrl)}" rel="self" type="application/rss+xml" />
 ${items}
 </channel></rss>`;
+}
+
+// The most recent updated/date across a set of entries, for a listing
+// page's <lastmod> (its content changes whenever any entry on it does).
+function maxEntryDate(entries) {
+  const dates = entries.map((entry) => entry.meta.updated || entry.meta.date).filter(Boolean);
+  return dates.length ? dates.reduce((max, date) => (date > max ? date : max)) : null;
 }
 
 function sitemapXml(collections) {
   const urls = [];
 
-  // Homepage
-  urls.push({ loc: absoluteUrl('/'), priority: '1.0' });
+  // Homepage: shows Notes and Work, so its freshness follows both.
+  urls.push({ loc: absoluteUrl('/'), priority: '1.0', lastmod: maxEntryDate([...collections.writing, ...collections.work]) });
 
   // Collection index pages
   for (const col of COLLECTIONS) {
-    urls.push({ loc: absoluteUrl(`/${col.name}/`), priority: '0.8' });
+    urls.push({ loc: absoluteUrl(`/${col.name}/`), priority: '0.8', lastmod: maxEntryDate(collections[col.name]) });
   }
 
-  // Demos index
+  // Demos index: no per-demo publish date to derive a lastmod from.
   if (demos.length) {
     urls.push({ loc: absoluteUrl('/demos/'), priority: '0.7' });
   }
@@ -1545,7 +1649,8 @@ function sitemapXml(collections) {
       if (meta.image) {
         image = meta.image.startsWith('/') ? absoluteUrl(rebase(meta.image)) : loc + meta.image;
       }
-      urls.push({ loc, priority: '0.5', image });
+      // Standalone pages rarely carry a date; omit lastmod rather than invent one.
+      urls.push({ loc, priority: '0.5', image, lastmod: meta.updated || meta.date || null });
     }
   }
 
@@ -1556,6 +1661,64 @@ function sitemapXml(collections) {
   }).join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${entries}\n</urlset>`;
+}
+
+// Rewrites root-relative markdown link/image targets to absolute URLs so a
+// markdown mirror still reads correctly off-site (agents, RSS readers).
+function rewriteRelativeLinks(markdown) {
+  return markdown.replace(/(!?\[[^\]]*\]\()([^)\s]+)(\))/g, (match, prefix, href, suffix) => {
+    if (!href.startsWith('/') || href.startsWith('//')) return match;
+    return `${prefix}${absoluteUrl(rebase(href))}${suffix}`;
+  });
+}
+
+// A markdown mirror of a published Field Note at /writing/<slug>/index.md,
+// next to its HTML. Agents ingest markdown at a fraction of the HTML token
+// cost (SITE_ASSESSMENT_2026-07.md section 5.2). Front matter is not
+// re-emitted; this is a clean reading document, not the source file.
+function writeMarkdownMirror(entry) {
+  const { meta } = entry;
+  const longDate = formatLongDate(meta.date);
+  const parts = [`# ${meta.title}`];
+  if (longDate) parts.push(longDate);
+  if (meta.summary) parts.push(meta.summary);
+  parts.push(rewriteRelativeLinks(entry.body));
+  writePage(join('writing', entry.slug, 'index.md'), `${parts.join('\n\n')}\n`);
+}
+
+function llmsTxtSection(heading, lines) {
+  return lines.length ? `## ${heading}\n\n${lines.join('\n')}` : '';
+}
+
+// llms.txt: the file agents check first, generated from the same loaded,
+// already-filtered collections as the sitemap and RSS feed so it can never
+// list a draft, an unpublished publishAt, or a noindex entry.
+function llmsTxt(collections) {
+  const notes = collections.writing
+    .filter((entry) => !entry.meta.noindex)
+    .map((entry) => {
+      const url = hasDetailPage(entry) ? absoluteUrl(`/writing/${entry.slug}/index.md`) : absoluteUrl(entryUrl('writing', entry));
+      return `- [${entry.meta.title}](${url}): ${entry.meta.summary || ''}`;
+    });
+
+  const work = collections.work
+    .filter((entry) => !entry.meta.noindex)
+    .map((entry) => `- [${entry.meta.title}](${absoluteUrl(entryUrl('work', entry))}): ${entry.meta.summary || ''}`);
+
+  const talks = collections.talks
+    .filter((entry) => !entry.meta.noindex)
+    .map((entry) => `- [${entry.meta.title}](${absoluteUrl(entryUrl('talks', entry))}): ${entry.meta.summary || ''}`);
+
+  const labs = demos.map((demo) => `- [${demo.title}](${absoluteUrl(rebase(demo.path))}): ${demo.description || ''}`);
+
+  const sections = [
+    llmsTxtSection('Notes', notes),
+    llmsTxtSection('Work', work),
+    llmsTxtSection('Talks', talks),
+    llmsTxtSection('Labs', labs),
+  ].filter(Boolean);
+
+  return `# ${brand}\n\n> ${site.answerEngineSummary || site.description}\n\n${sections.join('\n\n')}\n`;
 }
 
 function robotsTxt() {
@@ -1670,7 +1833,13 @@ for (const collection of COLLECTIONS) {
   buildCollectionIndex(collection, entries);
   if (collection.detailPages) {
     for (const entry of entries) {
-      if (hasDetailPage(entry)) detailPage(collection, entry, collection.name);
+      if (!hasDetailPage(entry)) continue;
+      detailPage(collection, entry, collection.name);
+      // Markdown mirrors are Notes-only (task 2): work/talks entries are
+      // short, structured case studies that already read fine as HTML and
+      // are already one-line-summarized directly in llms.txt, so a mirror
+      // per entry would add build surface without a real ingestion win.
+      if (collection.name === 'writing' && !WRITER_MODE && !entry.meta.noindex) writeMarkdownMirror(entry);
     }
   }
 }
@@ -1699,6 +1868,10 @@ writePage('feed.xml', rssFeed(collections.writing));
 writePage('sitemap.xml', sitemapXml(collections));
 writePage('robots.txt', robotsTxt());
 writePage('redirects.json', `${JSON.stringify(redirects, null, 2)}\n`);
+// The private writer preview is noindex end to end; it should not also ship
+// an answer-engine discovery file or markdown mirrors (already skipped
+// above) of unpublished drafts.
+if (!WRITER_MODE) writePage('llms.txt', llmsTxt(collections));
 
 if (existsSync(STATIC_DIR)) {
   cpSync(STATIC_DIR, DIST_DIR, { recursive: true });

@@ -11,7 +11,7 @@ import { createServer } from 'node:http';
 import { join } from 'node:path';
 
 import { loadApps, toPublicApp, appVisibility } from './lib/apps.js';
-import { applySecurityHeaders, serveFromDir, serveFileWithStatus, sendCompressibleBody } from './lib/staticFiles.js';
+import { applySecurityHeaders, serveFromDir, serveFileWithStatus, sendCompressibleBody, CSP_POLICIES } from './lib/staticFiles.js';
 import { createRateLimiter, clientIp, RATE_LIMIT_POLICIES, rateLimitPolicyForPath } from './lib/rateLimit.js';
 import { resolveProvider } from './lib/config.js';
 import {
@@ -66,11 +66,14 @@ const routeRateLimiters = Object.fromEntries(
 // Deliberately tight (5 attempts/min per IP) to discourage brute-force.
 //
 // CLOUD RUN SINGLE-INSTANCE TRADEOFF:
-// These in-memory rate limiters only track counts within the current process.
-// On Cloud Run with max-instances=1 (the default for this portfolio) that's
-// fine — every request hits the same process.  If the service ever scales to
-// multiple instances, rate limits become per-instance and an attacker can
-// round-robin across them.  For shared/distributed rate limiting consider:
+// These in-memory rate limiters only track counts within the current process,
+// so they are correct only while the service runs as a single instance.
+// That is not Cloud Run's default (which is max-instances=100) — it is
+// pinned explicitly by `--max-instances 1` in .github/workflows/deploy.yml.
+// Raising that cap silently converts every limit below into a per-instance
+// limit an attacker can round-robin across, so it must not be changed
+// without replacing these with a shared store.  For distributed rate
+// limiting consider:
 //   - Google Cloud Armor rate-limiting policies (Layer 7, no code change)
 //   - Redis or Memorystore counters (requires a dependency)
 //   - Firestore increment-based counters (serverless, but adds latency)
@@ -146,7 +149,14 @@ const subscribeResponsePage = (title, message, statusCode = 200) => formResponse
 // model, the internal Field Notes segment, and its user-facing Topic. Sends
 // are composed and scheduled from the Resend dashboard.
 // Same anti-bot posture as the contact form: honeypot field + rate limit.
-// Repeat submissions re-enable the Field Notes topic and segment membership.
+// Repeat submissions re-opt the address into the Field Notes topic and
+// segment. They deliberately do NOT touch the contact's global `unsubscribed`
+// flag: a 409 only means "this email already exists in Resend," not "this
+// person wants back in" — Resend gives no signal either way — so forcing it
+// to false would let anyone who knows an address silently re-subscribe
+// someone who previously unsubscribed. Someone who never unsubscribed stays
+// subscribed either way; someone who did stays unsubscribed until they
+// opt in again themselves.
 async function handleSubscribeRequest(request, response) {
   if (request.method !== 'POST') {
     sendJson(request, response, 405, { error: 'Method not allowed' });
@@ -210,13 +220,11 @@ async function handleSubscribeRequest(request, response) {
         Authorization: `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',
       };
-      const [contactUpdate, topicUpdate, segmentUpdate] = await Promise.all([
-        fetch(`https://api.resend.com/contacts/${encodedEmail}`, {
-          method: 'PATCH',
-          headers: providerHeaders,
-          body: JSON.stringify({ unsubscribed: false }),
-          signal: AbortSignal.timeout(10_000),
-        }),
+      // No PATCH to /contacts/<email> here: that's the call that used to
+      // force `unsubscribed: false`. Opting into the topic and segment is
+      // enough for a genuine returning subscriber; the contact's own
+      // unsubscribed flag is left exactly as Resend already has it.
+      const [topicUpdate, segmentUpdate] = await Promise.all([
         fetch(`https://api.resend.com/contacts/${encodedEmail}/topics`, {
           method: 'PATCH',
           headers: providerHeaders,
@@ -230,7 +238,7 @@ async function handleSubscribeRequest(request, response) {
         }),
       ]);
       const segmentAccepted = segmentUpdate.ok || segmentUpdate.status === 409;
-      upstream = { ok: contactUpdate.ok && topicUpdate.ok && segmentAccepted, status: contactUpdate.status };
+      upstream = { ok: topicUpdate.ok && segmentAccepted, status: topicUpdate.status };
     }
   } catch {
     sendHtml(request, response, 502, subscribeResponsePage('Not subscribed', 'The mail provider could not be reached. Please try again later.', 502));
@@ -517,6 +525,33 @@ async function handleApi(request, response, pathname, searchParams) {
   }
 
   if (isStravaRoute) {
+    // Same-origin check as the writer form endpoints (handleWriterFormRequest):
+    // the strava-explorer client served by this gateway always calls these
+    // relative to its own origin (demos/strava-explorer/src/strava.js), so a
+    // mismatched Origin can only mean a cross-site POST. Only checked when
+    // Origin is present — browsers always send it on a POST, but non-browser
+    // callers (curl, server-to-server refresh) often don't, and rejecting
+    // those would break legitimate keyless-friendly API use for no security
+    // gain (this never touches the photo GET route, which has no POST body
+    // to forge). The standalone Cloud Run broker
+    // (demos/strava-explorer/server/broker.js) is a different deployment and
+    // a different file, so this check does not affect it.
+    if (request.method === 'POST') {
+      const originHeader = request.headers.origin;
+      if (originHeader) {
+        let originHost;
+        try {
+          originHost = new URL(originHeader).host;
+        } catch {
+          originHost = null;
+        }
+        if (originHost !== request.headers.host) {
+          sendJson(request, response, 403, { error: 'Invalid request origin.' });
+          return;
+        }
+      }
+    }
+
     const normalizedPathname = pathname === '/api/photo-proxy' ? '/api/strava/photo' : pathname;
     let body = {};
     if (request.method === 'POST') {
@@ -732,7 +767,16 @@ const server = createServer(async (request, response) => {
       }
 
       const subPath = pathname.slice(app.path.length - 1);
-      if (serveFromDir(app.dir, subPath, request, response, { private: appVisibility(app) === 'private' })) return;
+      // The Maps JS API loader needs a broader CSP than the portfolio's
+      // default — see CSP_POLICIES in staticFiles.js for why this is scoped
+      // per-app rather than site-wide. This reads the manifest's explicit
+      // `csp` field, never the display `tags`: tags are presentation
+      // metadata (card chips, JSON-LD keywords) that someone could
+      // reasonably rewrite for SEO, and a security policy must not change
+      // as a side effect of that. scripts/validate-apps.mjs enforces that
+      // every app loading Maps declares `"csp": "maps"`.
+      const csp = app.csp === 'maps' ? CSP_POLICIES.mapsDemo : CSP_POLICIES.default;
+      if (serveFromDir(app.dir, subPath, request, response, { private: appVisibility(app) === 'private', csp })) return;
       send404Page(request, response);
       return;
     }

@@ -60,6 +60,8 @@ export function cacheControlFor(filePath) {
 export const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
+  // frame-ancestors in the CSP below supersedes this for browsers that
+  // support it; kept for older browsers that don't.
   'X-Frame-Options': 'SAMEORIGIN',
   // The service only ever runs behind Cloud Run's TLS termination (and
   // local dev is plain HTTP on localhost, which browsers exempt from HSTS
@@ -67,10 +69,70 @@ export const SECURITY_HEADERS = {
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
 };
 
-export function applySecurityHeaders(response) {
+// ---------------------------------------------------------------------------
+// Content-Security-Policy
+//
+// Two policies, because one origin serves two different trust profiles:
+//  - the portfolio (and every plain static app): a small, known
+//    third-party surface — Google Analytics (googletagmanager.com,
+//    google-analytics.com) and giscus comments (giscus.app) — so a tight
+//    default-src 'self' policy fits.
+//  - the three Google Maps Platform demos (strava-explorer, aqi-map,
+//    isochrones, tagged "google-maps-platform" in apps.json): the Maps JS
+//    API loader injects scripts, blob: workers, and tile/image requests
+//    across the broad set of Google subdomains that Google's own CSP guide
+//    enumerates (developers.google.com/maps/documentation/javascript/
+//    content-security-policy). Locking those down to the portfolio's
+//    policy would break the demos, so they get Google's documented
+//    allowlist CSP instead — a per-app relaxation rather than a site-wide
+//    one, since the risk (Google's own domains, and 'unsafe-eval' which
+//    the loader needs) is scoped to the pages that need it.
+//
+// Both policies allow 'unsafe-inline' for script-src and style-src: the
+// portfolio build inlines a theme-toggle script, an analytics bootstrap
+// script, a giscus mount script, and a <style> block directly into static
+// HTML served by a separate process from the build. There's no per-request
+// nonce plumbing between the two, and wiring one up would mean a large
+// refactor of the build pipeline — accepted as a known limitation rather
+// than attempted here.
+const CSP_DEFAULT = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://giscus.app",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https://www.google-analytics.com",
+  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com",
+  "frame-src https://giscus.app",
+  "font-src 'self'",
+].join('; ');
+
+const CSP_MAPS_DEMO = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.ggpht.com https://*.googleusercontent.com blob:",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.googleusercontent.com",
+  "connect-src 'self' https://*.googleapis.com https://*.google.com https://*.gstatic.com data: blob:",
+  "worker-src 'self' blob:",
+  "frame-src https://*.google.com",
+  "font-src 'self' https://fonts.gstatic.com",
+].join('; ');
+
+export const CSP_POLICIES = Object.freeze({ default: CSP_DEFAULT, mapsDemo: CSP_MAPS_DEMO });
+
+export function applySecurityHeaders(response, { csp = CSP_DEFAULT } = {}) {
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
     response.setHeader(key, value);
   }
+  // A caller that needs to send its own CSP (the Strava photo-proxy binary
+  // response sets `Content-Security-Policy: sandbox`) can still do so: Node
+  // gives explicit writeHead() headers precedence over setHeader() values
+  // for duplicate names, so setting a default here first is safe.
+  response.setHeader('Content-Security-Policy', csp);
 }
 
 // ---------------------------------------------------------------------------
@@ -181,8 +243,8 @@ function requestIsNotModified(request, etag, lastModified) {
  * compresses compressible types when the client allows it and the file is
  * big enough to bother.
  */
-function sendStaticFile(filePath, stat, request, response, statusCode, { cacheControl, extraHeaders = {} }) {
-  applySecurityHeaders(response);
+function sendStaticFile(filePath, stat, request, response, statusCode, { cacheControl, extraHeaders = {}, csp }) {
+  applySecurityHeaders(response, { csp });
 
   const compressible = isCompressibleType(filePath);
   const etag = computeEtag(stat);
@@ -263,6 +325,7 @@ export function serveFromDir(baseDir, subPath, request, response, options = {}) 
   return sendStaticFile(filePath, stat, request, response, 200, {
     cacheControl: options.private ? 'private, no-store' : cacheControlFor(filePath),
     extraHeaders: options.private ? { 'X-Robots-Tag': 'noindex, nofollow, noarchive' } : {},
+    csp: options.csp,
   });
 }
 
@@ -280,5 +343,6 @@ export function serveFileWithStatus(filePath, request, response, statusCode, opt
 
   return sendStaticFile(filePath, stat, request, response, statusCode, {
     cacheControl: options.cacheControl || 'no-store',
+    csp: options.csp,
   });
 }

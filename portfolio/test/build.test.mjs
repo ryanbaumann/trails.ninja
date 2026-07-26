@@ -328,3 +328,194 @@ test('build rejects missing root-relative assets in frontmatter links', () => {
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /broken internal link \/decks\/missing\.pdf/);
 });
+
+// --- llms.txt (task 1) -------------------------------------------------
+
+test('llms.txt reuses the answer engine summary and links published notes, work, talks, and labs', () => {
+  const paths = fixture();
+  write(join(paths.content, 'writing', 'published.md'), `---\ntitle: Published note\nsummary: A published note summary\ndate: 2026-07-13\n---\nBody.`);
+  write(join(paths.content, 'writing', 'draft.md'), `---\ntitle: Draft note\nsummary: Hidden\ndate: 2026-07-13\ndraft: true\nnoindex: true\n---\nDraft.`);
+  write(join(paths.content, 'writing', 'scheduled.md'), `---\ntitle: Scheduled note\nsummary: Hidden\ndate: 2026-07-14\npublishAt: 2026-07-14T12:00:00Z\n---\nScheduled.`);
+  write(join(paths.content, 'writing', 'external.md'), `---\ntitle: External note\nsummary: Elsewhere\ndate: 2026-07-12\nexternal: https://example.org/post\n---`);
+  write(join(paths.content, 'work', 'case-study.md'), `---\ntitle: Case study\nsummary: A work summary\n---\nBody.`);
+  write(join(paths.content, 'talks', 'talk.md'), `---\ntitle: A talk\nsummary: A talk summary\ndate: 2026-06-01\n---\nBody.`);
+  const result = build(paths, { PORTFOLIO_BUILD_TIME: '2026-07-13T12:00:00Z' });
+  assert.equal(result.status, 0, result.stderr);
+  const llmsTxt = readFileSync(join(paths.dist, 'llms.txt'), 'utf8');
+  assert.match(llmsTxt, /^# Test Person\n\n> Test Person builds things\.\n\n/);
+  assert.match(llmsTxt, /## Notes\n\n- \[Published note\]\(https:\/\/example\.com\/writing\/published\/index\.md\): A published note summary/);
+  assert.match(llmsTxt, /\[External note\]\(https:\/\/example\.org\/post\): Elsewhere/);
+  assert.match(llmsTxt, /## Work\n\n- \[Case study\]\(https:\/\/example\.com\/work\/case-study\/\): A work summary/);
+  assert.match(llmsTxt, /## Talks\n\n- \[A talk\]\(https:\/\/example\.com\/talks\/talk\/\): A talk summary/);
+  assert.match(llmsTxt, /## Labs\n\n- \[Public demo\]\(https:\/\/example\.com\/public\/\): Visible/);
+  assert.doesNotMatch(llmsTxt, /Draft note|Scheduled note|Private demo/);
+});
+
+test('llms.txt is not emitted in writer mode', () => {
+  const paths = fixture();
+  const result = build(paths, { BASE_PATH: '/writer/', PORTFOLIO_WRITER_MODE: 'true' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.throws(() => readFileSync(join(paths.dist, 'llms.txt')), /ENOENT/);
+});
+
+// --- markdown mirrors (task 2) ------------------------------------------
+
+test('published notes get a clean markdown mirror with absolute links and no front matter', () => {
+  const paths = fixture();
+  write(join(paths.staticDir, 'img', 'diagram.png'), 'not a real image, only existence is checked');
+  write(join(paths.content, 'writing', 'mirrored.md'), `---\ntitle: Mirrored note\nsummary: A mirrored note summary\ndate: 2026-07-13\n---\nSee [the work page](/work/) and ![a diagram](/img/diagram.png).`);
+  const result = build(paths);
+  assert.equal(result.status, 0, result.stderr);
+  const mirror = readFileSync(join(paths.dist, 'writing', 'mirrored', 'index.md'), 'utf8');
+  assert.match(mirror, /^# Mirrored note\n\nJuly 13, 2026\n\nA mirrored note summary\n\n/);
+  assert.match(mirror, /\[the work page\]\(https:\/\/example\.com\/work\/\)/);
+  assert.match(mirror, /!\[a diagram\]\(https:\/\/example\.com\/img\/diagram\.png\)/);
+  assert.doesNotMatch(mirror, /^---/);
+  assert.doesNotMatch(mirror, /title: Mirrored note/);
+});
+
+test('draft, scheduled, noindex, and external notes get no markdown mirror; work and talks get none either', () => {
+  const paths = fixture();
+  write(join(paths.content, 'writing', 'draft.md'), `---\ntitle: Draft note\nsummary: Hidden\ndate: 2026-07-13\ndraft: true\nnoindex: true\n---\nDraft.`);
+  write(join(paths.content, 'writing', 'hidden.md'), `---\ntitle: Hidden note\nsummary: Hidden\ndate: 2026-07-13\nnoindex: true\n---\nHidden.`);
+  write(join(paths.content, 'writing', 'external.md'), `---\ntitle: External note\nsummary: Elsewhere\ndate: 2026-07-12\nexternal: https://example.org/post\n---`);
+  write(join(paths.content, 'work', 'case-study.md'), `---\ntitle: Case study\nsummary: A work summary\n---\nBody.`);
+  write(join(paths.content, 'talks', 'talk.md'), `---\ntitle: A talk\nsummary: A talk summary\ndate: 2026-06-01\n---\nBody.`);
+  const result = build(paths, { PORTFOLIO_BUILD_TIME: '2026-07-13T12:00:00Z' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.throws(() => readFileSync(join(paths.dist, 'writing', 'draft', 'index.md')), /ENOENT/);
+  assert.throws(() => readFileSync(join(paths.dist, 'writing', 'hidden', 'index.md')), /ENOENT/);
+  assert.throws(() => readFileSync(join(paths.dist, 'writing', 'external', 'index.md')), /ENOENT/);
+  assert.throws(() => readFileSync(join(paths.dist, 'work', 'case-study', 'index.md')), /ENOENT/);
+  assert.throws(() => readFileSync(join(paths.dist, 'talks', 'talk', 'index.md')), /ENOENT/);
+});
+
+test('markdown mirrors are not emitted in writer mode', () => {
+  const paths = fixture();
+  write(join(paths.content, 'writing', 'mirrored.md'), `---\ntitle: Mirrored note\nsummary: A mirrored note summary\ndate: 2026-07-13\n---\nBody.`);
+  const result = build(paths, { BASE_PATH: '/writer/', PORTFOLIO_WRITER_MODE: 'true' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.throws(() => readFileSync(join(paths.dist, 'writing', 'mirrored', 'index.md')), /ENOENT/);
+});
+
+// --- RSS hardening (task 3) ----------------------------------------------
+
+test('feed.xml declares atom/content namespaces, a self link, language, lastBuildDate, and full content:encoded bodies', () => {
+  const paths = fixture();
+  write(join(paths.staticDir, 'img', 'x.png'), 'not a real image, only existence is checked');
+  write(join(paths.content, 'writing', 'full.md'), `---\ntitle: Full post\nsummary: Full post summary\ndate: 2026-07-13\n---\nSee [work](/work/) and ![alt](/img/x.png).`);
+  write(join(paths.content, 'writing', 'linkout.md'), `---\ntitle: Link out\nsummary: No body\ndate: 2026-07-12\nexternal: https://example.org/elsewhere\n---`);
+  const result = build(paths, { PORTFOLIO_BUILD_TIME: '2026-07-13T12:00:00Z' });
+  assert.equal(result.status, 0, result.stderr);
+  const feed = readFileSync(join(paths.dist, 'feed.xml'), 'utf8');
+  assert.match(feed, /<rss version="2\.0" xmlns:atom="http:\/\/www\.w3\.org\/2005\/Atom" xmlns:content="http:\/\/purl\.org\/rss\/1\.0\/modules\/content\/">/);
+  assert.match(feed, /<atom:link href="https:\/\/example\.com\/feed\.xml" rel="self" type="application\/rss\+xml" \/>/);
+  assert.match(feed, /<language>en-us<\/language>/);
+  assert.match(feed, /<lastBuildDate>[A-Za-z]{3}, \d{2} [A-Za-z]{3} \d{4} [\d:]{8} GMT<\/lastBuildDate>/);
+  assert.match(feed, /<content:encoded><!\[CDATA\[<p>See <a href="https:\/\/example\.com\/work\/">work<\/a>/);
+  assert.match(feed, /<img src="https:\/\/example\.com\/img\/x\.png"/);
+  assert.doesNotMatch(feed, /<content:encoded><!\[CDATA\[\]\]><\/content:encoded>.*Link out/s);
+});
+
+// --- sitemap lastmod (task 4) ---------------------------------------------
+
+test('sitemap sets lastmod on the homepage and collection indexes from their newest entry, and omits it for dateless standalone pages', () => {
+  const paths = fixture();
+  write(join(paths.content, 'writing', 'older.md'), `---\ntitle: Older\nsummary: Older\ndate: 2026-06-01\n---\nBody.`);
+  write(join(paths.content, 'writing', 'newer.md'), `---\ntitle: Newer\nsummary: Newer\ndate: 2026-07-20\n---\nBody.`);
+  write(join(paths.content, 'work', 'updated-case.md'), `---\ntitle: Updated case\nsummary: Updated\ndate: 2026-01-01\nupdated: 2026-08-01\n---\nBody.`);
+  write(join(paths.content, 'pages', 'about.md'), `---\ntitle: About\nsummary: About this person\n---\nNo date here.`);
+  const result = build(paths, { PORTFOLIO_BUILD_TIME: '2026-08-15T00:00:00Z' });
+  assert.equal(result.status, 0, result.stderr);
+  const sitemap = readFileSync(join(paths.dist, 'sitemap.xml'), 'utf8');
+  assert.match(sitemap, /<loc>https:\/\/example\.com\/<\/loc>\s*<lastmod>2026-08-01<\/lastmod>/);
+  assert.match(sitemap, /<loc>https:\/\/example\.com\/writing\/<\/loc>\s*<lastmod>2026-07-20<\/lastmod>/);
+  assert.match(sitemap, /<loc>https:\/\/example\.com\/work\/<\/loc>\s*<lastmod>2026-08-01<\/lastmod>/);
+  assert.match(sitemap, /<loc>https:\/\/example\.com\/about\/<\/loc>\s*<priority>0\.5<\/priority>/);
+  assert.doesNotMatch(sitemap.match(/<loc>https:\/\/example\.com\/about\/<\/loc>[\s\S]{0,80}/)[0], /lastmod/);
+});
+
+// --- JSON-LD detail (task 5) ------------------------------------------
+
+test('detail pages get mainEntityOfPage, keywords, and a Home > Collection > Entry BreadcrumbList', () => {
+  const paths = fixture();
+  write(join(paths.content, 'writing', 'tagged.md'), `---\ntitle: Tagged note\nsummary: A tagged note\ndate: 2026-07-13\ntags: ["agents","evals"]\n---\nBody.`);
+  const result = build(paths);
+  assert.equal(result.status, 0, result.stderr);
+  const html = readFileSync(join(paths.dist, 'writing', 'tagged', 'index.html'), 'utf8');
+  const jsonLd = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
+  assert.ok(Array.isArray(jsonLd));
+  const blogPosting = jsonLd.find((item) => item['@type'] === 'BlogPosting');
+  assert.equal(blogPosting.mainEntityOfPage['@id'], 'https://example.com/writing/tagged/');
+  assert.equal(blogPosting.keywords, 'agents, evals');
+  const breadcrumb = jsonLd.find((item) => item['@type'] === 'BreadcrumbList');
+  assert.deepEqual(breadcrumb.itemListElement.map((item) => item.name), ['Test Person', 'Notes', 'Tagged note']);
+  assert.deepEqual(breadcrumb.itemListElement.map((item) => item.item), [
+    'https://example.com/',
+    'https://example.com/writing/',
+    'https://example.com/writing/tagged/',
+  ]);
+});
+
+test('layout emits og:locale and light/dark theme-color meta tags', () => {
+  const paths = fixture();
+  const result = build(paths);
+  assert.equal(result.status, 0, result.stderr);
+  const home = readFileSync(join(paths.dist, 'index.html'), 'utf8');
+  assert.match(home, /<meta property="og:locale" content="en_US" \/>/);
+  assert.match(home, /<meta name="theme-color" content="#[0-9a-f]{6}" media="\(prefers-color-scheme: light\)" \/>/);
+  assert.match(home, /<meta name="theme-color" content="#[0-9a-f]{6}" media="\(prefers-color-scheme: dark\)" \/>/);
+});
+
+// --- WebP dimension parsing (task 6) --------------------------------------
+
+function riffWebp(fourCc, chunkSize, payload) {
+  const header = Buffer.alloc(20);
+  header.write('RIFF', 0, 'ascii');
+  header.writeUInt32LE(4 + 8 + payload.length, 4);
+  header.write('WEBP', 8, 'ascii');
+  header.write(fourCc, 12, 'ascii');
+  header.writeUInt32LE(chunkSize, 16);
+  return Buffer.concat([header, payload]);
+}
+
+function makeVp8xFixture(width, height) {
+  const payload = Buffer.alloc(10);
+  payload[0] = 0x00; // flags
+  payload.writeUIntLE(width - 1, 4, 3);
+  payload.writeUIntLE(height - 1, 7, 3);
+  return riffWebp('VP8X', payload.length, payload);
+}
+
+function makeVp8lFixture(width, height) {
+  const payload = Buffer.alloc(5);
+  payload[0] = 0x2f; // VP8L signature byte
+  const packed = (((width - 1) & 0x3fff) | (((height - 1) & 0x3fff) << 14)) >>> 0;
+  payload.writeUInt32LE(packed, 1);
+  return riffWebp('VP8L', payload.length, payload);
+}
+
+function makeVp8Fixture(width, height) {
+  const payload = Buffer.alloc(10);
+  payload[0] = 0x10; payload[1] = 0x00; payload[2] = 0x00; // frame tag (not decoded)
+  payload[3] = 0x9d; payload[4] = 0x01; payload[5] = 0x2a; // VP8 key-frame start code
+  payload.writeUInt16LE(width & 0x3fff, 6);
+  payload.writeUInt16LE(height & 0x3fff, 8);
+  return riffWebp('VP8 ', payload.length, payload);
+}
+
+for (const [label, make, width, height] of [
+  ['VP8X (extended)', makeVp8xFixture, 500, 400],
+  ['VP8L (lossless)', makeVp8lFixture, 640, 360],
+  ['VP8 (lossy)', makeVp8Fixture, 800, 600],
+]) {
+  test(`getImageDimensions reads real ${label} WebP byte fixtures`, () => {
+    const paths = fixture();
+    write(join(paths.staticDir, 'photo.webp'), make(width, height));
+    write(join(paths.content, 'work', 'has-image.md'), `---\ntitle: Has image\nsummary: Has an image\nimage: /photo.webp\nimageAlt: A photo.\n---\nBody.`);
+    const result = build(paths);
+    assert.equal(result.status, 0, result.stderr);
+    const html = readFileSync(join(paths.dist, 'work', 'has-image', 'index.html'), 'utf8');
+    assert.match(html, new RegExp(`src="/photo\\.webp" alt="A photo\\." loading="eager" width="${width}" height="${height}"`));
+  });
+}

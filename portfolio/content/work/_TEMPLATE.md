@@ -6,7 +6,7 @@ period: 2025 – present
 summary: One sentence, outcome first. What shipped and what it moved.
 tags: ["two", "or three", "tags"]
 links: [{"label": "Docs", "url": "https://example.com"}]
-image: /previews/fieldwork.jpg
+image: /previews/fieldwork.webp
 imageAlt: Fieldwork homepage preview
 socialImage: /social/work-project-name.jpg
 shareTitle: Project name
