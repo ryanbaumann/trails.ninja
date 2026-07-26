@@ -33,7 +33,7 @@
     "source": { "type": "workspace", "package": "demos/strava-explorer", "output": "dist" },
     "api": { "type": "gateway", "prefix": "/api/strava/" },
     "providers": ["strava"],
-    "csp": "maps",
+    "csp": "maps-strava",
     "tags": ["strava", "3d-maps", "google-maps-platform"],
     "preview": "/previews/strava-explorer.webp"
   },

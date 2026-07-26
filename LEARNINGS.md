@@ -2,6 +2,13 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-07-26 - A CSP is only as good as the list of origins the app actually calls, and "it's a Maps demo" is not that list
+
+Context: The per-app CSP work classified strava-explorer as a Google Maps Platform demo and gave it the Maps allowlist. The demo deployed and broke: connecting an account produced "Failed to fetch activities" from `demos/strava-explorer/src/strava.js`, because `connect-src` had every Google origin and no Strava one.
+Learning: The app was classified by the framework it renders with, not by the origins it calls. The gateway proxies Strava OAuth and photos same-origin, which made "the Strava calls are behind /api" feel true, but the four read paths (athlete activities, activity detail, streams, photo metadata) go to `https://www.strava.com/api/v3` from the browser with the user's own token, and two image hosts load without the proxy. A CSP is a per-app allowlist of destinations, so it has to be derived from the app's outbound calls, not from a category the app belongs to.
+Evidence: `grep -n "fetch(" demos/strava-explorer/src/strava.js` shows four calls to `STRAVA_API_BASE_URL` (default `https://www.strava.com/api/v3`) against two same-origin `/api/strava/*` calls; `src/index.js` sets the athlete avatar directly from Strava's photo CDN and `src/demoData.js` uses picsum.photos for the signed-out tour. Fixed with a `maps-strava` policy; the gateway tests now derive those origins from the demo source, and `scripts/smoke.mjs` asserts the served `connect-src` allows the API base found in the served bundle.
+Use next time: When adding or changing a CSP for an app, enumerate its outbound calls from its own source (`grep` for `fetch(`, `.src =`, `new Image()`) and check each origin against the policy. Because third-party requests cannot be verified in a browser in this container (see the Chromium note below), that source-derived list is the verification — write it into a test so the next policy change has to keep it true.
+
 ## 2026-07-26 - A comment that names a platform default is a claim, and this one was wrong
 
 Context: `gateway/server.js` justified its in-memory per-IP rate limiters with "On Cloud Run with max-instances=1 (the default for this portfolio) that's fine." Cloud Run's actual default is max-instances=100, and `deploy.yml` passed no instance cap at all.

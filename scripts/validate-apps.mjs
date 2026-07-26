@@ -5,6 +5,7 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { validateManifestEntries } from '../gateway/lib/apps.js';
+import { CSP_MANIFEST_POLICIES } from '../gateway/lib/staticFiles.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const APPS_PATH = join(REPO_ROOT, 'apps.json');
@@ -12,6 +13,9 @@ const DOCKERFILE = readFileSync(join(REPO_ROOT, 'Dockerfile'), 'utf8');
 const DEPENDABOT = readFileSync(join(REPO_ROOT, '.github/dependabot.yml'), 'utf8');
 const GATEWAY_SERVER = readFileSync(join(REPO_ROOT, 'gateway/server.js'), 'utf8');
 const TAG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+// Read from the gateway rather than re-listed here, so a policy added there is
+// automatically accepted (and one removed is automatically rejected).
+const CSP_MANIFEST_VALUES = Object.keys(CSP_MANIFEST_POLICIES);
 
 const errors = [];
 const fail = (message) => errors.push(message);
@@ -51,11 +55,11 @@ for (const app of apps) {
   // directions are checked: an unknown value would silently fall back to the
   // strict default policy and break the app, and a Maps demo that forgets the
   // field would be served a CSP that blocks the Maps JS API loader.
-  if (app.csp !== undefined && app.csp !== 'maps') {
-    fail(`${label}: csp must be "maps" when present (got ${JSON.stringify(app.csp)})`);
+  if (app.csp !== undefined && !CSP_MANIFEST_VALUES.includes(app.csp)) {
+    fail(`${label}: csp must be one of ${CSP_MANIFEST_VALUES.map((value) => JSON.stringify(value)).join(', ')} when present (got ${JSON.stringify(app.csp)})`);
   }
-  if (app.tags?.includes('google-maps-platform') && !app.path.startsWith('http') && app.csp !== 'maps') {
-    fail(`${label}: apps loading the Maps JS API must declare "csp": "maps" so the gateway serves the Maps CSP`);
+  if (app.tags?.includes('google-maps-platform') && !app.path.startsWith('http') && !CSP_MANIFEST_VALUES.includes(app.csp)) {
+    fail(`${label}: apps loading the Maps JS API must declare a maps CSP (${CSP_MANIFEST_VALUES.join(' or ')}) so the gateway serves the Maps CSP`);
   }
 
   if (app.api?.type === 'gateway') {

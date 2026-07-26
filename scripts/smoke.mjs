@@ -287,6 +287,35 @@ async function main() {
       }
     });
 
+    // A Content-Security-Policy that blocks an origin the shipped bundle calls
+    // is invisible to every check above: the page is 200, the assets resolve,
+    // and the app still breaks in a browser. That is exactly how the Strava
+    // demo shipped broken ("Failed to fetch activities") when the CSP landed
+    // without a Strava origin in connect-src. Tie the served policy to the
+    // served code: whatever Strava API base the bundle carries must be in the
+    // connect-src the same response sent.
+    await check('served CSP allows the Strava API origin the strava-explorer bundle calls', async () => {
+      const strava = apps.find((a) => a.name === 'strava-explorer');
+      if (!strava) throw new Error('strava-explorer missing from apps.json');
+      const combined = [...servedTextAssets]
+        .filter(([url]) => url.includes(strava.path))
+        .map(([, content]) => content)
+        .join('\n');
+      const apiMatch = combined.match(/https:\/\/www\.strava\.com\/api\/v\d+/);
+      if (!apiMatch) throw new Error('did not find a Strava API base URL in the served bundle');
+      const apiOrigin = new URL(apiMatch[0]).origin;
+
+      const response = await fetch(`${baseUrl}${strava.path}`);
+      const csp = response.headers.get('content-security-policy');
+      if (!csp) throw new Error(`no Content-Security-Policy header on ${strava.path}`);
+      const connectSrc = csp.split(';').map((part) => part.trim())
+        .find((part) => part === 'connect-src' || part.startsWith('connect-src '));
+      if (!connectSrc) throw new Error(`CSP on ${strava.path} has no connect-src directive: ${csp}`);
+      if (!connectSrc.split(/\s+/).slice(1).includes(apiOrigin)) {
+        throw new Error(`CSP connect-src does not allow ${apiOrigin}: ${connectSrc}`);
+      }
+    });
+
     await check('no known secret pattern in any served asset', () => {
       const hits = [];
       for (const [url, content] of servedTextAssets) {

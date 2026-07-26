@@ -72,57 +72,128 @@ export const SECURITY_HEADERS = {
 // ---------------------------------------------------------------------------
 // Content-Security-Policy
 //
-// Two policies, because one origin serves two different trust profiles:
+// Three policies, because one origin serves three different trust profiles:
 //  - the portfolio (and every plain static app): a small, known
 //    third-party surface — Google Analytics (googletagmanager.com,
 //    google-analytics.com) and giscus comments (giscus.app) — so a tight
 //    default-src 'self' policy fits.
-//  - the three Google Maps Platform demos (strava-explorer, aqi-map,
-//    isochrones, tagged "google-maps-platform" in apps.json): the Maps JS
-//    API loader injects scripts, blob: workers, and tile/image requests
-//    across the broad set of Google subdomains that Google's own CSP guide
-//    enumerates (developers.google.com/maps/documentation/javascript/
+//  - the Google Maps Platform demos (aqi-map, isochrones, tagged
+//    "google-maps-platform" in apps.json): the Maps JS API loader injects
+//    scripts, blob: workers, and tile/image requests across the broad set
+//    of Google subdomains that Google's own CSP guide enumerates
+//    (developers.google.com/maps/documentation/javascript/
 //    content-security-policy). Locking those down to the portfolio's
 //    policy would break the demos, so they get Google's documented
 //    allowlist CSP instead — a per-app relaxation rather than a site-wide
 //    one, since the risk (Google's own domains, and 'unsafe-eval' which
 //    the loader needs) is scoped to the pages that need it.
+//  - strava-explorer: a Maps demo that ALSO talks to Strava straight from
+//    the browser. Only the OAuth token exchange and the photo proxy are
+//    same-origin `/api/strava/*` calls; the read paths in
+//    demos/strava-explorer/src/strava.js (athlete activities, activity
+//    detail, streams, photo metadata) go directly to
+//    https://www.strava.com/api/v3 with the user's own access token, and
+//    two image hosts are loaded without the proxy. The Maps policy alone
+//    blocks all of that, so the demo gets those origins added on top.
 //
-// Both policies allow 'unsafe-inline' for script-src and style-src: the
+// All three policies allow 'unsafe-inline' for script-src and style-src: the
 // portfolio build inlines a theme-toggle script, an analytics bootstrap
 // script, a giscus mount script, and a <style> block directly into static
 // HTML served by a separate process from the build. There's no per-request
 // nonce plumbing between the two, and wiring one up would mean a large
 // refactor of the build pipeline — accepted as a known limitation rather
 // than attempted here.
-const CSP_DEFAULT = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'self'",
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://giscus.app",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https://www.google-analytics.com",
-  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com",
-  "frame-src https://giscus.app",
-  "font-src 'self'",
-].join('; ');
+//
+// Policies are built from directive maps rather than pre-joined strings so a
+// per-app relaxation can only widen named directives (see extendDirectives:
+// it throws on a directive the base policy never declared). Copy-pasting a
+// whole policy to add one origin is how a directive silently goes missing.
+const CSP_DEFAULT_DIRECTIVES = {
+  'default-src': ["'self'"],
+  'base-uri': ["'self'"],
+  'object-src': ["'none'"],
+  'frame-ancestors': ["'self'"],
+  'script-src': ["'self'", "'unsafe-inline'", 'https://www.googletagmanager.com', 'https://giscus.app'],
+  'style-src': ["'self'", "'unsafe-inline'"],
+  'img-src': ["'self'", 'data:', 'https://www.google-analytics.com'],
+  'connect-src': ["'self'", 'https://www.google-analytics.com', 'https://*.google-analytics.com', 'https://www.googletagmanager.com'],
+  'frame-src': ['https://giscus.app'],
+  'font-src': ["'self'"],
+};
 
-const CSP_MAPS_DEMO = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.ggpht.com https://*.googleusercontent.com blob:",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "img-src 'self' data: https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.googleusercontent.com",
-  "connect-src 'self' https://*.googleapis.com https://*.google.com https://*.gstatic.com data: blob:",
-  "worker-src 'self' blob:",
-  "frame-src https://*.google.com",
-  "font-src 'self' https://fonts.gstatic.com",
-].join('; ');
+const CSP_MAPS_DEMO_DIRECTIVES = {
+  'default-src': ["'self'"],
+  'base-uri': ["'self'"],
+  'object-src': ["'none'"],
+  'frame-ancestors': ["'self'"],
+  'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://*.googleapis.com', 'https://*.gstatic.com', 'https://*.google.com', 'https://*.ggpht.com', 'https://*.googleusercontent.com', 'blob:'],
+  'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+  'img-src': ["'self'", 'data:', 'https://*.googleapis.com', 'https://*.gstatic.com', 'https://*.google.com', 'https://*.googleusercontent.com'],
+  'connect-src': ["'self'", 'https://*.googleapis.com', 'https://*.google.com', 'https://*.gstatic.com', 'data:', 'blob:'],
+  'worker-src': ["'self'", 'blob:'],
+  'frame-src': ['https://*.google.com'],
+  'font-src': ["'self'", 'https://fonts.gstatic.com'],
+};
 
-export const CSP_POLICIES = Object.freeze({ default: CSP_DEFAULT, mapsDemo: CSP_MAPS_DEMO });
+/**
+ * Return `base` with extra sources appended to the named directives.
+ * Throws on a directive the base policy does not already declare: adding a
+ * brand-new directive to a copy of a policy is almost always a mistake (it
+ * silently escapes `default-src`), and every extension so far is a widening
+ * of something the base already restricts.
+ */
+function extendDirectives(base, additions) {
+  const merged = { ...base };
+  for (const [directive, sources] of Object.entries(additions)) {
+    const existing = base[directive];
+    if (!existing) throw new Error(`CSP extension names a directive the base policy does not set: ${directive}`);
+    merged[directive] = [...existing, ...sources.filter((source) => !existing.includes(source))];
+  }
+  return merged;
+}
+
+function serializeCsp(directives) {
+  return Object.entries(directives)
+    .map(([directive, sources]) => `${directive} ${sources.join(' ')}`)
+    .join('; ');
+}
+
+// The exact hosts strava-explorer reaches without going through the gateway:
+//  - www.strava.com          — the v3 REST API (STRAVA_API_BASE_URL default)
+//  - dgtzuqphqg23d.cloudfront.net — the athlete avatar set on login
+//    (src/index.js athlete.profile_medium). Activity photos on this host are
+//    proxied same-origin via /api/photo-proxy, but the avatar is not.
+//  - picsum.photos           — placeholder imagery for the signed-out demo
+//    tour (src/demoData.js), the first thing every visitor sees.
+const CSP_STRAVA_DEMO_DIRECTIVES = extendDirectives(CSP_MAPS_DEMO_DIRECTIVES, {
+  'connect-src': ['https://www.strava.com'],
+  'img-src': ['https://dgtzuqphqg23d.cloudfront.net', 'https://picsum.photos'],
+});
+
+const CSP_DEFAULT = serializeCsp(CSP_DEFAULT_DIRECTIVES);
+const CSP_MAPS_DEMO = serializeCsp(CSP_MAPS_DEMO_DIRECTIVES);
+const CSP_STRAVA_DEMO = serializeCsp(CSP_STRAVA_DEMO_DIRECTIVES);
+
+export const CSP_POLICIES = Object.freeze({
+  default: CSP_DEFAULT,
+  mapsDemo: CSP_MAPS_DEMO,
+  stravaDemo: CSP_STRAVA_DEMO,
+});
+
+/**
+ * The values apps.json may put in an app's `csp` field, mapped to the policy
+ * the gateway then serves for that app's static files. Anything else (including
+ * the field being absent) gets CSP_POLICIES.default — scripts/validate-apps.mjs
+ * rejects unknown values so that fallback can never be a silent typo.
+ */
+export const CSP_MANIFEST_POLICIES = Object.freeze({
+  maps: CSP_MAPS_DEMO,
+  'maps-strava': CSP_STRAVA_DEMO,
+});
+
+export function cspForApp(app) {
+  return CSP_MANIFEST_POLICIES[app?.csp] || CSP_POLICIES.default;
+}
 
 export function applySecurityHeaders(response, { csp = CSP_DEFAULT } = {}) {
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
