@@ -502,7 +502,7 @@ export function updateCameraForProgress(progress, snapDirectly = false) {
     // frame time keeps that feel identical at any refresh rate, and stops a
     // long frame (tile load, tab regaining focus) from leaving the camera
     // behind the marker.
-    const perFrameFactor = Math.max(cameraSmoothness, 0.14);
+    const perFrameFactor = clamp(cameraSmoothness, 0.14, 1.0);
     const factor = snapDirectly
         ? 1.0
         : clamp(1 - Math.pow(1 - perFrameFactor, frameSeconds * 60), 0, 1);
