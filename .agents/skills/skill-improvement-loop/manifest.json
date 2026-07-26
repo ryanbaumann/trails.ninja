@@ -1,0 +1,5 @@
+{
+  "displayName": "Skill Improvement Loop",
+  "shortDescription": "Validate and gate agent skill revisions",
+  "defaultPrompt": "Use $skill-improvement-loop to evaluate and gate a revision to this repository’s agent skills."
+}

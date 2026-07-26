@@ -1,5 +1,5 @@
 {
   "displayName": "Portfolio Review",
   "shortDescription": "Audit portfolio copy, claims, links, and visuals",
-  "defaultPrompt": "Audit this portfolio content end to end with deterministic checks and a bounded independent-review loop."
+  "defaultPrompt": "Use $portfolio-review to audit this portfolio content end to end with deterministic checks and a bounded independent-review loop."
 }

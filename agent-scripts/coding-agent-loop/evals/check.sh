@@ -79,10 +79,15 @@ if [[ -z "${CODING_AGENT_LOOP_FORCE_GREP:-}" ]] && command -v rg >/dev/null 2>&1
 else
   case_count=$(grep -Ec '^### C[0-9]{2} — ' "$cases")
 fi
-if [[ "$case_count" == 16 ]]; then
+if [[ "$case_count" == 17 ]]; then
   printf 'PASS regression specification: %s cases\n' "$case_count"
 else
-  printf 'FAIL expected 16 regression cases, found %s\n' "$case_count"
+  printf 'FAIL expected 17 regression cases, found %s\n' "$case_count"
+  fail=1
+fi
+
+if ! search 'Freeze C01–C13 as the development set and C14–C17 as the held-out selection' "$cases"; then
+  printf 'FAIL missing held-out validation gate\n'
   fail=1
 fi
 

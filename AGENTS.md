@@ -182,6 +182,7 @@ Use these repo-local skills when the task matches their scope:
 - `.agents/skills/portfolio-presenting/SKILL.md` for drafting talk abstracts, deck outlines, speaker notes, and presenting formats.
 - `.agents/skills/portfolio-review/SKILL.md` for the mandatory pre-publication audit of copy, claims, links, canonicals, redirects, images, metadata, accessibility, and rendered desktop/mobile output.
 - `.agents/skills/portfolio-writing/SKILL.md` for writing style, voice guide, metrics guardrails, social copy packaging, and structural patterns.
+- `.agents/skills/skill-improvement-loop/SKILL.md` before committing changes to an agent skill, agent prompt, role overlay, evaluation case, or learning-driven workflow; run `npm run skills:improve` for its deterministic gate.
 
 ## The agentic loop
 
@@ -190,6 +191,7 @@ Use these repo-local skills when the task matches their scope:
 3. Run the narrowest validation first, then the app build, then `node scripts/smoke.mjs` for gateway/apps.json changes.
 4. Before finishing, update `CHANGELOG.md` (every user-visible or behavioral change) and `LEARNINGS.md` (every surprise, root-caused bug, or environment gotcha, using the Context/Learning/Evidence/Use next time format).
 5. If a learning is durable, fold it into the matching skill in the same PR. The changelog records what happened, the learning log records why, and skills encode what to do next time.
+6. Before committing an agent skill or instruction change, run `npm run skills:improve` and follow the `skill-improvement-loop` skill's held-out evaluation gate.
 
 Every publishable portfolio content change must also run the `portfolio-review` skill. Use a maker/checker loop with at least one independent read-only reviewer; essays and multi-surface pages should separate copy/claims, links/URL ownership, and visual/rendered QA when agents are available. Deterministic checks run before and after each correction pass. Stop after at most three review rounds, stop earlier when all lanes are clean, and escalate unresolved evidence or taste decisions to Ryan instead of self-approving.
 

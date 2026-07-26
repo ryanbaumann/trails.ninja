@@ -3,4 +3,4 @@
 interface:
   display_name: "Portfolio Review"
   short_description: "Audit portfolio copy, claims, links, and visuals"
-  default_prompt: "Audit this portfolio content end to end with deterministic checks and a bounded independent-review loop."
+  default_prompt: "Use $portfolio-review to audit this portfolio content end to end with deterministic checks and a bounded independent-review loop."
