@@ -160,14 +160,19 @@ function serializeCsp(directives) {
 
 // The exact hosts strava-explorer reaches without going through the gateway:
 //  - www.strava.com          — the v3 REST API (STRAVA_API_BASE_URL default)
-//  - dgtzuqphqg23d.cloudfront.net — the athlete avatar set on login
+//  - dgtzuqphqg23d.cloudfront.net, d3nn82uaxijpm6.cloudfront.net, graph.facebook.com — the athlete avatar set on login
 //    (src/index.js athlete.profile_medium). Activity photos on this host are
 //    proxied same-origin via /api/photo-proxy, but the avatar is not.
 //  - picsum.photos           — placeholder imagery for the signed-out demo
 //    tour (src/demoData.js), the first thing every visitor sees.
 const CSP_STRAVA_DEMO_DIRECTIVES = extendDirectives(CSP_MAPS_DEMO_DIRECTIVES, {
   'connect-src': ['https://www.strava.com'],
-  'img-src': ['https://dgtzuqphqg23d.cloudfront.net', 'https://picsum.photos'],
+  'img-src': [
+    'https://dgtzuqphqg23d.cloudfront.net',
+    'https://d3nn82uaxijpm6.cloudfront.net',
+    'https://graph.facebook.com',
+    'https://picsum.photos',
+  ],
 });
 
 const CSP_DEFAULT = serializeCsp(CSP_DEFAULT_DIRECTIVES);

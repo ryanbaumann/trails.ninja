@@ -767,15 +767,6 @@ const server = createServer(async (request, response) => {
       }
 
       const subPath = pathname.slice(app.path.length - 1);
-      // Some demos need a broader CSP than the portfolio's default — the Maps
-      // JS API loader, and strava-explorer's direct calls to Strava. See
-      // CSP_POLICIES in staticFiles.js for why this is scoped per-app rather
-      // than site-wide. This reads the manifest's explicit `csp` field, never
-      // the display `tags`: tags are presentation metadata (card chips,
-      // JSON-LD keywords) that someone could reasonably rewrite for SEO, and a
-      // security policy must not change as a side effect of that.
-      // scripts/validate-apps.mjs enforces that every app loading Maps
-      // declares one of the maps policies and that the value is a known one.
       const csp = cspForApp(app);
       if (serveFromDir(app.dir, subPath, request, response, { private: appVisibility(app) === 'private', csp })) return;
       send404Page(request, response);

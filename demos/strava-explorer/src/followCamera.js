@@ -23,6 +23,7 @@ let followCameraActive = false; // Is the animation currently running (playing)?
 let followCameraTimeoutId = null; // Timeout ID for any delays
 let followCameraAnimationId = null; // requestAnimationFrame ID
 let followCameraCoords = []; // Coordinates of the current route (plain literals)
+let followCameraSourceCoords = null; // The caller's array that produced them (identity only)
 let followCameraSamples = []; // Precomputed camera samples (plain literals)
 let followCameraBaseDuration = 90000; // Dynamic base duration (ms) for the full tour
 let followCameraPathDistance = 0; // Total distance of the path in km
@@ -188,7 +189,10 @@ export async function loadTourRoute(routeCoords) {
     // This organically rounds harsh geometric edges into swooping cinematic curves.
     const smoothedRouteCoords = smoothPath(baseCoords, 15, DEFAULT_ALTITUDE_M);
     
-    // 3. Bind the definitive smoothed path to the engine
+    // 3. Bind the definitive smoothed path to the engine. Keep the caller's
+    // array by identity too: playFollowCamera compares against it to decide
+    // whether a play is a resume or a genuinely new route.
+    followCameraSourceCoords = routeCoords;
     followCameraCoords = smoothedRouteCoords;
     followCameraSamples = smoothedRouteCoords; // Use high-res smoothed array entirely
     
@@ -240,6 +244,7 @@ export async function loadTourRoute(routeCoords) {
  */
 export function clearTourRoute() {
     followCameraCoords = [];
+    followCameraSourceCoords = null;
     followCameraSamples = [];
     followCameraCumulativeDistances = null;
     followCameraPathDistance = 0;
@@ -260,8 +265,12 @@ export async function playFollowCamera(routeCoords) {
         return;
     }
     
-    // If not active, but we need to load new coordinates
-    if (routeCoords && (followCameraCoords !== routeCoords || followCameraSamples.length === 0)) {
+    // Only reload when this is actually a different route. Comparing against
+    // followCameraCoords was always true — loadTourRoute stores a *smoothed
+    // copy*, never the caller's array — so every resume re-ran loadTourRoute,
+    // which resets currentProgress to 0 and clears photoTriggers. Pausing and
+    // hitting play again silently restarted the tour from the trailhead.
+    if (routeCoords && (followCameraSourceCoords !== routeCoords || followCameraSamples.length === 0)) {
         await loadTourRoute(routeCoords);
         if (isNaN(followCameraPathDistance) || followCameraPathDistance <= 0) {
             showError("Invalid route distance. Cannot play tour.");
@@ -430,13 +439,23 @@ export function updateCameraForProgress(progress, snapDirectly = false) {
     const baseClearance = calculateTerrainClearanceAltitude(distanceAlongPath, alongCoords.point.altitude ?? DEFAULT_ALTITUDE_M);
     const rawTargetAltitude = Math.max(baseClearance, upcomingTerrain.maxAlt + cameraHeightOffset + dynamicHeightBoost);
 
-    // Velocity Slope Clamping (Jank Prevention)
-    const maxAltitudeDeltaPerFrame = 4.0 * followCameraSpeedMultiplier;
+    // How long since the previous camera update. Every rate below is expressed
+    // per second and scaled by this, so a 120 Hz display and a 30 Hz one fly the
+    // same route at the same pace — the old per-frame budgets made the camera
+    // literally twice as sluggish on a 120 Hz screen.
+    const now = performance.now();
+    const frameSeconds = (snapDirectly || lastCameraUpdateTime == null)
+        ? 0
+        : clamp((now - lastCameraUpdateTime) / 1000, 0.001, 0.25);
+
+    // Velocity Slope Clamping (Jank Prevention): the terrain-following target
+    // may climb no faster than ~240 m of altitude per second of tour time.
+    const maxAltitudeRatePerSecond = 240 * followCameraSpeedMultiplier;
     let targetCameraAltitude = rawTargetAltitude;
     if (lastTargetAltitude !== null && !snapDirectly) {
+        const maxAltitudeDelta = maxAltitudeRatePerSecond * frameSeconds;
         const targetDelta = rawTargetAltitude - lastTargetAltitude;
-        const clampedDelta = clamp(targetDelta, -maxAltitudeDeltaPerFrame, maxAltitudeDeltaPerFrame);
-        targetCameraAltitude = lastTargetAltitude + clampedDelta;
+        targetCameraAltitude = lastTargetAltitude + clamp(targetDelta, -maxAltitudeDelta, maxAltitudeDelta);
     }
     lastTargetAltitude = targetCameraAltitude;
 
@@ -453,12 +472,11 @@ export function updateCameraForProgress(progress, snapDirectly = false) {
     );
     let smoothedBearing = lookAheadSample ? lookAheadSample.bearing : alongCoords.bearing;
 
-    const now = performance.now();
-    if (snapDirectly || filteredHeading == null || lastCameraUpdateTime == null) {
+    if (snapDirectly || filteredHeading == null) {
         filteredHeading = smoothedBearing;
     } else {
-        const elapsedSeconds = Math.max(0.001, (now - lastCameraUpdateTime) / 1000);
-        const maxTurnDegrees = clamp(95 * elapsedSeconds, 1.2, 8);
+        // Cap the yaw rate at 95 deg/sec so switchbacks pan instead of snapping.
+        const maxTurnDegrees = 95 * frameSeconds;
         const signedDelta = ((((smoothedBearing - filteredHeading) % 360) + 540) % 360) - 180;
         filteredHeading = (filteredHeading + clamp(signedDelta, -maxTurnDegrees, maxTurnDegrees) + 360) % 360;
         smoothedBearing = filteredHeading;
@@ -478,7 +496,16 @@ export function updateCameraForProgress(progress, snapDirectly = false) {
 
     // Force the physical camera center to chase the mathematical coordinate using LERP.
     // This provides beautiful "rubber banding" drone inertia even at high playback speeds.
-    const factor = snapDirectly ? 1.0 : Math.max(cameraSmoothness, 0.14);
+    //
+    // cameraSmoothness is authored as "fraction of the remaining gap closed in
+    // one 60 Hz frame"; converting it to an exponential decay over the real
+    // frame time keeps that feel identical at any refresh rate, and stops a
+    // long frame (tile load, tab regaining focus) from leaving the camera
+    // behind the marker.
+    const perFrameFactor = clamp(cameraSmoothness, 0.14, 1.0);
+    const factor = snapDirectly
+        ? 1.0
+        : clamp(1 - Math.pow(1 - perFrameFactor, frameSeconds * 60), 0, 1);
 
     const currentCamera = {
         center: map3d.center,
