@@ -40,7 +40,7 @@
     "node": ">=20.19"
   },
   "dependencies": {
-    "@deck.gl/aggregation-layers": "9.3.6",
+    "@deck.gl/aggregation-layers": "9.3.7",
     "@deck.gl/core": "9.3.6",
     "@deck.gl/geo-layers": "9.3.6",
     "@deck.gl/google-maps": "9.3.6",
