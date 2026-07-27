@@ -10,9 +10,23 @@
 # True runtime secrets (STRAVA_CLIENT_SECRET, GMP_SERVER_API_KEY) are never
 # built into the image; they live on the Cloud Run service (see deploy.yml).
 steps:
+  # Cloud Build workers are ephemeral. Pull the last successful image so
+  # BuildKit can reuse its inline layer metadata; a cold cache is harmless.
   - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'docker pull "${_CACHE_IMAGE}" || true'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    env:
+      - 'DOCKER_BUILDKIT=1'
     args:
       - 'build'
+      - '--cache-from'
+      - '${_CACHE_IMAGE}'
+      - '--build-arg'
+      - 'BUILDKIT_INLINE_CACHE=1'
       - '--build-arg'
       - 'VITE_GMP_API_KEY=${_VITE_GMP_API_KEY}'
       - '--build-arg'
@@ -23,6 +37,8 @@ steps:
       - 'ANALYTICS_MEASUREMENT_ID=${_ANALYTICS_MEASUREMENT_ID}'
       - '--tag'
       - '${_IMAGE}'
+      - '--tag'
+      - '${_CACHE_IMAGE}'
       - '.'
 
   - name: 'gcr.io/cloud-builders/docker'
@@ -45,9 +61,11 @@ steps:
 
 images:
   - '${_IMAGE}'
+  - '${_CACHE_IMAGE}'
 
 substitutions:
   _IMAGE: ''
+  _CACHE_IMAGE: ''
   _VITE_GMP_API_KEY: ''
   _VITE_ISOCHRONES_GMP_API_KEY: ''
   _VITE_STRAVA_CLIENT_ID: ''
