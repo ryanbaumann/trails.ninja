@@ -418,6 +418,20 @@ Evidence: Social cards were regenerated with `ryanbaumann.dev`; Lab metadata now
 Use next time: Treat a domain move as a dependency inventory, not a string replacement. Check generated text in images, absolute asset URLs, deployment health targets, OAuth origins, email senders, analytics, API referrers, and search ownership before changing DNS.
 
 
+## 2026-07-27 - Secret scans must distinguish identifiers from values
+
+Context: Production smoke rejected the Real World Reasoning browser bundle
+because the public Gemini SDK contains the OAuth schema identifier
+`client_secret`, even though no credential value was present.
+Learning: A browser secret scan should match a credential-shaped assignment,
+not a field name alone. Keep the rule aligned across local and production smoke
+and cover both the allowed schema identifier and a denied long value.
+Evidence: `findServerSecretMarker()` accepts the SDK's
+`oauth2:client_credentials` schema text and rejects an assigned long
+`client_secret` fixture; the focused production-smoke test passes.
+Use next time: When a dependency adds an authentication schema, inspect the
+matched bytes before excluding the asset or weakening the scan.
+
 ## 2026-07-27 - Production smoke must reach metadata gates after config gates
 
 Context: Two deploys built and routed healthy Cloud Run revisions but stopped

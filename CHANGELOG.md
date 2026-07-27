@@ -114,6 +114,10 @@ All notable changes to this project will be documented in this file.
 - Showed four Field Notes on the homepage (one featured plus three) so a new post no longer pushes an entry off the page.
 
 ### Fixed
+- Kept production secret scanning strict without treating the public
+  `@google/genai` SDK's OAuth schema field name as a leaked credential. The
+  smoke test now requires a value-shaped `client_secret` assignment before
+  failing, matching the container smoke scanner.
 - Added the missing canonical and Open Graph URLs to the Real World Reasoning
   Agent page so production metadata verification recognizes
   `https://ryanbaumann.dev/real-world-reasoning-agent/` as its sole owner.

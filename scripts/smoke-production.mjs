@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { expectedPublicAppNames } from './lib/production-smoke.mjs';
+import { expectedPublicAppNames, findServerSecretMarker } from './lib/production-smoke.mjs';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const apps = JSON.parse(readFileSync(resolve(REPO_ROOT, 'apps.json'), 'utf8'))
@@ -142,9 +142,8 @@ async function main() {
 
   await check('served assets contain no server-secret markers', async () => {
     const combined = servedText.join('\n');
-    for (const pattern of [/client_secret/i, /-----BEGIN [A-Z ]*PRIVATE KEY-----/, /sk_live_[0-9A-Za-z]+/]) {
-      if (pattern.test(combined)) throw new Error(`matched ${pattern}`);
-    }
+    const marker = findServerSecretMarker(combined);
+    if (marker) throw new Error(`matched ${marker[0]}`);
   });
 
   await check('Strava bundle contains OAuth authorize flow', async () => {
