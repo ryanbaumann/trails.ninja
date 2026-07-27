@@ -51,7 +51,7 @@
     "@googlemaps/markerclusterer": "2.6.2",
     "@vis.gl/react-google-maps": "1.9.0",
     "lucide-react": "1.23.0",
-    "react": "19.2.7",
+    "react": "19.2.8",
     "react-dom": "19.2.7",
     "terra-draw": "^1.31.2",
     "terra-draw-google-maps-adapter": "^1.6.1",
