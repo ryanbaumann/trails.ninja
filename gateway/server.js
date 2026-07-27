@@ -21,6 +21,7 @@ import {
 } from './lib/auth.js';
 import { handleStravaApi } from './lib/strava.js';
 import { handleIsochronesApi } from './lib/isochrones.js';
+import { handleHairstyleAiApi } from './lib/hairstyleAi.js';
 import { publishWritingUpdate, requestWritingReview, saveWritingDraft } from './lib/writer.js';
 import { stageWriterSocialDraft } from './lib/buffer.js';
 import { beginGoogleLogin, finishGoogleLogin, googleLoginPage, hasGoogleSession } from './lib/googleAuth.js';
@@ -424,13 +425,13 @@ const handleWriterSocialRequest = (request, response) => handleWriterFormRequest
   return `social=${encodeURIComponent(sourceSlug)}&channel=${encodeURIComponent(result.channel)}&draft=${encodeURIComponent(result.id)}&duplicate=${result.duplicate ? '1' : '0'}`;
 });
 
-function readJsonBody(request) {
+function readJsonBody(request, limitBytes = JSON_BODY_LIMIT_BYTES) {
   return new Promise((resolve, reject) => {
     let body = '';
     let bytesRead = 0;
     request.on('data', (chunk) => {
       bytesRead += chunk.length;
-      if (bytesRead > JSON_BODY_LIMIT_BYTES) {
+      if (bytesRead > limitBytes) {
         reject(Object.assign(new Error('Payload too large'), { statusCode: 413 }));
         request.destroy();
         return;
@@ -438,7 +439,7 @@ function readJsonBody(request) {
       body += chunk;
     });
     request.on('end', () => {
-      if (bytesRead > JSON_BODY_LIMIT_BYTES) return;
+      if (bytesRead > limitBytes) return;
       try {
         resolve(body ? JSON.parse(body) : {});
       } catch {
@@ -604,6 +605,50 @@ async function handleApi(request, response, pathname, searchParams) {
       return;
     }
     sendJson(request, response, result.statusCode, result.json);
+    return;
+  }
+
+  if (pathname.startsWith('/api/hairstyle-ai-studio/')) {
+    if (request.method !== 'POST') {
+      sendJson(request, response, 405, { error: 'Method not allowed' });
+      return;
+    }
+    const originHeader = request.headers.origin;
+    if (originHeader) {
+      let originHost;
+      try {
+        originHost = new URL(originHeader).host;
+      } catch {
+        originHost = null;
+      }
+      if (originHost !== request.headers.host) {
+        sendJson(request, response, 403, { error: 'Invalid request origin.' });
+        return;
+      }
+    }
+    let body;
+    try {
+      body = await readJsonBody(request, 12 * 1024 * 1024);
+    } catch (err) {
+      sendJson(request, response, err.statusCode || 400, { error: err.message });
+      return;
+    }
+    const upstreamAbort = new AbortController();
+    const abortUpstream = () => upstreamAbort.abort();
+    request.once('aborted', abortUpstream);
+    response.once('close', () => {
+      if (!response.writableEnded) abortUpstream();
+    });
+    const result = await handleHairstyleAiApi({
+      pathname,
+      method: request.method,
+      body,
+      apiKey: request.headers['x-gemini-api-key'],
+      signal: upstreamAbort.signal,
+    });
+    if (!response.destroyed && !response.writableEnded) {
+      sendJson(request, response, result.statusCode, result.json);
+    }
     return;
   }
 

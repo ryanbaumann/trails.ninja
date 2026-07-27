@@ -5,9 +5,18 @@
     "description": "Home: work, Field Notes, talks, and Labs.",
     "path": "/",
     "dev_build_dir": "portfolio/dist",
-    "source": { "type": "workspace", "package": "portfolio", "output": "dist" },
-    "api": { "type": "gateway", "path": "/api/contact" },
-    "providers": ["resend"],
+    "source": {
+      "type": "workspace",
+      "package": "portfolio",
+      "output": "dist"
+    },
+    "api": {
+      "type": "gateway",
+      "path": "/api/contact"
+    },
+    "providers": [
+      "resend"
+    ],
     "tags": [],
     "preview": "/previews/fieldwork.webp"
   },
@@ -17,10 +26,19 @@
     "description": "Private release previews, edits, and publishing controls.",
     "path": "/writer/",
     "dev_build_dir": "portfolio/writer-dist",
-    "source": { "type": "workspace", "package": "portfolio", "output": "writer-dist" },
-    "api": { "type": "gateway", "path": "/api/writer/publish" },
+    "source": {
+      "type": "workspace",
+      "package": "portfolio",
+      "output": "writer-dist"
+    },
+    "api": {
+      "type": "gateway",
+      "path": "/api/writer/publish"
+    },
     "visibility": "private",
-    "auth": { "type": "google-oauth" },
+    "auth": {
+      "type": "google-oauth"
+    },
     "tags": [],
     "preview": null
   },
@@ -30,11 +48,24 @@
     "description": "Fly your Strava routes in Photorealistic 3D with follow-camera animation, an elevation profile, and your ride photos on the path.",
     "path": "/strava-explorer/",
     "dev_build_dir": "demos/strava-explorer/dist",
-    "source": { "type": "workspace", "package": "demos/strava-explorer", "output": "dist" },
-    "api": { "type": "gateway", "prefix": "/api/strava/" },
-    "providers": ["strava"],
+    "source": {
+      "type": "workspace",
+      "package": "demos/strava-explorer",
+      "output": "dist"
+    },
+    "api": {
+      "type": "gateway",
+      "prefix": "/api/strava/"
+    },
+    "providers": [
+      "strava"
+    ],
     "csp": "maps-strava",
-    "tags": ["strava", "3d-maps", "google-maps-platform"],
+    "tags": [
+      "strava",
+      "3d-maps",
+      "google-maps-platform"
+    ],
     "preview": "/previews/strava-explorer.webp"
   },
   {
@@ -42,20 +73,63 @@
     "title": "Infographic Agent",
     "description": "A portable skill that turns source text into researched infographic PNGs using Gemini.",
     "path": "https://infographic-agent-gajikud3na-uc.a.run.app/",
-    "source": { "type": "external" },
-    "api": { "type": "none" },
-    "tags": ["gemini-api", "agents"],
+    "source": {
+      "type": "external"
+    },
+    "api": {
+      "type": "none"
+    },
+    "tags": [
+      "gemini-api",
+      "agents"
+    ],
     "preview": "/previews/infographic-agent.webp"
+  },
+  {
+    "name": "hairstyle-ai-studio",
+    "title": "Hairstyle AI Studio",
+    "description": "Try on hairstyles with Gemini before committing at the salon.",
+    "path": "/hairstyle-ai-studio/",
+    "dev_build_dir": "demos/hairstyle-ai-studio/dist",
+    "source": {
+      "type": "workspace",
+      "package": "demos/hairstyle-ai-studio",
+      "output": "dist"
+    },
+    "api": {
+      "type": "gateway",
+      "prefix": "/api/hairstyle-ai-studio/"
+    },
+    "providers": [
+      "gemini"
+    ],
+    "source_url": "https://github.com/ryanbaumann/hairstyle-ai-studio",
+    "source_ref": "9ea2c0f31e5e1d252220ede6731b655bf2fb8fba",
+    "tags": [
+      "gemini-api",
+      "image-generation",
+      "consumer-ai"
+    ],
+    "preview": "/previews/hairstyle-ai-studio.jpg"
   },
   {
     "name": "real-world-reasoning-agent",
     "title": "Atlas - Real World Reasoning Agent",
     "description": "An interactive map agent that handles real-world geo reasoning problems using Maps APIs.",
     "path": "https://atlas-demo-561209038703.us-central1.run.app/",
-    "source": { "type": "external" },
-    "api": { "type": "none" },
-    "tags": ["gemini-api", "agents", "google-maps-platform"],
-    "preview": "/previews/real-world-reasoning-agent.webp"
+    "source": {
+      "type": "external"
+    },
+    "api": {
+      "type": "none"
+    },
+    "tags": [
+      "gemini-api",
+      "agents",
+      "google-maps-platform"
+    ],
+    "preview": "/previews/real-world-reasoning-agent.webp",
+    "hideOnHome": true
   },
   {
     "name": "aqi-map",
@@ -63,10 +137,19 @@
     "description": "A location-first air-quality check with live US AQI, particle pollution, and practical health guidance.",
     "path": "/aqi-map/",
     "dev_build_dir": "demos/aqi-map/dist",
-    "source": { "type": "workspace", "package": "demos/aqi-map", "output": "dist" },
-    "api": { "type": "none" },
+    "source": {
+      "type": "workspace",
+      "package": "demos/aqi-map",
+      "output": "dist"
+    },
+    "api": {
+      "type": "none"
+    },
     "csp": "maps",
-    "tags": ["air-quality", "google-maps-platform"],
+    "tags": [
+      "air-quality",
+      "google-maps-platform"
+    ],
     "preview": "/previews/aqi-map.webp",
     "hideOnHome": true
   },
@@ -76,11 +159,24 @@
     "description": "Set two starting points and find real coffee, food, drinks, or parks inside both travel-time areas.",
     "path": "/isochrones/",
     "dev_build_dir": "demos/isochrones/dist",
-    "source": { "type": "workspace", "package": "demos/isochrones", "output": "dist" },
-    "api": { "type": "gateway", "path": "/api/isochrones" },
-    "providers": ["isochrones"],
+    "source": {
+      "type": "workspace",
+      "package": "demos/isochrones",
+      "output": "dist"
+    },
+    "api": {
+      "type": "gateway",
+      "path": "/api/isochrones"
+    },
+    "providers": [
+      "isochrones"
+    ],
     "csp": "maps",
-    "tags": ["isochrones", "routing", "google-maps-platform"],
+    "tags": [
+      "isochrones",
+      "routing",
+      "google-maps-platform"
+    ],
     "preview": "/previews/isochrones.webp",
     "hideOnHome": true
   }

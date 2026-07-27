@@ -2,6 +2,60 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-07-27 - Buffer staging inputs need an explicit merge trigger
+
+Context: The existing Buffer workflow could stage social copy only when a new
+Field Note Markdown file was merged. A Lab release update had valid copy but no
+Field Note, and local development intentionally had no Buffer credentials.
+Learning: Keep external draft creation in the credentialed merge workflow, but
+make one-off release copy a small, validated, reviewable repository artifact.
+The workflow should stage only newly added files, create an editable draft, and
+remain side-effect free on reruns.
+Evidence: `docs/social-drafts/hairstyle-ai-studio-update.json` declares one
+LinkedIn draft; `parseReleaseDraft()` bounds its channel and copy; the social
+draft suite passes eight tests; and the merge workflow now watches that narrow
+directory while retaining its first-attempt gate.
+Use next time: For a non-Field-Note release update, add one exact-copy JSON file
+under `docs/social-drafts/`. Do not put Buffer credentials in local files and
+do not turn merge-time staging into automatic publishing.
+
+## 2026-07-27 - A public Lab import still needs runtime and instruction-boundary adaptation
+
+Context: Importing Hairstyle AI Studio with `labs:import` copied a valid public
+snapshot, including its standalone Express server, Dockerfile, root-relative
+PWA metadata, secret-based deployment docs, and nested `AGENTS.md`.
+Learning: A snapshot import proves provenance, not deployment compatibility.
+The monorepo still needs one owner for serving and APIs, namespaced routes,
+subpath-safe metadata, and an instruction contract that describes the
+integrated architecture. Leaving the nested instructions unchanged is worse
+than leaving stale prose because future work will be routed back to deleted
+runtime files and obsolete secret patterns.
+Evidence: The imported source was pinned to
+`9ea2c0f31e5e1d252220ede6731b655bf2fb8fba`. The completed adaptation registers
+`/hairstyle-ai-studio/` and `/api/hairstyle-ai-studio/*` in `apps.json`, moves
+Gemini calls to `gateway/lib/hairstyleAi.js`, updates the nested `AGENTS.md`,
+and passes the app build, gateway tests, Labs validator, and repository smoke
+path.
+Use next time: After `labs:import`, audit runtime ownership, route namespaces,
+base paths, public metadata, nested instructions, secrets, and unused build
+artifacts before treating the snapshot as integrated.
+
+## 2026-07-27 - Browser cancellation must cross the gateway boundary
+
+Context: Hairstyle AI Studio's Cancel action aborted the browser `fetch`, but
+the gateway created an independent 120-second Gemini request. The UI stopped
+waiting while the visitor's upstream request and quota consumption could
+continue.
+Learning: In a same-origin proxy, cancellation is an end-to-end contract.
+Combine the gateway timeout with a caller-disconnect signal and pass that
+signal into the provider request; browser cancellation alone is not sufficient.
+Evidence: The Hairstyle gateway now aborts its provider signal when the request
+is aborted or the response closes before completion. A focused test verifies
+that cancelling the caller signal aborts the Gemini interaction and returns
+the internal cancellation status; all 113 gateway tests pass.
+Use next time: For expensive or user-keyed proxy calls, test that client
+disconnect reaches the provider fetch rather than only changing local UI state.
+
 ## 2026-07-26 - Repository-wide skill audits need a disposition ledger before prompt edits
 
 Context: A request to use all Git history, `LEARNINGS.md`, and `CHANGELOG.md` to

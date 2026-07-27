@@ -5,12 +5,29 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Security
+- Added a same-origin, BYO-key Gemini gateway for Hairstyle AI Studio. Visitor
+  keys stay in React memory, pass transiently in a request header, and are
+  never stored or included in analytics. The gateway validates image data and
+  prompt bounds, opts out of Gemini interaction storage, sanitizes provider
+  errors, and applies separate per-IP text and image rate limits.
 - Added a Content-Security-Policy to every gateway response. The portfolio gets a tight `default-src 'self'` policy allowing only the analytics and comments origins it actually uses; the three Google Maps Platform demos get Google's documented Maps allowlist, scoped per app so the looser policy never applies to pages that do not need it. `frame-ancestors 'self'` supersedes `X-Frame-Options`, which stays for older browsers. Inline scripts still require `'unsafe-inline'`: the static HTML is built by a different process than the one serving it, so there is no request-time nonce to bind.
 - Stopped the subscribe endpoint from clearing a contact's global `unsubscribed` flag when the address already exists. A 409 from the mail provider only means the address is known, not that the person wants back in, so forcing the flag to false let anyone who knew an address silently re-subscribe someone who had opted out. Repeat submissions now only re-opt into the topic and segment.
 - Added the same-origin check the writer endpoints already had to the Strava OAuth POST routes, and gave the three previously unlimited writer endpoints (`save`, `review`, `social`) rate-limit policies.
 - Pinned the Cloud Run service to `--max-instances 1`. The gateway's in-memory per-IP rate limiters (private-demo auth brute-force, and the spend limits in front of Isochrones, Gemini, and Resend) are only correct on a single instance, but the deploy passed no instance cap and Cloud Run's default is 100, so under load every limit silently became per-instance. Also pinned `--concurrency`, `--memory`, and `--cpu` at their current defaults so a platform default change cannot raise cost or dilute the limits again.
 
 ### Added
+- Imported Hairstyle AI Studio from its public upstream repository at
+  `9ea2c0f31e5e1d252220ede6731b655bf2fb8fba`, hosted it at
+  `/hairstyle-ai-studio/`, and placed it third in the homepage Labs order.
+- Added privacy-limited analytics for the makeover funnel, a memory-only
+  bring-your-own-key setup, explicit opt-in style recommendations, and gateway
+  coverage for validation, model routing, stateless requests, and provider
+  failures.
+- Added a release-ready social update draft for Hairstyle AI Studio, centered
+  on its explicit recommendation step, one-call makeover path, and improved
+  mobile selection flow. The existing merge-time Buffer workflow now accepts
+  validated one-off release drafts and stages them for approval without
+  publishing.
 - Added frozen development/selection eval suites for responsive design,
   portfolio content/design/review, Google Maps Platform, and the skill
   improvement workflow. The deterministic gate now validates eval ownership,
@@ -38,6 +55,21 @@ All notable changes to this project will be documented in this file.
 - Added gateway test coverage verifying that all external image, font, and avatar hosts loaded by demo apps are permitted by their respective CSP policies.
 
 ### Changed
+- Updated Hairstyle AI Studio to current compatible dependencies with a clean
+  audit, routed optional recommendations to `gemini-3.5-flash-lite`, retained
+  `gemini-3.1-flash-lite-image` for image-capable generation, and replaced
+  model-generated titles with local four-word titles so a normal makeover uses
+  one model call instead of three.
+- Refined the Hairstyle AI Studio funnel with touch- and keyboard-selectable
+  style cards, truthful loading status, explicit photo-analysis consent,
+  responsive safe-area handling, reduced-motion behavior, system fonts, and
+  clearer privacy and error states. Added visible routes back to Fieldwork and
+  linked source code to the app's canonical directory in the Fieldwork
+  repository. Recommendations no longer infer demographic attributes, and
+  cancelling a generation now aborts the in-flight Gemini request instead of
+  only dismissing the browser's wait state.
+- Removed 6.73 MiB of unused imported raster duplicates and aligned saved/shared
+  result filenames with their returned image MIME type.
 - Refined six local skills with verified gaps from repository history:
   interaction-state distinction and mobile map viewport/gesture rules,
   canonical scheduled-publication parity, embedded-SVG theme propagation,
@@ -67,6 +99,10 @@ All notable changes to this project will be documented in this file.
 - Restored the Strava 3D Explorer, which stopped loading rides after the Content-Security-Policy shipped. Only the OAuth exchange and the photo proxy are same-origin `/api/strava/*` calls; the demo reads activities, activity detail, streams, and photo metadata straight from `https://www.strava.com/api/v3` in the browser, and the Maps allowlist has no Strava origin in `connect-src`, so every read was blocked and the app showed "Failed to fetch activities". The demo now gets its own policy, `"csp": "maps-strava"` in apps.json: the Maps policy plus the Strava API origin in `connect-src` and the two image hosts it loads without the proxy (the athlete avatar, and the placeholder photos in the signed-out demo tour) in `img-src`. The other Maps demos and the portfolio are unchanged and carry no Strava origin. Policies are now composed from directive maps instead of copy-pasted strings, so a per-app relaxation can only widen a directive the base policy already declares.
 
 ### Removed
+- Removed Hairstyle AI Studio's redundant Express server, standalone Docker
+  deployment, stale secret-based deployment docs, unused model helper scripts,
+  and raw duplicate source images. The upstream commit remains the recoverable
+  provenance source.
 - Cleaned up `.agents/skills/` by removing redundant or globally available skills (`geocoding-api-web-api`, `google-maps-environment-apis`, `google-maps-js-2d`, `google-maps-js-3d`, `maps-javascript-api-javascript`, `places-api-web-api`, `pollen-api-web-api`, `setup-local-environment`, `weather-api-web-api`).
 
 ## [1.0.0] - 2026-07-15

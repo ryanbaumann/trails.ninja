@@ -160,5 +160,8 @@ and honest channel attribution.
 ## Later automation
 
 The merge workflow stages approval-required Buffer drafts for newly added Field
-Notes. The private `/writer/` panel can regenerate either channel explicitly.
-Keep Substack manual until it offers an official write API.
+Notes and validated one-off release drafts in `docs/social-drafts/`. Release
+drafts declare one channel and exact copy in JSON; they are staged once on the
+first merge-workflow attempt and never auto-published. The private `/writer/`
+panel can regenerate either Field Note channel explicitly. Keep Substack manual
+until it offers an official write API.

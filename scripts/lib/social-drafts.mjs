@@ -63,6 +63,25 @@ export function buildSocialDrafts(meta, slug, now = new Date()) {
   ];
 }
 
+export function parseReleaseDraft(source) {
+  let draft;
+  try {
+    draft = JSON.parse(source);
+  } catch {
+    throw new Error('Release social draft must be valid JSON.');
+  }
+  if (!draft || !['linkedin', 'x'].includes(draft.channel)) {
+    throw new Error('Release social draft channel must be linkedin or x.');
+  }
+  if (typeof draft.text !== 'string' || !draft.text.trim() || draft.text.length > 3_000) {
+    throw new Error('Release social draft text must be between 1 and 3,000 characters.');
+  }
+  if (draft.channel === 'x' && draft.text.length > MAX_X_LENGTH) {
+    throw new Error(`Release X draft must be at most ${MAX_X_LENGTH} characters.`);
+  }
+  return { channel: draft.channel, text: draft.text };
+}
+
 async function bufferRequest(apiKey, query, variables, fetchImpl) {
   const response = await fetchImpl(BUFFER_ENDPOINT, {
     method: 'POST',

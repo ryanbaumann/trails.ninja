@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { buildSocialDrafts, parseFrontMatter, stageBufferDraft } from '../lib/social-drafts.mjs';
+import { buildSocialDrafts, parseFrontMatter, parseReleaseDraft, stageBufferDraft } from '../lib/social-drafts.mjs';
 
 const MARKDOWN = `---
 title: Developer experience is a growth engine
@@ -43,6 +43,19 @@ test('stages drafts for a scheduled Field Note that has not published yet', () =
 test('skips a Field Note whose publishAt has already passed', () => {
   const meta = { ...parseFrontMatter(MARKDOWN), draft: false, publishAt: '2026-07-01T16:00:00Z' };
   assert.deepEqual(buildSocialDrafts(meta, 'devex-growth', new Date('2026-07-18T12:00:00Z')), []);
+});
+
+test('validates a checked-in release social draft', () => {
+  assert.deepEqual(
+    parseReleaseDraft('{"channel":"linkedin","text":"A small product update."}'),
+    { channel: 'linkedin', text: 'A small product update.' },
+  );
+  assert.throws(() => parseReleaseDraft('{"channel":"email","text":"Nope"}'), /channel/);
+  assert.throws(() => parseReleaseDraft('{"channel":"x","text":""}'), /between 1 and 3,000/);
+  assert.throws(
+    () => parseReleaseDraft(JSON.stringify({ channel: 'x', text: 'x'.repeat(281) })),
+    /at most 280/,
+  );
 });
 
 test('stages an unpublished Buffer draft with variables instead of interpolated text', async () => {

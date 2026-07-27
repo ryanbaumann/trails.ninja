@@ -100,7 +100,7 @@ test('server includes CORS headers on photo proxy binary response', async () => 
 
   } finally {
     globalThis.fetch = originalFetch;
-    server.close();
+    await new Promise((resolve) => server.close(resolve));
   }
 });
 
@@ -147,6 +147,52 @@ test('Strava token endpoints reject a mismatched Origin but allow same-origin an
       if (value === undefined) delete process.env[key];
       else process.env[key] = value;
     }
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+test('Hairstyle AI routes enforce same-origin BYO-key requests through the gateway', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, init) => {
+    assert.equal(init.headers['x-goog-api-key'], 'test-key-with-enough-characters');
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        steps: [{
+          type: 'model_output',
+          content: [{ type: 'text', text: '{"recommendedStyleId":null}' }],
+        }],
+      }),
+    };
+  };
+  server.listen(0);
+  const port = server.address().port;
+  const payload = {
+    base64Image: 'data:image/jpeg;base64,YWJj',
+    availableStyles: [],
+  };
+
+  try {
+    const crossSite = await postJson(port, '/api/hairstyle-ai-studio/analyze', payload, {
+      Origin: 'https://evil.example',
+      'X-Gemini-API-Key': 'test-key-with-enough-characters',
+    });
+    assert.equal(crossSite.res.statusCode, 403);
+
+    const missingKey = await postJson(port, '/api/hairstyle-ai-studio/analyze', payload, {
+      Origin: `http://localhost:${port}`,
+    });
+    assert.equal(missingKey.res.statusCode, 401);
+
+    const accepted = await postJson(port, '/api/hairstyle-ai-studio/analyze', payload, {
+      Origin: `http://localhost:${port}`,
+      'X-Gemini-API-Key': 'test-key-with-enough-characters',
+    });
+    assert.equal(accepted.res.statusCode, 200);
+    assert.deepEqual(JSON.parse(accepted.body), { recommendedStyleId: null });
+  } finally {
+    globalThis.fetch = originalFetch;
     await new Promise((resolve) => server.close(resolve));
   }
 });
