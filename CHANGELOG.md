@@ -114,6 +114,9 @@ All notable changes to this project will be documented in this file.
 - Showed four Field Notes on the homepage (one featured plus three) so a new post no longer pushes an entry off the page.
 
 ### Fixed
+- Added the missing canonical and Open Graph URLs to the Real World Reasoning
+  Agent page so production metadata verification recognizes
+  `https://ryanbaumann.dev/real-world-reasoning-agent/` as its sole owner.
 - Restored the Strava 3D Explorer, which stopped loading rides after the Content-Security-Policy shipped. Only the OAuth exchange and the photo proxy are same-origin `/api/strava/*` calls; the demo reads activities, activity detail, streams, and photo metadata straight from `https://www.strava.com/api/v3` in the browser, and the Maps allowlist has no Strava origin in `connect-src`, so every read was blocked and the app showed "Failed to fetch activities". The demo now gets its own policy, `"csp": "maps-strava"` in apps.json: the Maps policy plus the Strava API origin in `connect-src` and the two image hosts it loads without the proxy (the athlete avatar, and the placeholder photos in the signed-out demo tour) in `img-src`. The other Maps demos and the portfolio are unchanged and carry no Strava origin. Policies are now composed from directive maps instead of copy-pasted strings, so a per-app relaxation can only widen a directive the base policy already declares.
 
 ### Removed
