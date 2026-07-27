@@ -1,0 +1,24 @@
+[
+  { "version": "v0.9", "createSurface": { "surfaceId": "state-empty-1", "catalogId": "atlas://maps-agentic-ui-catalog" } },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "state-empty-1",
+      "components": [
+        { "id": "root", "component": "Column", "children": ["empty", "results"] },
+        { "id": "empty", "component": "Text", "variant": "body", "text": "No matching places found — try widening the area." },
+        {
+          "id": "results",
+          "component": "List",
+          "direction": "vertical",
+          "children": { "componentId": "resultTpl", "path": "/results" }
+        },
+        { "id": "resultTpl", "component": "PlaceCard", "placeId": { "path": "placeId" } }
+      ]
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateDataModel": { "surfaceId": "state-empty-1", "path": "/results", "value": [] }
+  }
+]

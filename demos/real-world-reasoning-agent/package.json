@@ -1,0 +1,73 @@
+{
+  "name": "real-world-reasoning-agent",
+  "version": "1.0.0",
+  "description": "Atlas: a Google Maps Platform and Gemini copilot demo for six live-map journeys.",
+  "scripts": {
+    "test": "npm run typecheck && npm run test:unit && npm run test:sources",
+    "test:unit": "vitest run",
+    "test:fast": "vitest run --changed origin/main --reporter=dot",
+    "test:changed": "vitest run --changed origin/main",
+    "test:sources": "node --test scripts/check-skill-sources.test.mjs",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "npm run build && cd ../.. && node gateway/server.js",
+    "typecheck": "tsc --noEmit",
+    "smoke": "node scripts/smoke.mjs",
+    "smoke:mission": "node scripts/mission-smoke.mjs",
+    "mission-smoke": "node scripts/mission-smoke.mjs",
+    "eval": "vitest run src/mission/evalScore.test.ts",
+    "eval:agent": "vitest run src/ai/rubrics.test.ts --reporter=dot",
+    "eval:trace": "vitest run src/ai/traceEval.test.ts --reporter=dot",
+    "eval:explorer": "vitest run src/eval/explorer/grader.test.ts --reporter=dot && vite-node scripts/eval-explorer.ts",
+    "eval:report": "vite-node scripts/eval-remote.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ryanbaumann/fieldwork.git",
+    "directory": "demos/real-world-reasoning-agent"
+  },
+  "keywords": [
+    "google-maps",
+    "gemini",
+    "deck.gl",
+    "react",
+    "vite",
+    "maps-demo"
+  ],
+  "author": "Ryan Baumann (https://github.com/ryanbaumann)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "dependencies": {
+    "@deck.gl/aggregation-layers": "9.3.6",
+    "@deck.gl/core": "9.3.6",
+    "@deck.gl/geo-layers": "9.3.6",
+    "@deck.gl/google-maps": "9.3.6",
+    "@deck.gl/layers": "9.3.6",
+    "@fontsource-variable/inter": "5.2.8",
+    "@fontsource-variable/space-grotesk": "5.2.10",
+    "@google/genai": "2.10.0",
+    "@googlemaps/markerclusterer": "2.6.2",
+    "@vis.gl/react-google-maps": "1.9.0",
+    "lucide-react": "1.23.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "terra-draw": "^1.31.2",
+    "terra-draw-google-maps-adapter": "^1.6.1",
+    "zustand": "5.0.14"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@a2ui/web_core": "0.10.4",
+    "@types/google.maps": "3.65.2",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.2.0",
+    "jsdom": "25.0.1",
+    "playwright-core": "1.56.1",
+    "typescript": "5.8.3",
+    "vite": "7.3.6",
+    "vitest": "3.2.7"
+  }
+}

@@ -1,0 +1,2501 @@
+[
+  {
+    "id": "m01",
+    "goal": "Find a highly visible corner café in SF Financial District",
+    "cityId": "sf",
+    "priorities": {
+      "visibility": 95,
+      "condition": 50,
+      "activity": 40,
+      "access": 60,
+      "environment": 50
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Embarcadero corner",
+        "factors": {
+          "visibility": 92,
+          "condition": 75,
+          "activity": 60,
+          "access": 80,
+          "environment": 70
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Market St midblock",
+        "factors": {
+          "visibility": 78,
+          "condition": 85,
+          "activity": 70,
+          "access": 90,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Battery St corner",
+        "factors": {
+          "visibility": 88,
+          "condition": 80,
+          "activity": 65,
+          "access": 85,
+          "environment": 72
+        }
+      }
+    ],
+    "expectedWinnerId": "c3"
+  },
+  {
+    "id": "m02",
+    "goal": "Find a pristine, well-maintained storefront in NYC SoHo",
+    "cityId": "nyc",
+    "priorities": {
+      "visibility": 50,
+      "condition": 90,
+      "activity": 45,
+      "access": 65,
+      "environment": 55
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Broadway flagship",
+        "factors": {
+          "visibility": 85,
+          "condition": 92,
+          "activity": 80,
+          "access": 88,
+          "environment": 70
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Greene St boutique",
+        "factors": {
+          "visibility": 75,
+          "condition": 78,
+          "activity": 60,
+          "access": 82,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Spring St corner",
+        "factors": {
+          "visibility": 80,
+          "condition": 85,
+          "activity": 70,
+          "access": 85,
+          "environment": 72
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m03",
+    "goal": "Find a quiet work café with excellent access in London Shoreditch",
+    "cityId": "london",
+    "priorities": {
+      "visibility": 60,
+      "condition": 55,
+      "activity": 30,
+      "access": 85,
+      "environment": 75
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Old St station exit",
+        "factors": {
+          "visibility": 80,
+          "condition": 70,
+          "activity": 85,
+          "access": 95,
+          "environment": 60
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Hoxton Square quiet corner",
+        "factors": {
+          "visibility": 65,
+          "condition": 75,
+          "activity": 40,
+          "access": 75,
+          "environment": 88
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Curtain Rd corner",
+        "factors": {
+          "visibility": 78,
+          "condition": 72,
+          "activity": 55,
+          "access": 88,
+          "environment": 78
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m04",
+    "goal": "Find a calm, low-activity spot with great air quality in Tokyo",
+    "cityId": "tokyo",
+    "priorities": {
+      "visibility": 50,
+      "condition": 60,
+      "activity": 25,
+      "access": 70,
+      "environment": 90
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Yoyogi Park edge",
+        "factors": {
+          "visibility": 70,
+          "condition": 80,
+          "activity": 35,
+          "access": 75,
+          "environment": 94
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Shibuya crossing",
+        "factors": {
+          "visibility": 95,
+          "condition": 75,
+          "activity": 98,
+          "access": 90,
+          "environment": 45
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Harajuku side street",
+        "factors": {
+          "visibility": 65,
+          "condition": 78,
+          "activity": 50,
+          "access": 80,
+          "environment": 85
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m05",
+    "goal": "Find a bustling, high-activity retail spot in Paris Le Marais",
+    "cityId": "paris",
+    "priorities": {
+      "visibility": 70,
+      "condition": 60,
+      "activity": 95,
+      "access": 75,
+      "environment": 50
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Rue des Francs-Bourgeois corner",
+        "factors": {
+          "visibility": 82,
+          "condition": 75,
+          "activity": 92,
+          "access": 85,
+          "environment": 68
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Rue de Rivoli arcade",
+        "factors": {
+          "visibility": 88,
+          "condition": 80,
+          "activity": 78,
+          "access": 90,
+          "environment": 65
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Place des Vosges edge",
+        "factors": {
+          "visibility": 75,
+          "condition": 85,
+          "activity": 60,
+          "access": 70,
+          "environment": 82
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m06",
+    "goal": "Find a balanced, all-around strong location in Sydney CBD",
+    "cityId": "sydney",
+    "priorities": {
+      "visibility": 70,
+      "condition": 70,
+      "activity": 70,
+      "access": 70,
+      "environment": 70
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "George St corner",
+        "factors": {
+          "visibility": 85,
+          "condition": 82,
+          "activity": 80,
+          "access": 88,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Pitt St mall",
+        "factors": {
+          "visibility": 80,
+          "condition": 78,
+          "activity": 85,
+          "access": 85,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c3",
+        "label": "York St midblock",
+        "factors": {
+          "visibility": 70,
+          "condition": 75,
+          "activity": 70,
+          "access": 80,
+          "environment": 80
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m07",
+    "goal": "Near-tie case: visibility vs access in SF Mission",
+    "cityId": "sf",
+    "priorities": {
+      "visibility": 80,
+      "condition": 50,
+      "activity": 50,
+      "access": 85,
+      "environment": 60
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Valencia St corner",
+        "factors": {
+          "visibility": 90,
+          "condition": 70,
+          "activity": 75,
+          "access": 82,
+          "environment": 68
+        }
+      },
+      {
+        "id": "c2",
+        "label": "16th St BART exit",
+        "factors": {
+          "visibility": 78,
+          "condition": 68,
+          "activity": 80,
+          "access": 92,
+          "environment": 65
+        }
+      },
+      {
+        "id": "c3",
+        "label": "24th St side",
+        "factors": {
+          "visibility": 72,
+          "condition": 75,
+          "activity": 60,
+          "access": 78,
+          "environment": 75
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m08",
+    "goal": "Condition-dominant pick in NYC Upper East Side",
+    "cityId": "nyc",
+    "priorities": {
+      "visibility": 55,
+      "condition": 95,
+      "activity": 40,
+      "access": 70,
+      "environment": 60
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Madison Ave pristine",
+        "factors": {
+          "visibility": 80,
+          "condition": 96,
+          "activity": 55,
+          "access": 85,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Lexington Ave busy",
+        "factors": {
+          "visibility": 88,
+          "condition": 72,
+          "activity": 82,
+          "access": 90,
+          "environment": 68
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Park Ave corner",
+        "factors": {
+          "visibility": 85,
+          "condition": 88,
+          "activity": 60,
+          "access": 82,
+          "environment": 78
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m09",
+    "goal": "Environment-dominant green space café in London",
+    "cityId": "london",
+    "priorities": {
+      "visibility": 50,
+      "condition": 60,
+      "activity": 35,
+      "access": 65,
+      "environment": 95
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Hyde Park edge",
+        "factors": {
+          "visibility": 65,
+          "condition": 78,
+          "activity": 45,
+          "access": 70,
+          "environment": 92
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Regent St flagship",
+        "factors": {
+          "visibility": 92,
+          "condition": 85,
+          "activity": 88,
+          "access": 90,
+          "environment": 55
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Notting Hill quiet lane",
+        "factors": {
+          "visibility": 60,
+          "condition": 72,
+          "activity": 40,
+          "access": 68,
+          "environment": 88
+        }
+      }
+    ],
+    "expectedWinnerId": "c2"
+  },
+  {
+    "id": "m10",
+    "goal": "Activity-first high-traffic retail in Tokyo Shibuya",
+    "cityId": "tokyo",
+    "priorities": {
+      "visibility": 65,
+      "condition": 55,
+      "activity": 95,
+      "access": 75,
+      "environment": 45
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Shibuya Crossing corner",
+        "factors": {
+          "visibility": 95,
+          "condition": 70,
+          "activity": 98,
+          "access": 90,
+          "environment": 50
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Center Gai entrance",
+        "factors": {
+          "visibility": 80,
+          "condition": 65,
+          "activity": 85,
+          "access": 85,
+          "environment": 55
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Dogenzaka side",
+        "factors": {
+          "visibility": 72,
+          "condition": 75,
+          "activity": 75,
+          "access": 78,
+          "environment": 68
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m11",
+    "goal": "Access-priority transit hub café in Paris",
+    "cityId": "paris",
+    "priorities": {
+      "visibility": 60,
+      "condition": 55,
+      "activity": 50,
+      "access": 92,
+      "environment": 58
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Châtelet Metro exit",
+        "factors": {
+          "visibility": 75,
+          "condition": 68,
+          "activity": 85,
+          "access": 95,
+          "environment": 60
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Saint-Michel plaza",
+        "factors": {
+          "visibility": 82,
+          "condition": 78,
+          "activity": 75,
+          "access": 80,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Pont Neuf view",
+        "factors": {
+          "visibility": 70,
+          "condition": 75,
+          "activity": 60,
+          "access": 72,
+          "environment": 82
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m12",
+    "goal": "Mixed priorities: moderate weights across all factors in Sydney",
+    "cityId": "sydney",
+    "priorities": {
+      "visibility": 65,
+      "condition": 68,
+      "activity": 62,
+      "access": 70,
+      "environment": 66
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Circular Quay corner",
+        "factors": {
+          "visibility": 85,
+          "condition": 80,
+          "activity": 78,
+          "access": 88,
+          "environment": 82
+        }
+      },
+      {
+        "id": "c2",
+        "label": "The Rocks heritage",
+        "factors": {
+          "visibility": 78,
+          "condition": 92,
+          "activity": 65,
+          "access": 75,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Darling Harbour walk",
+        "factors": {
+          "visibility": 72,
+          "condition": 75,
+          "activity": 70,
+          "access": 82,
+          "environment": 88
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m13",
+    "goal": "Low visibility OK, environment and access matter in SF Presidio",
+    "cityId": "sf",
+    "priorities": {
+      "visibility": 40,
+      "condition": 60,
+      "activity": 35,
+      "access": 80,
+      "environment": 90
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Presidio Tunnel Tops",
+        "factors": {
+          "visibility": 55,
+          "condition": 85,
+          "activity": 40,
+          "access": 75,
+          "environment": 95
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Lombard St corner",
+        "factors": {
+          "visibility": 88,
+          "condition": 70,
+          "activity": 82,
+          "access": 78,
+          "environment": 60
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Crissy Field edge",
+        "factors": {
+          "visibility": 60,
+          "condition": 78,
+          "activity": 35,
+          "access": 85,
+          "environment": 92
+        }
+      }
+    ],
+    "expectedWinnerId": "c3"
+  },
+  {
+    "id": "m14",
+    "goal": "Visibility and condition dominate in NYC Midtown",
+    "cityId": "nyc",
+    "priorities": {
+      "visibility": 88,
+      "condition": 85,
+      "activity": 50,
+      "access": 65,
+      "environment": 55
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Fifth Ave flagship",
+        "factors": {
+          "visibility": 95,
+          "condition": 90,
+          "activity": 80,
+          "access": 85,
+          "environment": 65
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Bryant Park edge",
+        "factors": {
+          "visibility": 78,
+          "condition": 82,
+          "activity": 60,
+          "access": 75,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Sixth Ave midblock",
+        "factors": {
+          "visibility": 82,
+          "condition": 75,
+          "activity": 70,
+          "access": 80,
+          "environment": 70
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m15",
+    "goal": "Three-way near-tie in London West End",
+    "cityId": "london",
+    "priorities": {
+      "visibility": 75,
+      "condition": 72,
+      "activity": 68,
+      "access": 78,
+      "environment": 70
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Covent Garden corner",
+        "factors": {
+          "visibility": 88,
+          "condition": 80,
+          "activity": 85,
+          "access": 85,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Leicester Square edge",
+        "factors": {
+          "visibility": 85,
+          "condition": 78,
+          "activity": 88,
+          "access": 82,
+          "environment": 72
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Piccadilly arcade",
+        "factors": {
+          "visibility": 82,
+          "condition": 85,
+          "activity": 78,
+          "access": 88,
+          "environment": 78
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m16",
+    "goal": "Low activity, high environment focus in Tokyo Meguro",
+    "cityId": "tokyo",
+    "priorities": {
+      "visibility": 55,
+      "condition": 65,
+      "activity": 30,
+      "access": 70,
+      "environment": 88
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Meguro River walk",
+        "factors": {
+          "visibility": 68,
+          "condition": 80,
+          "activity": 35,
+          "access": 75,
+          "environment": 92
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Nakameguro station",
+        "factors": {
+          "visibility": 82,
+          "condition": 72,
+          "activity": 78,
+          "access": 88,
+          "environment": 65
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Daikanyama backstreet",
+        "factors": {
+          "visibility": 60,
+          "condition": 75,
+          "activity": 40,
+          "access": 68,
+          "environment": 85
+        }
+      }
+    ],
+    "expectedWinnerId": "c2"
+  },
+  {
+    "id": "m17",
+    "goal": "Balanced priorities, slightly favoring visibility in Paris",
+    "cityId": "paris",
+    "priorities": {
+      "visibility": 78,
+      "condition": 68,
+      "activity": 65,
+      "access": 72,
+      "environment": 70
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Champs-Élysées corner",
+        "factors": {
+          "visibility": 92,
+          "condition": 85,
+          "activity": 88,
+          "access": 85,
+          "environment": 72
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Arc de Triomphe plaza",
+        "factors": {
+          "visibility": 88,
+          "condition": 80,
+          "activity": 82,
+          "access": 78,
+          "environment": 68
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Avenue Montaigne side",
+        "factors": {
+          "visibility": 78,
+          "condition": 88,
+          "activity": 70,
+          "access": 82,
+          "environment": 80
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m18",
+    "goal": "Access and environment over visibility in Sydney Bondi",
+    "cityId": "sydney",
+    "priorities": {
+      "visibility": 50,
+      "condition": 60,
+      "activity": 45,
+      "access": 85,
+      "environment": 90
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Campbell Parade beachfront",
+        "factors": {
+          "visibility": 85,
+          "condition": 75,
+          "activity": 88,
+          "access": 70,
+          "environment": 82
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Hall St quiet corner",
+        "factors": {
+          "visibility": 60,
+          "condition": 78,
+          "activity": 50,
+          "access": 88,
+          "environment": 92
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Roscoe St access",
+        "factors": {
+          "visibility": 65,
+          "condition": 72,
+          "activity": 55,
+          "access": 90,
+          "environment": 88
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m19",
+    "goal": "High condition, moderate everything else in SF Pacific Heights",
+    "cityId": "sf",
+    "priorities": {
+      "visibility": 65,
+      "condition": 90,
+      "activity": 50,
+      "access": 70,
+      "environment": 68
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Fillmore St boutique",
+        "factors": {
+          "visibility": 78,
+          "condition": 95,
+          "activity": 65,
+          "access": 80,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Union St corner",
+        "factors": {
+          "visibility": 85,
+          "condition": 82,
+          "activity": 75,
+          "access": 85,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Sacramento St classic",
+        "factors": {
+          "visibility": 70,
+          "condition": 88,
+          "activity": 55,
+          "access": 75,
+          "environment": 82
+        }
+      }
+    ],
+    "expectedWinnerId": "c2"
+  },
+  {
+    "id": "m20",
+    "goal": "Activity and access priority in NYC Lower East Side",
+    "cityId": "nyc",
+    "priorities": {
+      "visibility": 60,
+      "condition": 55,
+      "activity": 88,
+      "access": 85,
+      "environment": 58
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Delancey St subway exit",
+        "factors": {
+          "visibility": 78,
+          "condition": 68,
+          "activity": 92,
+          "access": 95,
+          "environment": 65
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Essex Market edge",
+        "factors": {
+          "visibility": 82,
+          "condition": 75,
+          "activity": 85,
+          "access": 82,
+          "environment": 70
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Orchard St midblock",
+        "factors": {
+          "visibility": 70,
+          "condition": 78,
+          "activity": 80,
+          "access": 78,
+          "environment": 72
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m21",
+    "goal": "Visibility vs environment near-tie in London Camden",
+    "cityId": "london",
+    "priorities": {
+      "visibility": 82,
+      "condition": 60,
+      "activity": 55,
+      "access": 68,
+      "environment": 80
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Camden Lock corner",
+        "factors": {
+          "visibility": 88,
+          "condition": 72,
+          "activity": 85,
+          "access": 75,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Regent's Canal walk",
+        "factors": {
+          "visibility": 70,
+          "condition": 75,
+          "activity": 50,
+          "access": 70,
+          "environment": 92
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Chalk Farm Rd",
+        "factors": {
+          "visibility": 82,
+          "condition": 68,
+          "activity": 70,
+          "access": 72,
+          "environment": 82
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m22",
+    "goal": "Condition and environment dominant in Tokyo Kichijoji",
+    "cityId": "tokyo",
+    "priorities": {
+      "visibility": 50,
+      "condition": 85,
+      "activity": 40,
+      "access": 65,
+      "environment": 92
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Inokashira Park gate",
+        "factors": {
+          "visibility": 65,
+          "condition": 88,
+          "activity": 45,
+          "access": 72,
+          "environment": 95
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Sun Road arcade",
+        "factors": {
+          "visibility": 82,
+          "condition": 75,
+          "activity": 80,
+          "access": 85,
+          "environment": 68
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Kichijoji station plaza",
+        "factors": {
+          "visibility": 78,
+          "condition": 80,
+          "activity": 70,
+          "access": 90,
+          "environment": 75
+        }
+      }
+    ],
+    "expectedWinnerId": "c3"
+  },
+  {
+    "id": "m23",
+    "goal": "Visibility and activity high, others low in Paris Bastille",
+    "cityId": "paris",
+    "priorities": {
+      "visibility": 90,
+      "condition": 52,
+      "activity": 88,
+      "access": 60,
+      "environment": 55
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Place de la Bastille corner",
+        "factors": {
+          "visibility": 95,
+          "condition": 70,
+          "activity": 92,
+          "access": 78,
+          "environment": 68
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Rue de la Roquette mid",
+        "factors": {
+          "visibility": 78,
+          "condition": 75,
+          "activity": 80,
+          "access": 82,
+          "environment": 72
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Faubourg St-Antoine",
+        "factors": {
+          "visibility": 82,
+          "condition": 68,
+          "activity": 85,
+          "access": 75,
+          "environment": 70
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m24",
+    "goal": "Access first, environment second in Sydney Newtown",
+    "cityId": "sydney",
+    "priorities": {
+      "visibility": 55,
+      "condition": 58,
+      "activity": 50,
+      "access": 92,
+      "environment": 80
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "King St station exit",
+        "factors": {
+          "visibility": 75,
+          "condition": 70,
+          "activity": 75,
+          "access": 95,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Enmore Rd corner",
+        "factors": {
+          "visibility": 70,
+          "condition": 68,
+          "activity": 68,
+          "access": 82,
+          "environment": 88
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Wilson St quiet",
+        "factors": {
+          "visibility": 60,
+          "condition": 75,
+          "activity": 55,
+          "access": 78,
+          "environment": 90
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m25",
+    "goal": "Four candidates, visibility priority in SF SOMA",
+    "cityId": "sf",
+    "priorities": {
+      "visibility": 88,
+      "condition": 62,
+      "activity": 58,
+      "access": 72,
+      "environment": 65
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Market & 2nd corner",
+        "factors": {
+          "visibility": 92,
+          "condition": 75,
+          "activity": 78,
+          "access": 85,
+          "environment": 72
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Folsom St industrial",
+        "factors": {
+          "visibility": 68,
+          "condition": 70,
+          "activity": 60,
+          "access": 75,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Howard St midblock",
+        "factors": {
+          "visibility": 78,
+          "condition": 72,
+          "activity": 68,
+          "access": 78,
+          "environment": 70
+        }
+      },
+      {
+        "id": "c4",
+        "label": "Mission St transit",
+        "factors": {
+          "visibility": 85,
+          "condition": 68,
+          "activity": 82,
+          "access": 88,
+          "environment": 68
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m26",
+    "goal": "Five candidates, balanced priorities in NYC Greenwich Village",
+    "cityId": "nyc",
+    "priorities": {
+      "visibility": 70,
+      "condition": 72,
+      "activity": 68,
+      "access": 75,
+      "environment": 73
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Bleecker St corner",
+        "factors": {
+          "visibility": 85,
+          "condition": 82,
+          "activity": 78,
+          "access": 88,
+          "environment": 80
+        }
+      },
+      {
+        "id": "c2",
+        "label": "MacDougal St café row",
+        "factors": {
+          "visibility": 78,
+          "condition": 78,
+          "activity": 82,
+          "access": 82,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Minetta Lane quiet",
+        "factors": {
+          "visibility": 65,
+          "condition": 85,
+          "activity": 55,
+          "access": 70,
+          "environment": 88
+        }
+      },
+      {
+        "id": "c4",
+        "label": "Sixth Ave storefront",
+        "factors": {
+          "visibility": 88,
+          "condition": 75,
+          "activity": 85,
+          "access": 85,
+          "environment": 72
+        }
+      },
+      {
+        "id": "c5",
+        "label": "Washington Sq corner",
+        "factors": {
+          "visibility": 82,
+          "condition": 80,
+          "activity": 75,
+          "access": 80,
+          "environment": 82
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m27",
+    "goal": "Environment dominant, low activity in London Hampstead",
+    "cityId": "london",
+    "priorities": {
+      "visibility": 55,
+      "condition": 68,
+      "activity": 32,
+      "access": 65,
+      "environment": 95
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Hampstead Heath edge",
+        "factors": {
+          "visibility": 68,
+          "condition": 82,
+          "activity": 35,
+          "access": 70,
+          "environment": 96
+        }
+      },
+      {
+        "id": "c2",
+        "label": "High St Hampstead",
+        "factors": {
+          "visibility": 85,
+          "condition": 78,
+          "activity": 75,
+          "access": 88,
+          "environment": 72
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Flask Walk quiet",
+        "factors": {
+          "visibility": 60,
+          "condition": 75,
+          "activity": 40,
+          "access": 68,
+          "environment": 90
+        }
+      },
+      {
+        "id": "c4",
+        "label": "Pond St view",
+        "factors": {
+          "visibility": 65,
+          "condition": 80,
+          "activity": 38,
+          "access": 72,
+          "environment": 92
+        }
+      }
+    ],
+    "expectedWinnerId": "c2"
+  },
+  {
+    "id": "m28",
+    "goal": "Access and visibility tie-breaker in Tokyo Roppongi",
+    "cityId": "tokyo",
+    "priorities": {
+      "visibility": 82,
+      "condition": 60,
+      "activity": 65,
+      "access": 85,
+      "environment": 58
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Roppongi Crossing corner",
+        "factors": {
+          "visibility": 92,
+          "condition": 72,
+          "activity": 88,
+          "access": 90,
+          "environment": 65
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Tokyo Midtown entrance",
+        "factors": {
+          "visibility": 85,
+          "condition": 80,
+          "activity": 75,
+          "access": 88,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Hinokicho Park edge",
+        "factors": {
+          "visibility": 70,
+          "condition": 75,
+          "activity": 55,
+          "access": 75,
+          "environment": 82
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m29",
+    "goal": "Condition priority, low visibility OK in Paris Montmartre",
+    "cityId": "paris",
+    "priorities": {
+      "visibility": 48,
+      "condition": 92,
+      "activity": 52,
+      "access": 68,
+      "environment": 70
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Sacré-Cœur steps",
+        "factors": {
+          "visibility": 78,
+          "condition": 88,
+          "activity": 85,
+          "access": 60,
+          "environment": 80
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Rue Lepic heritage",
+        "factors": {
+          "visibility": 65,
+          "condition": 95,
+          "activity": 60,
+          "access": 75,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Place du Tertre edge",
+        "factors": {
+          "visibility": 82,
+          "condition": 80,
+          "activity": 88,
+          "access": 72,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c4",
+        "label": "Abbesses Metro exit",
+        "factors": {
+          "visibility": 72,
+          "condition": 85,
+          "activity": 70,
+          "access": 85,
+          "environment": 72
+        }
+      }
+    ],
+    "expectedWinnerId": "c3"
+  },
+  {
+    "id": "m30",
+    "goal": "Three candidates, moderate spread in Sydney Surry Hills",
+    "cityId": "sydney",
+    "priorities": {
+      "visibility": 72,
+      "condition": 68,
+      "activity": 65,
+      "access": 78,
+      "environment": 70
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Crown St corner",
+        "factors": {
+          "visibility": 85,
+          "condition": 80,
+          "activity": 78,
+          "access": 88,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Bourke St café strip",
+        "factors": {
+          "visibility": 78,
+          "condition": 82,
+          "activity": 82,
+          "access": 82,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Riley St quiet",
+        "factors": {
+          "visibility": 68,
+          "condition": 75,
+          "activity": 65,
+          "access": 75,
+          "environment": 85
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m31",
+    "goal": "Equal priorities, highest average wins in SF North Beach",
+    "cityId": "sf",
+    "priorities": {
+      "visibility": 70,
+      "condition": 70,
+      "activity": 70,
+      "access": 70,
+      "environment": 70
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Columbus Ave corner",
+        "factors": {
+          "visibility": 88,
+          "condition": 85,
+          "activity": 82,
+          "access": 90,
+          "environment": 86
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Grant Ave midblock",
+        "factors": {
+          "visibility": 80,
+          "condition": 78,
+          "activity": 85,
+          "access": 82,
+          "environment": 80
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Stockton St edge",
+        "factors": {
+          "visibility": 75,
+          "condition": 82,
+          "activity": 78,
+          "access": 85,
+          "environment": 78
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m32",
+    "goal": "Visibility low priority, access and environment high in NYC Brooklyn Heights",
+    "cityId": "nyc",
+    "priorities": {
+      "visibility": 45,
+      "condition": 62,
+      "activity": 50,
+      "access": 88,
+      "environment": 90
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Clark St subway exit",
+        "factors": {
+          "visibility": 68,
+          "condition": 75,
+          "activity": 65,
+          "access": 92,
+          "environment": 88
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Montague St corner",
+        "factors": {
+          "visibility": 82,
+          "condition": 80,
+          "activity": 78,
+          "access": 80,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Promenade edge",
+        "factors": {
+          "visibility": 60,
+          "condition": 78,
+          "activity": 50,
+          "access": 75,
+          "environment": 95
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m33",
+    "goal": "Activity and visibility high, others moderate in London Soho",
+    "cityId": "london",
+    "priorities": {
+      "visibility": 85,
+      "condition": 60,
+      "activity": 88,
+      "access": 68,
+      "environment": 58
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Carnaby St corner",
+        "factors": {
+          "visibility": 92,
+          "condition": 72,
+          "activity": 95,
+          "access": 80,
+          "environment": 68
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Wardour St midblock",
+        "factors": {
+          "visibility": 82,
+          "condition": 75,
+          "activity": 88,
+          "access": 82,
+          "environment": 70
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Broadwick St edge",
+        "factors": {
+          "visibility": 85,
+          "condition": 68,
+          "activity": 82,
+          "access": 75,
+          "environment": 65
+        }
+      },
+      {
+        "id": "c4",
+        "label": "Berwick St market",
+        "factors": {
+          "visibility": 78,
+          "condition": 70,
+          "activity": 90,
+          "access": 78,
+          "environment": 72
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m34",
+    "goal": "Condition and environment over visibility in Tokyo Shimokitazawa",
+    "cityId": "tokyo",
+    "priorities": {
+      "visibility": 52,
+      "condition": 82,
+      "activity": 48,
+      "access": 68,
+      "environment": 85
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Shimokita station plaza",
+        "factors": {
+          "visibility": 78,
+          "condition": 70,
+          "activity": 82,
+          "access": 88,
+          "environment": 68
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Minami-guchi quiet alley",
+        "factors": {
+          "visibility": 60,
+          "condition": 88,
+          "activity": 50,
+          "access": 72,
+          "environment": 92
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Suzunari Theater corner",
+        "factors": {
+          "visibility": 68,
+          "condition": 80,
+          "activity": 65,
+          "access": 75,
+          "environment": 85
+        }
+      }
+    ],
+    "expectedWinnerId": "c3"
+  },
+  {
+    "id": "m35",
+    "goal": "High visibility and access, others lower in Paris Opéra",
+    "cityId": "paris",
+    "priorities": {
+      "visibility": 90,
+      "condition": 62,
+      "activity": 58,
+      "access": 88,
+      "environment": 60
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Boulevard des Capucines corner",
+        "factors": {
+          "visibility": 95,
+          "condition": 80,
+          "activity": 78,
+          "access": 92,
+          "environment": 72
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Rue de la Paix flagship",
+        "factors": {
+          "visibility": 92,
+          "condition": 88,
+          "activity": 75,
+          "access": 85,
+          "environment": 70
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Place Vendôme edge",
+        "factors": {
+          "visibility": 88,
+          "condition": 85,
+          "activity": 65,
+          "access": 78,
+          "environment": 75
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m36",
+    "goal": "Environment dominant, quiet and green in Sydney Balmain",
+    "cityId": "sydney",
+    "priorities": {
+      "visibility": 55,
+      "condition": 65,
+      "activity": 38,
+      "access": 70,
+      "environment": 92
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Darling St main",
+        "factors": {
+          "visibility": 82,
+          "condition": 78,
+          "activity": 75,
+          "access": 85,
+          "environment": 70
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Elliot St park edge",
+        "factors": {
+          "visibility": 65,
+          "condition": 80,
+          "activity": 42,
+          "access": 72,
+          "environment": 94
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Mort Bay waterfront",
+        "factors": {
+          "visibility": 70,
+          "condition": 75,
+          "activity": 48,
+          "access": 78,
+          "environment": 90
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m37",
+    "goal": "Access priority with high activity in SF Civic Center",
+    "cityId": "sf",
+    "priorities": {
+      "visibility": 68,
+      "condition": 58,
+      "activity": 78,
+      "access": 92,
+      "environment": 62
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "UN Plaza BART exit",
+        "factors": {
+          "visibility": 75,
+          "condition": 65,
+          "activity": 88,
+          "access": 95,
+          "environment": 68
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Market St plaza",
+        "factors": {
+          "visibility": 85,
+          "condition": 72,
+          "activity": 85,
+          "access": 88,
+          "environment": 72
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Hayes Valley edge",
+        "factors": {
+          "visibility": 78,
+          "condition": 80,
+          "activity": 70,
+          "access": 80,
+          "environment": 78
+        }
+      }
+    ],
+    "expectedWinnerId": "c2"
+  },
+  {
+    "id": "m38",
+    "goal": "Condition first, visibility second in NYC Chelsea",
+    "cityId": "nyc",
+    "priorities": {
+      "visibility": 78,
+      "condition": 92,
+      "activity": 55,
+      "access": 68,
+      "environment": 65
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Eighth Ave corner",
+        "factors": {
+          "visibility": 85,
+          "condition": 95,
+          "activity": 72,
+          "access": 80,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c2",
+        "label": "High Line entrance",
+        "factors": {
+          "visibility": 88,
+          "condition": 82,
+          "activity": 80,
+          "access": 75,
+          "environment": 82
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Tenth Ave gallery row",
+        "factors": {
+          "visibility": 78,
+          "condition": 88,
+          "activity": 60,
+          "access": 72,
+          "environment": 78
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m39",
+    "goal": "Visibility and environment balanced in London Canary Wharf",
+    "cityId": "london",
+    "priorities": {
+      "visibility": 82,
+      "condition": 68,
+      "activity": 62,
+      "access": 75,
+      "environment": 80
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Canada Square corner",
+        "factors": {
+          "visibility": 92,
+          "condition": 85,
+          "activity": 78,
+          "access": 88,
+          "environment": 82
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Cabot Square plaza",
+        "factors": {
+          "visibility": 85,
+          "condition": 78,
+          "activity": 70,
+          "access": 82,
+          "environment": 85
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Jubilee Place mall",
+        "factors": {
+          "visibility": 78,
+          "condition": 82,
+          "activity": 82,
+          "access": 90,
+          "environment": 75
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m40",
+    "goal": "Access and activity over visibility and condition in Tokyo Akihabara",
+    "cityId": "tokyo",
+    "priorities": {
+      "visibility": 58,
+      "condition": 55,
+      "activity": 90,
+      "access": 88,
+      "environment": 52
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Chuo Dori main",
+        "factors": {
+          "visibility": 88,
+          "condition": 70,
+          "activity": 95,
+          "access": 92,
+          "environment": 60
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Electric Town exit",
+        "factors": {
+          "visibility": 82,
+          "condition": 68,
+          "activity": 92,
+          "access": 90,
+          "environment": 58
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Kanda Myojin approach",
+        "factors": {
+          "visibility": 70,
+          "condition": 75,
+          "activity": 65,
+          "access": 75,
+          "environment": 78
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m41",
+    "goal": "Environment and condition, low activity in Paris Luxembourg",
+    "cityId": "paris",
+    "priorities": {
+      "visibility": 60,
+      "condition": 85,
+      "activity": 42,
+      "access": 68,
+      "environment": 88
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Luxembourg Gardens gate",
+        "factors": {
+          "visibility": 72,
+          "condition": 90,
+          "activity": 48,
+          "access": 75,
+          "environment": 92
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Rue de Vaugirard corner",
+        "factors": {
+          "visibility": 78,
+          "condition": 82,
+          "activity": 65,
+          "access": 82,
+          "environment": 80
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Boulevard Saint-Michel",
+        "factors": {
+          "visibility": 85,
+          "condition": 78,
+          "activity": 78,
+          "access": 88,
+          "environment": 72
+        }
+      }
+    ],
+    "expectedWinnerId": "c3"
+  },
+  {
+    "id": "m42",
+    "goal": "All factors near-equal weights in Sydney CBD",
+    "cityId": "sydney",
+    "priorities": {
+      "visibility": 72,
+      "condition": 74,
+      "activity": 70,
+      "access": 76,
+      "environment": 73
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Martin Place corner",
+        "factors": {
+          "visibility": 88,
+          "condition": 85,
+          "activity": 82,
+          "access": 90,
+          "environment": 84
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Pitt St Mall entrance",
+        "factors": {
+          "visibility": 85,
+          "condition": 82,
+          "activity": 88,
+          "access": 88,
+          "environment": 80
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Castlereagh St midblock",
+        "factors": {
+          "visibility": 78,
+          "condition": 88,
+          "activity": 75,
+          "access": 82,
+          "environment": 82
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m43",
+    "goal": "Visibility extreme priority in SF Union Square",
+    "cityId": "sf",
+    "priorities": {
+      "visibility": 98,
+      "condition": 52,
+      "activity": 48,
+      "access": 65,
+      "environment": 55
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Powell & Geary corner",
+        "factors": {
+          "visibility": 96,
+          "condition": 75,
+          "activity": 80,
+          "access": 85,
+          "environment": 70
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Stockton St cable",
+        "factors": {
+          "visibility": 88,
+          "condition": 82,
+          "activity": 75,
+          "access": 88,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Maiden Lane boutique",
+        "factors": {
+          "visibility": 78,
+          "condition": 90,
+          "activity": 65,
+          "access": 80,
+          "environment": 82
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m44",
+    "goal": "Activity extreme priority in NYC Times Square",
+    "cityId": "nyc",
+    "priorities": {
+      "visibility": 68,
+      "condition": 55,
+      "activity": 98,
+      "access": 72,
+      "environment": 48
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Broadway & 42nd corner",
+        "factors": {
+          "visibility": 95,
+          "condition": 70,
+          "activity": 98,
+          "access": 90,
+          "environment": 55
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Seventh Ave plaza",
+        "factors": {
+          "visibility": 92,
+          "condition": 68,
+          "activity": 95,
+          "access": 88,
+          "environment": 58
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Duffy Square edge",
+        "factors": {
+          "visibility": 88,
+          "condition": 72,
+          "activity": 92,
+          "access": 85,
+          "environment": 60
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m45",
+    "goal": "Condition extreme priority in London Mayfair",
+    "cityId": "london",
+    "priorities": {
+      "visibility": 62,
+      "condition": 98,
+      "activity": 50,
+      "access": 68,
+      "environment": 65
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Bond St flagship",
+        "factors": {
+          "visibility": 88,
+          "condition": 98,
+          "activity": 75,
+          "access": 85,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Savile Row heritage",
+        "factors": {
+          "visibility": 78,
+          "condition": 95,
+          "activity": 65,
+          "access": 78,
+          "environment": 82
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Berkeley Square edge",
+        "factors": {
+          "visibility": 82,
+          "condition": 92,
+          "activity": 70,
+          "access": 82,
+          "environment": 85
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m46",
+    "goal": "Access extreme priority in Tokyo Shinjuku",
+    "cityId": "tokyo",
+    "priorities": {
+      "visibility": 60,
+      "condition": 58,
+      "activity": 62,
+      "access": 98,
+      "environment": 55
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Shinjuku Station East Exit",
+        "factors": {
+          "visibility": 85,
+          "condition": 72,
+          "activity": 88,
+          "access": 98,
+          "environment": 65
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Kabukicho main gate",
+        "factors": {
+          "visibility": 92,
+          "condition": 68,
+          "activity": 95,
+          "access": 90,
+          "environment": 58
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Nishi-Shinjuku skyscraper",
+        "factors": {
+          "visibility": 78,
+          "condition": 82,
+          "activity": 70,
+          "access": 88,
+          "environment": 72
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m47",
+    "goal": "Environment extreme priority in Paris Bois de Boulogne",
+    "cityId": "paris",
+    "priorities": {
+      "visibility": 52,
+      "condition": 62,
+      "activity": 38,
+      "access": 68,
+      "environment": 98
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Lac Inférieur pavilion",
+        "factors": {
+          "visibility": 68,
+          "condition": 82,
+          "activity": 45,
+          "access": 72,
+          "environment": 98
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Porte Maillot entrance",
+        "factors": {
+          "visibility": 85,
+          "condition": 75,
+          "activity": 78,
+          "access": 90,
+          "environment": 68
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Jardin d'Acclimatation",
+        "factors": {
+          "visibility": 75,
+          "condition": 78,
+          "activity": 60,
+          "access": 80,
+          "environment": 92
+        }
+      }
+    ],
+    "expectedWinnerId": "c3"
+  },
+  {
+    "id": "m48",
+    "goal": "Five candidates, access and visibility co-dominant in Sydney",
+    "cityId": "sydney",
+    "priorities": {
+      "visibility": 85,
+      "condition": 62,
+      "activity": 58,
+      "access": 88,
+      "environment": 65
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Wynyard Station corner",
+        "factors": {
+          "visibility": 92,
+          "condition": 75,
+          "activity": 78,
+          "access": 95,
+          "environment": 72
+        }
+      },
+      {
+        "id": "c2",
+        "label": "QVB entrance",
+        "factors": {
+          "visibility": 88,
+          "condition": 82,
+          "activity": 75,
+          "access": 90,
+          "environment": 75
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Town Hall plaza",
+        "factors": {
+          "visibility": 85,
+          "condition": 78,
+          "activity": 82,
+          "access": 88,
+          "environment": 70
+        }
+      },
+      {
+        "id": "c4",
+        "label": "Hyde Park edge",
+        "factors": {
+          "visibility": 75,
+          "condition": 80,
+          "activity": 60,
+          "access": 78,
+          "environment": 88
+        }
+      },
+      {
+        "id": "c5",
+        "label": "Macquarie St heritage",
+        "factors": {
+          "visibility": 80,
+          "condition": 88,
+          "activity": 65,
+          "access": 82,
+          "environment": 80
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m49",
+    "goal": "Tie-breaker by index: near-identical weighted scores in SF",
+    "cityId": "sf",
+    "priorities": {
+      "visibility": 75,
+      "condition": 75,
+      "activity": 75,
+      "access": 75,
+      "environment": 75
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "First candidate",
+        "factors": {
+          "visibility": 82,
+          "condition": 82,
+          "activity": 82,
+          "access": 82,
+          "environment": 82
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Second candidate (identical)",
+        "factors": {
+          "visibility": 82,
+          "condition": 82,
+          "activity": 82,
+          "access": 82,
+          "environment": 82
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Third candidate (lower)",
+        "factors": {
+          "visibility": 80,
+          "condition": 80,
+          "activity": 80,
+          "access": 80,
+          "environment": 80
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  },
+  {
+    "id": "m50",
+    "goal": "Complex five-factor spread in NYC",
+    "cityId": "nyc",
+    "priorities": {
+      "visibility": 65,
+      "condition": 78,
+      "activity": 58,
+      "access": 82,
+      "environment": 72
+    },
+    "candidates": [
+      {
+        "id": "c1",
+        "label": "Grand Central corner",
+        "factors": {
+          "visibility": 88,
+          "condition": 90,
+          "activity": 85,
+          "access": 95,
+          "environment": 82
+        }
+      },
+      {
+        "id": "c2",
+        "label": "Lexington Ave midblock",
+        "factors": {
+          "visibility": 78,
+          "condition": 85,
+          "activity": 75,
+          "access": 88,
+          "environment": 78
+        }
+      },
+      {
+        "id": "c3",
+        "label": "Park Ave plaza",
+        "factors": {
+          "visibility": 85,
+          "condition": 88,
+          "activity": 80,
+          "access": 90,
+          "environment": 85
+        }
+      },
+      {
+        "id": "c4",
+        "label": "Madison Ave boutique",
+        "factors": {
+          "visibility": 82,
+          "condition": 92,
+          "activity": 70,
+          "access": 85,
+          "environment": 80
+        }
+      }
+    ],
+    "expectedWinnerId": "c1"
+  }
+]

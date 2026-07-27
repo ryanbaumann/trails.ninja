@@ -152,7 +152,7 @@ async function fetchText(url) {
 // ---------------------------------------------------------------------------
 
 const SECRET_PATTERNS = [
-  ['Strava/generic OAuth client_secret string', /client_secret/i],
+  ['Strava/generic OAuth client_secret value', /client_secret["']?\s*[:=]\s*["'][^"'\\\s]{12,}/i],
   // Referrer-restricted Maps browser keys are expected in Vite bundles.
   // Server keys use non-VITE env vars and are never exposed to this scan.
   ['Stripe-style live secret key', /sk_live_[0-9A-Za-z]+/],

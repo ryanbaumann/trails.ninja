@@ -1,0 +1,83 @@
+/* Atlas design tokens — "obsidian glass over living cartography". */
+:root {
+  /* Surfaces */
+  --bg: #0b0e14;
+  --bg-2: #0f131c;
+  --glass: rgba(16, 20, 28, 0.72);
+  --glass-2: rgba(22, 27, 37, 0.82);
+  --glass-hi: rgba(255, 255, 255, 0.06);
+  --glass-line: rgba(255, 255, 255, 0.08);
+  --scrim: rgba(6, 8, 12, 0.66);
+
+  /* Text */
+  --text: #e6eaf2;
+  --text-dim: #8a93a6;
+  --text-faint: #5a6478;
+
+  /* Brand */
+  --brand-a: #6d5ef3;
+  --brand-b: #22d3ee;
+  --brand-grad: linear-gradient(120deg, #6d5ef3 0%, #22d3ee 100%);
+
+  /* Journey accents */
+  --accent-concierge: #f59e0b;
+  --accent-insight: #34d399;
+  --accent-fleet: #22d3ee;
+  --accent-cinema: #f472b6;
+  --accent-adstudio: #a78bfa;
+  --accent-scout: #60a5fa;
+
+  /* Semantic */
+  --good: #34d399;
+  --warn: #f59e0b;
+  --bad: #f87171;
+  --info: #60a5fa;
+
+  /* The active journey accent — MapCanvas / shell rewrite this per scenario. */
+  --accent: var(--brand-a);
+  --accent-soft: rgba(109, 94, 243, 0.16);
+
+  /* Geometry */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+
+  /* Elevation */
+  --shadow-1: 0 6px 20px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 0 1px var(--glass-line), 0 12px 40px rgba(0, 0, 0, 0.45);
+
+  /* Blur */
+  --blur: 24px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-micro: 200ms;
+  --dur-panel: 400ms;
+
+  /* Type */
+  --font-display: 'Space Grotesk Variable', 'Space Grotesk', system-ui, sans-serif;
+  --font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Roboto Mono', monospace;
+
+  /* Layout */
+  --rail-w: 68px;
+  --drawer-w: 400px;
+  --z-map: 1;
+  --z-maplayer: 2;
+  --z-overlay: 20;
+  --z-hud: 40;
+  --z-dock: 50;
+  --z-landing: 90;
+  --z-modal: 100;
+}
+
+/* A glass surface primitive reused across the shell. */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(var(--blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--shadow-2);
+}

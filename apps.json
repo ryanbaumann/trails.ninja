@@ -103,7 +103,7 @@
     "providers": [
       "gemini"
     ],
-    "source_url": "https://github.com/ryanbaumann/hairstyle-ai-studio",
+    "source_url": "https://github.com/ryanbaumann/fieldwork/tree/main/demos/hairstyle-ai-studio",
     "source_ref": "9ea2c0f31e5e1d252220ede6731b655bf2fb8fba",
     "tags": [
       "gemini-api",
@@ -116,20 +116,26 @@
     "name": "real-world-reasoning-agent",
     "title": "Atlas - Real World Reasoning Agent",
     "description": "An interactive map agent that handles real-world geo reasoning problems using Maps APIs.",
-    "path": "https://atlas-demo-561209038703.us-central1.run.app/",
+    "path": "/real-world-reasoning-agent/",
+    "dev_build_dir": "demos/real-world-reasoning-agent/dist",
     "source": {
-      "type": "external"
+      "type": "workspace",
+      "package": "demos/real-world-reasoning-agent",
+      "output": "dist"
     },
     "api": {
-      "type": "none"
+      "type": "gateway",
+      "prefix": "/api/real-world-reasoning-agent/"
     },
+    "csp": "maps",
     "tags": [
       "gemini-api",
       "agents",
       "google-maps-platform"
     ],
-    "preview": "/previews/real-world-reasoning-agent.webp",
-    "hideOnHome": true
+    "source_url": "https://github.com/ryanbaumann/fieldwork/tree/main/demos/real-world-reasoning-agent",
+    "source_ref": "68e8c34547066a984ccb97f5b587caeb97561ec1",
+    "preview": "/previews/real-world-reasoning-agent.webp"
   },
   {
     "name": "aqi-map",

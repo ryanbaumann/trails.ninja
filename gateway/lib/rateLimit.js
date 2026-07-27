@@ -34,6 +34,54 @@ export function createRateLimiter({ windowMs = 60_000, max = 30 } = {}) {
   return { check, stop };
 }
 
+export function createDailyRateLimiter({ max = 5, now = () => Date.now() } = {}) {
+  const hits = new Map();
+
+  function windowFor(timestamp) {
+    const date = new Date(timestamp);
+    const windowStart = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    return {
+      windowStart,
+      resetAt: new Date(windowStart + 24 * 60 * 60_000).toISOString(),
+    };
+  }
+
+  function currentRecord(key) {
+    const timestamp = now();
+    const window = windowFor(timestamp);
+    const existing = hits.get(key);
+    if (existing?.windowStart === window.windowStart) {
+      return { record: existing, ...window };
+    }
+    const record = { windowStart: window.windowStart, count: 0 };
+    hits.set(key, record);
+    return { record, ...window };
+  }
+
+  function status(key) {
+    const { record, resetAt } = currentRecord(key);
+    return {
+      limit: max,
+      remaining: Math.max(0, max - record.count),
+      resetAt,
+    };
+  }
+
+  function take(key) {
+    const { record } = currentRecord(key);
+    if (record.count >= max) return false;
+    record.count += 1;
+    return true;
+  }
+
+  function refund(key) {
+    const { record } = currentRecord(key);
+    record.count = Math.max(0, record.count - 1);
+  }
+
+  return { status, take, refund };
+}
+
 export function clientIp(request) {
   const forwarded = request.headers['x-forwarded-for'];
   if (forwarded) {
@@ -63,7 +111,7 @@ export const RATE_LIMIT_POLICIES = Object.freeze({
   oauth: Object.freeze({ windowMs: 60_000, max: 20 }),
   isochrones: Object.freeze({ windowMs: 60_000, max: 30 }),
   hairstyleText: Object.freeze({ windowMs: 60_000, max: 20 }),
-  hairstyleImage: Object.freeze({ windowMs: 60 * 60_000, max: 5 }),
+  hairstyleByokImage: Object.freeze({ windowMs: 60_000, max: 20 }),
   photo: Object.freeze({ windowMs: 60_000, max: 120 }),
 });
 
@@ -73,7 +121,11 @@ export function rateLimitPolicyForPath(pathname) {
   if (pathname === '/api/writer/publish' || pathname === '/api/writer/review' || pathname === '/api/writer/social') return 'writer';
   if (pathname === '/api/writer/save') return 'writerSave';
   if (pathname === '/api/isochrones') return 'isochrones';
-  if (pathname === '/api/hairstyle-ai-studio/generate' || pathname === '/api/hairstyle-ai-studio/refine') return 'hairstyleImage';
+  if (
+    pathname === '/api/hairstyle-ai-studio/generate'
+    || pathname === '/api/hairstyle-ai-studio/refine'
+    || pathname === '/api/hairstyle-ai-studio/quota'
+  ) return null;
   if (pathname.startsWith('/api/hairstyle-ai-studio/')) return 'hairstyleText';
   if (pathname === '/api/photo-proxy' || pathname === '/api/strava/photo') return 'photo';
   if (pathname.startsWith('/api/strava/')) return 'oauth';

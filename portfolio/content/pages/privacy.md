@@ -28,7 +28,9 @@ Arbitrary query parameters are excluded. Analytics events must not contain names
 
 Same-origin Lab applications can call third-party services to provide their core functionality. Strava 3D Explorer can process account and activity data after you choose to connect Strava. Air Quality Map and Isochrones can send a selected location to their supporting APIs.
 
-Hairstyle AI Studio sends photos and style instructions to Google's Gemini service only after you request a recommendation, generation, or refinement. You provide the Gemini API key. The app keeps it in the current browser tab's memory and passes it through Fieldwork's same-origin gateway for each request; Fieldwork does not store the key or include it in analytics. Photos are not stored on the Fieldwork server. Generated looks and history stay in your browser until you delete them or clear the site's local data.
+Hairstyle AI Studio sends photos and style instructions to Google's Gemini service only after you request a recommendation, generation, or refinement. Fieldwork provides five successful image generations per client IP per UTC day and keeps that daily count only in the running server's memory. You may instead provide a personal Gemini API key; the app validates it through the same-origin proxy, keeps it only in the current browser tab's memory, and never includes it in analytics. Fieldwork does not store personal keys or photos on the server. Generated looks and history stay in your browser until you delete them or clear the site's local data.
+
+Real World Reasoning Agent sends the locations, map actions, and prompts needed for a live mission to Google Maps Platform and Gemini through Fieldwork's same-origin gateway. A personal Gemini key is optional, validated without generating content, kept only in the current tab's memory, and never included in analytics. Diagnostics are off unless you opt in; the gateway accepts only bounded structural status labels and rejects URLs, coordinates, place IDs, prompts, and identity data.
 
 Do not submit a location, connect an account, provide an API key, or upload a photo unless you accept the relevant provider terms and privacy practices.
 

@@ -1,0 +1,27 @@
+[
+  { "version": "v0.9", "createSurface": { "surfaceId": "fleet-hero-1", "catalogId": "atlas://maps-agentic-ui-catalog" } },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "fleet-hero-1",
+      "components": [
+        { "id": "root", "component": "Column", "children": ["hdr", "eta", "route"] },
+        { "id": "hdr", "component": "Text", "variant": "h4", "text": "Van 3 → rerouted to Job #182" },
+        { "id": "eta", "component": "EtaSummary", "duration": "14 min", "distance": "3.2 mi", "mode": "drive" },
+        { "id": "route", "component": "RouteItinerary", "steps": { "path": "/steps" } }
+      ]
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateDataModel": {
+      "surfaceId": "fleet-hero-1",
+      "path": "/steps",
+      "value": [
+        { "instruction": "Head north on Columbus Ave", "distance": "0.4 mi", "duration": "2 min" },
+        { "instruction": "Turn right onto Bay St", "distance": "1.1 mi", "duration": "5 min" },
+        { "instruction": "Continue to 2200 Jones St", "distance": "1.7 mi", "duration": "7 min" }
+      ]
+    }
+  }
+]

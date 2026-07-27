@@ -1,12 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ThemeToggle } from './components/ThemeToggle';
 import { StepUpload } from './components/StepUpload';
 import { StepStyle } from './components/StepStyle';
 import { StepResult } from './components/StepResult';
 import { SalonBriefModal } from './components/SalonBriefModal';
 import { LoadingView } from './components/LoadingView';
+import { GeminiKeyDialog } from './components/GeminiKeyDialog';
 import { useAppFlow } from './hooks/useAppFlow';
-import { Sparkles, Scissors, ShieldCheck, ChevronRight, KeyRound, Code2, ArrowUpRight } from 'lucide-react';
+import { Scissors, ShieldCheck, ChevronRight, KeyRound, Code2, ArrowUpRight } from 'lucide-react';
 
 const FIELDWORK_URL = 'https://ryanbaumann.dev/';
 const SOURCE_URL = 'https://github.com/ryanbaumann/fieldwork/tree/main/demos/hairstyle-ai-studio';
@@ -18,7 +19,11 @@ export const App = () => {
     setState,
     apiKey,
     hasKey,
+    freeTier,
+    isKeyDialogRequested,
+    setIsKeyDialogRequested,
     handleSelectKey,
+    forgetApiKey,
     updateImages,
     clearImage,
     handleGenerate,
@@ -30,8 +35,6 @@ export const App = () => {
     navigateTo,
     refinementPrompt
   } = useAppFlow(scrollContainerRef);
-  const [keyInput, setKeyInput] = useState('');
-  const [keyError, setKeyError] = useState('');
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -44,74 +47,6 @@ export const App = () => {
   const canGoToUpload = true;
   const canGoToStyle = !!state.images.front || state.history.length > 0;
   const canGoToResult = !!state.generatedResult;
-
-  if (!hasKey) {
-    return (
-      <div className="min-h-[100dvh] bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center p-4">
-        <form
-          className="max-w-md w-full bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (!handleSelectKey(keyInput)) {
-              setKeyError('Enter a valid Gemini API key.');
-              return;
-            }
-            setKeyInput('');
-            setKeyError('');
-          }}
-        >
-          <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <KeyRound className="text-primary-600 dark:text-primary-400" size={30} />
-          </div>
-          <div className="text-center">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-primary-600 dark:text-primary-400 mb-2">Bring your own Gemini key</p>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Try a new look privately</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Your key stays in this tab's memory, passes transiently through Fieldwork's rate-limited proxy, and is never stored or sent to analytics.
-            </p>
-          </div>
-          <label htmlFor="gemini-api-key" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">
-            Gemini API key
-          </label>
-          <input
-            id="gemini-api-key"
-            type="password"
-            value={keyInput}
-            onChange={(event) => {
-              setKeyInput(event.target.value);
-              setKeyError('');
-            }}
-            autoComplete="off"
-            spellCheck={false}
-            aria-describedby="key-help key-error"
-            className="w-full min-h-12 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 font-mono text-sm text-slate-900 dark:text-white outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-            placeholder="Paste your key"
-          />
-          <p id="key-help" className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            Need one? Create a key in <a className="font-bold text-primary-600 dark:text-primary-400 underline underline-offset-2" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.
-          </p>
-          <button
-            type="submit"
-            className="mt-5 min-h-12 w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-primary-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-          >
-            Enter the studio
-          </button>
-          <p id="key-error" role="alert" className="min-h-5 mt-2 text-center text-xs font-semibold text-red-600 dark:text-red-400">{keyError}</p>
-          <p className="mt-3 text-center text-[11px] leading-relaxed text-slate-400">
-            Photos are sent to Google Gemini only when you request analysis or generation. See <a className="underline underline-offset-2" href="/privacy/">Fieldwork privacy</a>.
-          </p>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-slate-100 pt-4 text-xs font-bold text-slate-500 dark:border-slate-800 dark:text-slate-400">
-            <a className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" href={FIELDWORK_URL}>
-              Explore Ryan's Fieldwork <ArrowUpRight size={14} aria-hidden="true" />
-            </a>
-            <a className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" href={SOURCE_URL} target="_blank" rel="noopener noreferrer">
-              <Code2 size={14} aria-hidden="true" /> View source
-            </a>
-          </div>
-        </form>
-      </div>
-    );
-  }
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-background-light dark:bg-background-dark bg-ambient text-slate-800 dark:text-slate-100 transition-colors duration-300 flex flex-col font-sans">
@@ -157,14 +92,12 @@ export const App = () => {
         <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => {
-                handleSelectKey('');
-                window.location.reload();
-              }}
-              className="min-h-11 rounded-lg px-3 text-xs font-bold text-slate-500 hover:text-primary dark:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-              aria-label="Forget Gemini API key"
+              onClick={() => setIsKeyDialogRequested(true)}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-slate-500 hover:text-primary dark:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 sm:px-3"
+              aria-label={hasKey ? 'Manage Gemini API key' : 'Use your Gemini API key'}
             >
-              Forget key
+              <KeyRound size={15} aria-hidden="true" />
+              <span className="hidden sm:inline">{hasKey ? 'Personal key' : 'Use my key'}</span>
             </button>
             <ThemeToggle />
         </div>
@@ -181,6 +114,27 @@ export const App = () => {
 
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto flex flex-col">
         <main className="max-w-6xl mx-auto px-2.5 sm:px-4 py-3 sm:py-6 flex-1 w-full">
+          {!hasKey && freeTier && (
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary-200 bg-primary-50/80 px-3 py-2 text-xs text-primary-950 dark:border-primary-900/50 dark:bg-primary-950/20 dark:text-primary-100">
+              <p>
+                {freeTier.enabled ? (
+                  <>
+                    <span className="font-black">{freeTier.remaining} of {freeTier.limit} free generations left today.</span>{' '}
+                    Resets at midnight UTC.
+                  </>
+                ) : (
+                  <span className="font-black">The shared tier is unavailable in this environment.</span>
+                )}
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsKeyDialogRequested(true)}
+                className="min-h-11 rounded-lg px-2 font-black text-primary-700 underline decoration-primary-300 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-primary-300"
+              >
+                Add a personal key
+              </button>
+            </div>
+          )}
           {state.errorMessage && (
             <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-red-800 shadow-sm dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-250">
               <ShieldCheck size={18} className="mt-0.5 shrink-0" />
@@ -272,6 +226,13 @@ export const App = () => {
         result={state.generatedResult}
         referenceImage={state.styleReferenceImage}
         referenceUrl={state.styleReferenceUrl}
+      />
+      <GeminiKeyDialog
+        isOpen={isKeyDialogRequested}
+        hasPersonalKey={hasKey}
+        onClose={() => setIsKeyDialogRequested(false)}
+        onConnect={handleSelectKey}
+        onDisconnect={forgetApiKey}
       />
     </div>
   );

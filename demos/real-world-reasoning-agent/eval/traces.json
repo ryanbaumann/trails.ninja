@@ -1,0 +1,119 @@
+{
+  "$schema": "./traces.schema.md",
+  "description": "Independent agent-trace eval dataset (reliability plan §4). Generic synthetic traces bootstrap the flywheel without Google Maps Content; the golden.* cases pass all five dimensions and each fail.* case violates exactly ONE dimension so the evaluator's per-dimension sensitivity is testable. Scored by src/ai/traceEval.ts.",
+  "traces": [
+    {
+      "id": "golden.scout.site-select",
+      "journey": "scout",
+      "userGoal": "Find the best synthetic candidate for a demo cafe in the sample district",
+      "toolCalls": ["scout_area", "score_candidates", "inspect_candidate", "show_evidence"],
+      "finalText": "Ranked #1: Demo candidate A, because the synthetic evidence fixture gave it the strongest supported visibility score.",
+      "surfaces": [
+        { "type": "ComparisonTable", "logical": "comparison", "owner": "catalog" },
+        { "type": "EvidenceSource", "logical": "evidence", "owner": "catalog" }
+      ],
+      "finalReferences": ["ComparisonTable", "EvidenceSource"],
+      "grounding": { "used": true, "invented": [], "required": true },
+      "mission": { "expectedComplete": true, "status": "complete", "artifacts": ["scout-winner"] }
+    },
+    {
+      "id": "golden.adstudio.campaign",
+      "journey": "adstudio",
+      "userGoal": "Build a campaign fixture for Demo candidate A",
+      "toolCalls": ["set_campaign_business", "gather_campaign_facts", "set_geo_targeting", "generate_ad_creatives", "export_campaign"],
+      "finalText": "Campaign fixture ready — three synthetic creatives use only the supplied demo evidence. Verify claims before publishing.",
+      "surfaces": [
+        { "type": "StatGrid", "logical": "facts", "owner": "catalog" },
+        { "type": "AdCreative", "logical": "creative", "owner": "catalog" },
+        { "type": "MapPreview", "logical": "targeting", "owner": "catalog" }
+      ],
+      "finalReferences": ["AdCreative", "StatGrid", "MapPreview"],
+      "grounding": { "used": true, "invented": [], "required": true },
+      "mission": { "expectedComplete": true, "status": "complete", "artifacts": ["campaign-creative-1"] }
+    },
+    {
+      "id": "golden.concierge.postcard",
+      "journey": "concierge",
+      "userGoal": "Plan a day in SF and make me a postcard",
+      "toolCalls": ["plan_itinerary", "make_postcard"],
+      "finalText": "Here's the synthetic itinerary and postcard fixture using only the supplied demo stops.",
+      "surfaces": [
+        { "type": "RouteItinerary", "logical": "itinerary", "owner": "catalog" },
+        { "type": "Image", "logical": "postcard", "owner": "scenario" }
+      ],
+      "finalReferences": ["RouteItinerary", "Image"],
+      "grounding": { "used": true, "invented": [], "required": false },
+      "mission": { "expectedComplete": false, "status": "none", "artifacts": [] }
+    },
+    {
+      "id": "fail.toolorder.facts-before-business",
+      "journey": "adstudio",
+      "userGoal": "Make a campaign for that cafe",
+      "toolCalls": ["gather_campaign_facts", "set_campaign_business", "generate_ad_creatives"],
+      "finalText": "Here are your creatives, because the storefront photo grounded them.",
+      "surfaces": [{ "type": "AdCreative", "logical": "creative", "owner": "catalog" }],
+      "finalReferences": ["AdCreative"],
+      "grounding": { "used": true, "invented": [], "required": true },
+      "mission": { "expectedComplete": true, "status": "complete", "artifacts": ["c1"] }
+    },
+    {
+      "id": "fail.grounding.invented-rating",
+      "journey": "adstudio",
+      "userGoal": "Make a campaign for that cafe",
+      "toolCalls": ["set_campaign_business", "gather_campaign_facts", "generate_ad_creatives", "export_campaign"],
+      "finalText": "Voted #1 cafe in San Francisco with 2,000 daily visitors — creatives ready.",
+      "surfaces": [{ "type": "AdCreative", "logical": "creative", "owner": "catalog" }],
+      "finalReferences": ["AdCreative"],
+      "grounding": { "used": true, "invented": ["Voted #1 cafe in San Francisco", "2,000 daily visitors"], "required": true },
+      "mission": { "expectedComplete": true, "status": "complete", "artifacts": ["c1"] }
+    },
+    {
+      "id": "fail.ownership.double-owned-comparison",
+      "journey": "scout",
+      "userGoal": "Compare the three corners",
+      "toolCalls": ["scout_area", "score_candidates", "compare_sites", "show_evidence"],
+      "finalText": "Here is the comparison, because you asked to see them side by side.",
+      "surfaces": [
+        { "type": "ComparisonTable", "logical": "comparison", "owner": "catalog" },
+        { "type": "ScoutCompareBoard", "logical": "comparison", "owner": "scenario" },
+        { "type": "EvidenceSource", "logical": "evidence", "owner": "catalog" }
+      ],
+      "finalReferences": ["ComparisonTable"],
+      "grounding": { "used": true, "invented": [], "required": true },
+      "mission": { "expectedComplete": true, "status": "complete", "artifacts": ["scout-winner"] }
+    },
+    {
+      "id": "fail.consistency.leaked-token",
+      "journey": "adstudio",
+      "userGoal": "Make a campaign",
+      "toolCalls": ["set_campaign_business", "gather_campaign_facts", "generate_ad_creatives", "export_campaign"],
+      "finalText": "Grab a coffee at {business.name} today — creatives ready.",
+      "surfaces": [{ "type": "AdCreative", "logical": "creative", "owner": "catalog" }],
+      "finalReferences": ["AdCreative"],
+      "grounding": { "used": true, "invented": [], "required": true },
+      "mission": { "expectedComplete": true, "status": "complete", "artifacts": ["c1"] }
+    },
+    {
+      "id": "fail.consistency.claims-absent-surface",
+      "journey": "adstudio",
+      "userGoal": "Make a campaign and show me the map targeting",
+      "toolCalls": ["set_campaign_business", "gather_campaign_facts", "generate_ad_creatives", "export_campaign"],
+      "finalText": "Your creatives and the targeting map are ready.",
+      "surfaces": [{ "type": "AdCreative", "logical": "creative", "owner": "catalog" }],
+      "finalReferences": ["AdCreative", "MapPreview"],
+      "grounding": { "used": true, "invented": [], "required": true },
+      "mission": { "expectedComplete": true, "status": "complete", "artifacts": ["c1"] }
+    },
+    {
+      "id": "fail.mission.partial-no-artifact",
+      "journey": "adstudio",
+      "userGoal": "Make a campaign for that cafe",
+      "toolCalls": ["set_campaign_business", "gather_campaign_facts", "generate_ad_creatives"],
+      "finalText": "I hit the tool-step limit before finishing, because the run stalled — resume to continue.",
+      "surfaces": [{ "type": "ProgressStatus", "logical": "progress", "owner": "catalog" }],
+      "finalReferences": ["ProgressStatus"],
+      "grounding": { "used": true, "invented": [], "required": true },
+      "mission": { "expectedComplete": true, "status": "partial", "artifacts": [] }
+    }
+  ]
+}

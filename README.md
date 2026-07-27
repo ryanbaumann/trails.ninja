@@ -36,7 +36,7 @@ The narrative is intentionally grounded: solution architecture, developer experi
 * **[Air Quality Map](demos/aqi-map/README.md)**: inspect live Air Quality API heatmap tiles and point conditions on a 2D Google map.
 * **[Isochrones](demos/isochrones/README.md)**: analyze delivery, commute, and response reachability with live-regenerating isochrone bands.
 * **Infographic Agent**: an external portable-skill experiment linked from Ryan’s Lab.
-* **Atlas, Real World Reasoning Agent**: an external map-agent experiment linked from Ryan’s Lab.
+* **Atlas, Real World Reasoning Agent**: a first-party open-source map agent hosted with Fieldwork.
 
 ## Local development
 

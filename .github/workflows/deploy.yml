@@ -121,7 +121,7 @@ jobs:
             echo "- RESEND_API_KEY (optional)"
             echo "- RESEND_SEGMENT_ID (optional, email-list subscriptions)"
             echo "- RESEND_TOPIC_ID (optional, email-list preferences)"
-            echo "- GEMINI_API_KEY (optional)"
+            echo "- GEMINI_API_KEY (required for the Hairstyle AI shared tier)"
             echo "- CONTACT_TO_EMAIL (optional)"
             echo "- GOOGLE_OAUTH_CLIENT_SECRET (required for /writer/)"
             echo "- GOOGLE_OAUTH_SESSION_SECRET (required for /writer/)"
@@ -246,6 +246,7 @@ jobs:
             'STRAVA_CLIENT_ID',
             'STRAVA_CLIENT_SECRET',
             'GMP_SERVER_API_KEY',
+            'GEMINI_API_KEY',
             'GITHUB_CONTENT_TOKEN',
           ]);
           for (const app of apps) {

@@ -9,6 +9,9 @@ export const PROVIDER_REGISTRY = Object.freeze({
   isochrones: Object.freeze({
     apiKey: 'GMP_SERVER_API_KEY',
   }),
+  gmp: Object.freeze({
+    apiKey: 'GMP_SERVER_API_KEY',
+  }),
   resend: Object.freeze({
     apiKey: 'RESEND_API_KEY',
     toEmail: 'CONTACT_TO_EMAIL',

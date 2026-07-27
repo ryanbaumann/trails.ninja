@@ -1,0 +1,42 @@
+node_modules/
+dist/
+*.local
+.DS_Store
+
+# Agent worktrees / local harness state
+.claude/
+
+# TS build info
+*.tsbuildinfo
+
+# Journey screenshots need the live basemap; only the landing hero is committed.
+docs/screens/concierge.png
+docs/screens/insight.png
+docs/screens/fleet.png
+docs/screens/cinema.png
+docs/screens/05-adstudio.png
+docs/screens/06-scout.png
+
+# Playwright MCP / browser-driver scratch output — never commit local run logs.
+.playwright-mcp/
+# Mission smoke writes here; keep local-only.
+/tmp/atlas-mission-smoke/
+
+# Local credentials
+.env
+.env.*
+!.env.example
+
+# Verification artifacts (compact PASS/FAIL JSON)
+.verify/
+
+# Eval artifacts (trace-eval baseline + last run; local only)
+.eval/
+
+# Telemetry report artifacts (sanitized report + replay fixtures; local only)
+.telemetry/
+
+# Triage artifacts (clustered report + issue proposals; local/CI only)
+.triage/
+# Cloud Run log export the triage job reads (never commit raw logs)
+logs.json

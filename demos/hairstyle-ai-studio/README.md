@@ -11,8 +11,10 @@ commit `9ea2c0f31e5e1d252220ede6731b655bf2fb8fba`.
 
 - The React, Vite, Tailwind, local-history, result, refinement, and salon-brief flows remain app-local.
 - The standalone Express server and Docker image were removed. Fieldwork's zero-dependency gateway owns `/api/hairstyle-ai-studio/*`.
-- Visitors bring their own Gemini API key. The browser keeps it only in React memory and sends it in a transient same-origin request header. The gateway does not store, log, return, or analyze it.
-- The gateway validates image data, caps request size and prompt length, requires same-origin browser mutations, and rate-limits text and image requests by client IP.
+- The shared server key provides five successful image generations per client IP per UTC day. Recommendation analysis does not consume that allowance.
+- Visitors can connect a personal Gemini API key after the shared allowance is exhausted or at any time. The proxy validates it without generating content; the browser keeps it only in React memory and sends it in a transient same-origin request header.
+- Personal-key calls bypass the shared spend cap but retain a generous per-IP abuse guard. The gateway never stores, logs, returns, or analyzes a visitor key.
+- The gateway validates image data, caps request size and prompt length, requires same-origin browser mutations, and separates shared allowance, visitor-key quota, and site-abuse errors.
 - Google Analytics uses Fieldwork's privacy-limited shared loader. Events contain only enumerated funnel states, never keys, photos, prompts, style URLs, filenames, IDs, or raw errors.
 
 ## Models
@@ -53,7 +55,7 @@ Gateway behavior and rate limits are tested from `gateway/test/hairstyleAi.test.
 
 ## Privacy
 
-Photos are sent to Google Gemini only after the visitor explicitly requests a recommendation, generation, or refinement. Fieldwork does not store those photos on the server. Generated history is stored in the browser's IndexedDB and can be deleted from the app.
+Photos are sent to Google Gemini only after the visitor explicitly requests a recommendation, generation, or refinement. Fieldwork does not store those photos on the server. The shared allowance keeps an in-memory daily generation count keyed by client IP; a service restart can reset it early. Generated history is stored in the browser's IndexedDB and can be deleted from the app.
 
 ## License
 

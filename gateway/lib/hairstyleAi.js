@@ -1,4 +1,5 @@
 const INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
+const MODELS_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 const VISION_MODEL = 'gemini-3.5-flash-lite';
 const IMAGE_MODEL = 'gemini-3.1-flash-lite-image';
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -109,7 +110,7 @@ Do not add captions, logos, watermarks, or unrelated people.`;
 
 export function validateHairstyleApiKey(value) {
   const apiKey = cleanText(value, 200);
-  return /^[A-Za-z0-9_-]{20,200}$/.test(apiKey) ? apiKey : null;
+  return /^[\x21-\x7E]{20,200}$/.test(apiKey) ? apiKey : null;
 }
 
 export async function handleHairstyleAiApi({
@@ -117,13 +118,34 @@ export async function handleHairstyleAiApi({
   method,
   body,
   apiKey,
+  credentialSource = 'byok',
   fetchImpl = globalThis.fetch,
   signal,
 }) {
   if (method !== 'POST') return result(405, { error: 'Method not allowed' });
-  if (!validateHairstyleApiKey(apiKey)) return result(401, { error: 'Enter a valid Gemini API key to continue.' });
+  if (!validateHairstyleApiKey(apiKey)) {
+    return result(401, {
+      error: 'Enter a valid Gemini API key to continue.',
+      code: 'INVALID_GEMINI_KEY',
+    });
+  }
 
   try {
+    if (pathname === '/api/hairstyle-ai-studio/validate-key') {
+      const response = await fetchImpl(`${MODELS_URL}/${encodeURIComponent(IMAGE_MODEL)}`, {
+        method: 'GET',
+        headers: { 'x-goog-api-key': apiKey },
+        signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15_000)]) : AbortSignal.timeout(15_000),
+      });
+      if (!response.ok) {
+        const statusCode = response.status === 401 || response.status === 403 ? 401
+          : response.status === 429 ? 429
+            : 502;
+        throw Object.assign(new Error('Gemini key validation failed.'), { statusCode });
+      }
+      return result(200, { valid: true });
+    }
+
     if (pathname === '/api/hairstyle-ai-studio/analyze') {
       const image = parseDataUrl(body?.base64Image);
       const availableStyles = Array.isArray(body?.availableStyles)
@@ -236,8 +258,24 @@ export async function handleHairstyleAiApi({
   } catch (error) {
     if (error?.name === 'TimeoutError') return result(504, { error: 'Gemini took too long to respond. Please try again.' });
     if (error?.name === 'AbortError') return result(499, { error: 'Request cancelled.' });
-    if (error?.statusCode === 401) return result(401, { error: 'Gemini rejected that API key. Check the key and try again.' });
-    if (error?.statusCode === 429) return result(429, { error: 'Gemini quota is currently exhausted. Check your key quota or try later.' });
+    if (error?.statusCode === 401) {
+      return result(401, {
+        error: 'Gemini rejected that API key. Check the key and try again.',
+        code: 'INVALID_GEMINI_KEY',
+      });
+    }
+    if (error?.statusCode === 429 && credentialSource === 'hosted') {
+      return result(503, {
+        error: 'The shared Gemini allowance is temporarily unavailable. Add your own key to continue.',
+        code: 'FREE_TIER_UNAVAILABLE',
+      });
+    }
+    if (error?.statusCode === 429) {
+      return result(429, {
+        error: 'That Gemini API key has reached its provider quota. Check its quota or use another key.',
+        code: 'GEMINI_QUOTA_EXHAUSTED',
+      });
+    }
     if (error instanceof SyntaxError) return result(502, { error: 'Gemini returned an unexpected response. Please try again.' });
     return result(error?.statusCode || 502, { error: 'Gemini could not complete the request. Please try again.' });
   }

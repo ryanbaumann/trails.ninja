@@ -21,11 +21,17 @@ Use this skill when changing this repository's Gemini model integration, UX flow
 ## Secret checklist
 - Never put Gemini keys in `VITE_*` variables, source, local storage, IndexedDB,
   logs, analytics, URLs, or committed environment files.
-- Visitors bring their own key at runtime. Keep it only in React memory and
-  pass it transiently in `X-Gemini-API-Key` to the same-origin
-  `/api/hairstyle-ai-studio/*` gateway routes.
-- The gateway forwards the caller's key only to Gemini. It must not store,
-  return, log, or replace it with a shared deployed key.
+- Use the server-side `GEMINI_API_KEY` for the shared allowance of five
+  successful image generations per client IP per UTC day. Do not charge the
+  allowance for recommendation analysis or failed generation requests.
+- Let visitors override the shared key at runtime. Validate a personal key
+  through the non-generating proxy endpoint before activation, keep it only in
+  React memory, and pass it transiently in `X-Gemini-API-Key`.
+- A valid personal key bypasses the shared spend cap but not the separate
+  gateway abuse limiter. A supplied malformed or rejected key must fail closed;
+  never silently replace it with the shared deployed key.
+- The gateway forwards the selected key only to Gemini. It must not store,
+  return, log, or send it to analytics.
 - Update the app README, privacy copy, gateway tests, and rate-limit tests when
   environment or request behavior changes.
 

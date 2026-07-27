@@ -1,15 +1,36 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, GeneratedImage, ViewType } from '../types';
-import { generateHairstyleImage, refineHairstyleImage, RateLimitError } from '../services/geminiService';
+import {
+  generateHairstyleImage,
+  refineHairstyleImage,
+  getFreeTierStatus,
+  validateGeminiKey,
+  FreeTierStatus,
+  GeminiApiError,
+  RateLimitError,
+} from '../services/geminiService';
 import { saveImage, getImage, clearAllImages, deleteImage } from '../services/imageStorage';
 import { trackEvent } from '../services/analytics';
 
-const RATE_LIMIT_MESSAGE = "You've reached the current generation limit. Check your Gemini quota or try again later.";
 const titleFromPrompt = (prompt: string) =>
   prompt.split(/\s+/).filter(Boolean).slice(0, 4).join(' ').replace(/[.,;:!?-]+$/, '') || 'New Hairstyle';
 
 const describeError = (error: unknown, fallback: string): string => {
-  if (error instanceof RateLimitError) return RATE_LIMIT_MESSAGE;
+  if (error instanceof GeminiApiError) {
+    if (error.code === 'FREE_TIER_EXHAUSTED') {
+      return "You've used today's 5 free generations. Add your Gemini API key to keep creating.";
+    }
+    if (error.code === 'FREE_TIER_UNAVAILABLE') {
+      return 'The shared allowance is temporarily unavailable. Add your Gemini API key to continue.';
+    }
+    if (error.code === 'GEMINI_QUOTA_EXHAUSTED') {
+      return 'Your Gemini API key has reached its provider quota. Check its quota or connect another key.';
+    }
+    if (error.code === 'SITE_ABUSE_LIMIT') {
+      return 'Too many requests in a short period. Wait a moment, then try again.';
+    }
+    return error.message;
+  }
   if (error instanceof DOMException && error.name === 'AbortError') {
     return 'Generation cancelled or timed out. You can try again when ready.';
   }
@@ -18,6 +39,8 @@ const describeError = (error: unknown, fallback: string): string => {
 
 export const useAppFlow = (scrollContainerRef?: React.RefObject<HTMLElement | null>) => {
   const [apiKey, setApiKey] = useState('');
+  const [freeTier, setFreeTier] = useState<FreeTierStatus | null>(null);
+  const [isKeyDialogRequested, setIsKeyDialogRequested] = useState(false);
   const [state, setState] = useState<AppState>({
     step: 'upload',
     images: { front: null, side: null, back: null },
@@ -40,13 +63,35 @@ export const useAppFlow = (scrollContainerRef?: React.RefObject<HTMLElement | nu
   // Holds the in-flight generation/refinement so the user can cancel it.
   const abortRef = useRef<AbortController | null>(null);
 
-  const handleSelectKey = (value: string) => {
+  const handleSelectKey = async (value: string) => {
     const nextKey = value.trim();
-    if (!/^[A-Za-z0-9_-]{20,200}$/.test(nextKey)) return false;
+    if (!/^[\x21-\x7E]{20,200}$/.test(nextKey)) return false;
+    const valid = await validateGeminiKey(nextKey);
+    if (!valid) return false;
     setApiKey(nextKey);
-    trackEvent('key_setup', { result: 'accepted' });
+    setIsKeyDialogRequested(false);
+    setState(prev => ({ ...prev, errorMessage: null }));
+    trackEvent('key_setup', { result: 'validated' });
     return true;
   };
+
+  const forgetApiKey = useCallback(() => {
+    setApiKey('');
+    setIsKeyDialogRequested(false);
+    trackEvent('key_setup', { result: 'disconnected' });
+  }, []);
+
+  const refreshFreeTier = useCallback(async () => {
+    try {
+      setFreeTier(await getFreeTierStatus());
+    } catch {
+      setFreeTier(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshFreeTier();
+  }, [refreshFreeTier]);
 
   // Persistence: Load History
   useEffect(() => {
@@ -147,6 +192,7 @@ export const useAppFlow = (scrollContainerRef?: React.RefObject<HTMLElement | nu
       };
 
       await saveImage(targetId, imageUrl);
+      if (!apiKey) await refreshFreeTier();
       trackEvent('generation_success', { layout: state.outputLayout, mode: state.generationMode });
 
       setState(prev => ({
@@ -163,6 +209,13 @@ export const useAppFlow = (scrollContainerRef?: React.RefObject<HTMLElement | nu
         step: 'style',
         errorMessage: describeError(error, 'Generation failed. Please check your image inputs and network, then try again.'),
       }));
+      if (error instanceof GeminiApiError && (
+        error.code === 'FREE_TIER_EXHAUSTED'
+        || error.code === 'FREE_TIER_UNAVAILABLE'
+      )) {
+        setIsKeyDialogRequested(true);
+        void refreshFreeTier();
+      }
     } finally {
       abortRef.current = null;
     }
@@ -210,6 +263,7 @@ export const useAppFlow = (scrollContainerRef?: React.RefObject<HTMLElement | nu
       };
 
       await saveImage(targetId, imageUrl);
+      if (!apiKey) await refreshFreeTier();
       trackEvent('refinement_success', { layout: state.outputLayout, mode: state.generationMode });
 
       setState(prev => ({
@@ -224,6 +278,13 @@ export const useAppFlow = (scrollContainerRef?: React.RefObject<HTMLElement | nu
         ...prev,
         errorMessage: describeError(error, 'Refinement failed. Try a simpler instruction or a different reference image.'),
       }));
+      if (error instanceof GeminiApiError && (
+        error.code === 'FREE_TIER_EXHAUSTED'
+        || error.code === 'FREE_TIER_UNAVAILABLE'
+      )) {
+        setIsKeyDialogRequested(true);
+        void refreshFreeTier();
+      }
     } finally {
       setIsRefining(false);
       abortRef.current = null;
@@ -275,7 +336,11 @@ export const useAppFlow = (scrollContainerRef?: React.RefObject<HTMLElement | nu
     setState,
     apiKey,
     hasKey: Boolean(apiKey),
+    freeTier,
+    isKeyDialogRequested,
+    setIsKeyDialogRequested,
     handleSelectKey,
+    forgetApiKey,
     updateImages,
     clearImage,
     handleGenerate,
