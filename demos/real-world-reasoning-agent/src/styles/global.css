@@ -77,12 +77,6 @@ a {
   color: var(--brand-b);
 }
 
-@media (pointer: coarse) {
-  .fieldwork-home-link {
-    min-height: 44px;
-  }
-}
-
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -2005,6 +1999,10 @@ gmp-place-contextual {
    sizing untouched — only the effective tap area grows here, not the visual
    density of the desktop layout. */
 @media (pointer: coarse) {
+  .fieldwork-home-link {
+    min-height: 44px;
+  }
+
   .copilot-chip-btn {
     display: inline-flex;
     align-items: center;
