@@ -428,9 +428,12 @@ Learning: Keep fast package lint and unit tests isolated, but use the deployable
 container as the single full compilation and smoke boundary on pull requests.
 On main, let the production build own that boundary. Since Cloud Build workers
 are ephemeral, explicitly pull the last successful image and export inline
-BuildKit cache metadata.
+BuildKit cache metadata. Before removing or renaming a CI job, inspect branch
+protection's required contexts; preserve any required name as a cheap dependent
+gate until the protection rule is deliberately migrated.
 Evidence: `.github/workflows/ci.yml` removes the duplicate staged build and
-per-package build step, and gates Docker verification to pull requests.
+per-package build step, gates Docker verification to pull requests, and keeps
+the legacy required smoke context without a second compilation.
 `cloudbuild.yaml` pulls, consumes, and refreshes the `build-cache` image.
 Use next time: Before adding a build job, map which existing job already proves
 compilation, packaging, or runtime liveness and add only missing evidence.

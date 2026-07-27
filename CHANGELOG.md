@@ -69,7 +69,9 @@ All notable changes to this project will be documented in this file.
   once in the deployable Docker image, while package jobs retain isolated lint
   and unit tests. Main-branch pushes now rely on the production Cloud Build
   instead of rebuilding the same container in GitHub Actions, and Cloud Build
-  reuses the last successful image as an inline BuildKit cache.
+  reuses the last successful image as an inline BuildKit cache. The historical
+  required smoke-check name remains as a lightweight gate over the Docker job
+  so branch protection does not wait for a removed status.
 - Reworked Hairstyle AI Studio's Gemini access to match the proven hosted-plus-BYOK pattern: each client IP receives five successful image generations per UTC day, recommendation analysis stays outside that spend cap, and a validated memory-only personal key bypasses the shared allowance while retaining a separate abuse guard. The UI now opens directly into the studio, shows remaining free generations, and distinguishes shared exhaustion from personal-key provider quota.
 - Updated Hairstyle AI Studio to current compatible dependencies with a clean
   audit, routed optional recommendations to `gemini-3.5-flash-lite`, retained

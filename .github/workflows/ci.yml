@@ -122,6 +122,18 @@ jobs:
           done
           BASE_URL=http://127.0.0.1:8080 node scripts/smoke.mjs
 
+  build-and-smoke:
+    # Branch protection requires this historical check name. Keep it as a
+    # lightweight compatibility gate over the production-shaped Docker job;
+    # do not rebuild every app a second time here.
+    name: Build all apps + gateway smoke test
+    if: github.event_name == 'pull_request'
+    needs: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: echo "Docker build and gateway smoke test passed."
+
   secret-scan:
     name: Secret Scanner
     runs-on: ubuntu-latest
