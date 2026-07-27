@@ -1,0 +1,21 @@
+[
+  { "version": "v0.9", "createSurface": { "surfaceId": "state-loading-1", "catalogId": "atlas://maps-agentic-ui-catalog" } },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "state-loading-1",
+      "components": [
+        { "id": "root", "component": "Column", "children": ["progress"] },
+        {
+          "id": "progress",
+          "component": "ProgressStatus",
+          "label": "Analyzing 6 candidate corners",
+          "state": "running",
+          "detail": "Fetching Street View frames",
+          "step": 3,
+          "total": 6
+        }
+      ]
+    }
+  }
+]

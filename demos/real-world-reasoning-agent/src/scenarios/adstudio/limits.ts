@@ -1,0 +1,1 @@
+export const MAX_CREATIVES_PER_SESSION = 30;

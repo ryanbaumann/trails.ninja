@@ -126,9 +126,9 @@ test('build emits published aliases and omits redirects from writer previews', (
   assert.deepEqual(JSON.parse(readFileSync(join(paths.dist, 'redirects.json'), 'utf8')), {
     '/lab/': '/demos/',
     '/labs/': '/demos/',
-    '/atlas/': 'https://atlas-demo-561209038703.us-central1.run.app/',
-    '/labs/atlas/': 'https://atlas-demo-561209038703.us-central1.run.app/',
-    '/demos/atlas/': 'https://atlas-demo-561209038703.us-central1.run.app/',
+    '/atlas/': '/real-world-reasoning-agent/',
+    '/labs/atlas/': '/real-world-reasoning-agent/',
+    '/demos/atlas/': '/real-world-reasoning-agent/',
     '/writing/previous/': '/writing/current/',
   });
 

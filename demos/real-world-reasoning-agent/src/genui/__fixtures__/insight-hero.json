@@ -1,0 +1,36 @@
+[
+  { "version": "v0.9", "createSurface": { "surfaceId": "insight-hero-1", "catalogId": "atlas://maps-agentic-ui-catalog" } },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "insight-hero-1",
+      "components": [
+        { "id": "root", "component": "Column", "children": ["hdr", "stats", "evAqi", "evPollen"] },
+        { "id": "hdr", "component": "Text", "variant": "h3", "text": "Environment dossier — Mission District" },
+        {
+          "id": "stats",
+          "component": "StatGrid",
+          "items": [
+            { "label": "AQI", "value": "42", "hint": "Good" },
+            { "label": "Pollen", "value": "Low", "hint": "Grass 1/5" },
+            { "label": "Walk score", "value": "97", "hint": "Walker's paradise" }
+          ]
+        },
+        {
+          "id": "evAqi",
+          "component": "EvidenceSource",
+          "label": "Air Quality API — current conditions",
+          "provenance": "observed",
+          "confidence": 0.95
+        },
+        {
+          "id": "evPollen",
+          "component": "EvidenceSource",
+          "label": "Pollen API — daily forecast",
+          "provenance": "observed",
+          "confidence": 0.88
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,49 @@
+[
+  { "version": "v0.9", "createSurface": { "surfaceId": "scout-evidence-1", "catalogId": "atlas://maps-agentic-ui-catalog" } },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "scout-evidence-1",
+      "components": [
+        { "id": "root", "component": "Column", "children": ["heading", "frames", "scores", "flyBtn"] },
+        { "id": "heading", "component": "Text", "variant": "h3", "text": "Evidence: corner of Columbus & Vallejo" },
+        {
+          "id": "frames",
+          "component": "List",
+          "direction": "horizontal",
+          "children": { "componentId": "frameTpl", "path": "/frames" }
+        },
+        { "id": "frameTpl", "component": "Image", "url": { "path": "url" }, "alt": { "path": "heading" }, "fit": "cover" },
+        {
+          "id": "scores",
+          "component": "StatGrid",
+          "items": [
+            { "label": "Visibility", "value": "8.5" },
+            { "label": "Condition", "value": "7.0" },
+            { "label": "Foot traffic", "value": "9.0" },
+            { "label": "Total", "value": "8.2" }
+          ]
+        },
+        {
+          "id": "flyBtn",
+          "component": "Button",
+          "child": "flyLabel",
+          "variant": "primary",
+          "action": { "event": { "name": "fly_to", "context": { "lat": 37.7998, "lng": -122.4085, "zoom": 18 } } }
+        },
+        { "id": "flyLabel", "component": "Text", "text": "Fly to it" }
+      ]
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateDataModel": {
+      "surfaceId": "scout-evidence-1",
+      "path": "/frames",
+      "value": [
+        { "url": "/api/real-world-reasoning-agent/gmp/streetview?lat=37.7998&lng=-122.4085&heading=0", "heading": "looking north" },
+        { "url": "/api/real-world-reasoning-agent/gmp/streetview?lat=37.7998&lng=-122.4085&heading=120", "heading": "looking south-east" }
+      ]
+    }
+  }
+]

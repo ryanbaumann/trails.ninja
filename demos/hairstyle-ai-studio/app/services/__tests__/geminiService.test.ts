@@ -3,6 +3,9 @@ import {
   analyzeUserImage,
   generateHairstyleImage,
   refineHairstyleImage,
+  getFreeTierStatus,
+  validateGeminiKey,
+  GeminiApiError,
   RateLimitError,
 } from '../geminiService';
 
@@ -36,6 +39,29 @@ describe('analyzeUserImage', () => {
     expect(init.headers['X-Gemini-API-Key']).toBe(API_KEY);
     expect(JSON.parse(init.body).availableStyles).toEqual(styles);
   });
+
+  it('omits the personal-key header while using the hosted free tier', async () => {
+    mockFetch.mockResolvedValue(jsonResponse({ recommendedStyleId: null }));
+    await analyzeUserImage('', 'data:image/png;base64,abc', []);
+
+    expect(mockFetch.mock.calls[0][1].headers['X-Gemini-API-Key']).toBeUndefined();
+  });
+});
+
+describe('credential and quota flow', () => {
+  it('validates a personal key through the proxy before activation', async () => {
+    mockFetch.mockResolvedValue(jsonResponse({ valid: true }));
+    await expect(validateGeminiKey(API_KEY)).resolves.toBe(true);
+    expect(mockFetch.mock.calls[0][0]).toBe('/api/hairstyle-ai-studio/validate-key');
+    expect(mockFetch.mock.calls[0][1].headers['X-Gemini-API-Key']).toBe(API_KEY);
+  });
+
+  it('reads the shared allowance without consuming it', async () => {
+    const quota = { enabled: true, limit: 5, remaining: 4, resetAt: '2026-07-28T00:00:00.000Z' };
+    mockFetch.mockResolvedValue(jsonResponse(quota));
+    await expect(getFreeTierStatus()).resolves.toEqual(quota);
+    expect(mockFetch.mock.calls[0][1].method).toBe('GET');
+  });
 });
 
 describe('generateHairstyleImage', () => {
@@ -53,10 +79,23 @@ describe('generateHairstyleImage', () => {
   });
 
   it('raises RateLimitError on HTTP 429', async () => {
-    mockFetch.mockResolvedValue(jsonResponse({ error: 'Slow down' }, false, 429));
+    mockFetch.mockResolvedValue(jsonResponse({ error: 'Use your key', code: 'FREE_TIER_EXHAUSTED' }, false, 429));
+    const promise = generateHairstyleImage(
+      '', { front: 'x', side: null, back: null }, 'bob'
+    );
+    await expect(
+      promise
+    ).rejects.toBeInstanceOf(RateLimitError);
+    await expect(promise).rejects.toMatchObject({ code: 'FREE_TIER_EXHAUSTED' });
+  });
+
+  it('preserves provider quota error codes for a personal key', async () => {
+    mockFetch.mockResolvedValue(jsonResponse({ error: 'Key quota used', code: 'GEMINI_QUOTA_EXHAUSTED' }, false, 429));
     await expect(
       generateHairstyleImage(API_KEY, { front: 'x', side: null, back: null }, 'bob')
-    ).rejects.toBeInstanceOf(RateLimitError);
+    ).rejects.toEqual(expect.objectContaining<Partial<GeminiApiError>>({
+      code: 'GEMINI_QUOTA_EXHAUSTED',
+    }));
   });
 
   it('rejects a successful response without an image', async () => {

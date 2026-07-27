@@ -1,0 +1,77 @@
+/* Compact mission controller docked at the top of the Scout context drawer.
+   No floating/glass of its own — it reads as the first section of the panel. */
+.mission-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--glass-line);
+}
+
+.mission-header__topline {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+.mission-header__topline strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 11.5px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.mission-header__stages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mission-header__stages li {
+  display: inline-flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-faint);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.mission-header__stages li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mission-header__stages li.is-done { color: var(--text-dim); }
+.mission-header__stages li.is-active { color: var(--brand-b); }
+.mission-header__dot {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.6;
+}
+.mission-header__stages li.is-active .mission-header__dot { opacity: 1; }
+
+.mission-header__rationale {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.mission-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}

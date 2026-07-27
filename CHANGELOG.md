@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Security
+- Documented and enforced the Lab gateway's key boundaries, CSP assumptions,
+  conservative per-IP and process-wide daily Maps/Gemini ceilings, bounded
+  limiter memory, privacy-limited analytics, and production Grounding Lite
+  configuration.
 - Added a same-origin, BYO-key Gemini gateway for Hairstyle AI Studio. Visitor
   keys stay in React memory, pass transiently in a request header, and are
   never stored or included in analytics. The gateway validates image data and
@@ -16,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - Pinned the Cloud Run service to `--max-instances 1`. The gateway's in-memory per-IP rate limiters (private-demo auth brute-force, and the spend limits in front of Isochrones, Gemini, and Resend) are only correct on a single instance, but the deploy passed no instance cap and Cloud Run's default is 100, so under load every limit silently became per-instance. Also pinned `--concurrency`, `--memory`, and `--cpu` at their current defaults so a platform default change cannot raise cost or dilute the limits again.
 
 ### Added
+- Released Real World Reasoning Agent as a first-party open-source Fieldwork Lab from the explicitly authorized private snapshot at `68e8c34547066a984ccb97f5b587caeb97561ec1`. The reviewed source, tests, eval fixtures, guarded Maps/Gemini proxy logic, and provenance now live under `demos/real-world-reasoning-agent/`; the old repository's visibility and settings were not changed.
 - Imported Hairstyle AI Studio from its public upstream repository at
   `9ea2c0f31e5e1d252220ede6731b655bf2fb8fba`, hosted it at
   `/hairstyle-ai-studio/`, and placed it third in the homepage Labs order.
@@ -28,6 +33,8 @@ All notable changes to this project will be documented in this file.
   mobile selection flow. The existing merge-time Buffer workflow now accepts
   validated one-off release drafts and stages them for approval without
   publishing.
+- Added a follow-up Buffer draft for the five-free-generations tier and the
+  corrected personal-key fallback. It remains editable and unpublished.
 - Added frozen development/selection eval suites for responsive design,
   portfolio content/design/review, Google Maps Platform, and the skill
   improvement workflow. The deterministic gate now validates eval ownership,
@@ -55,6 +62,7 @@ All notable changes to this project will be documented in this file.
 - Added gateway test coverage verifying that all external image, font, and avatar hosts loaded by demo apps are permitted by their respective CSP policies.
 
 ### Changed
+- Reworked Hairstyle AI Studio's Gemini access to match the proven hosted-plus-BYOK pattern: each client IP receives five successful image generations per UTC day, recommendation analysis stays outside that spend cap, and a validated memory-only personal key bypasses the shared allowance while retaining a separate abuse guard. The UI now opens directly into the studio, shows remaining free generations, and distinguishes shared exhaustion from personal-key provider quota.
 - Updated Hairstyle AI Studio to current compatible dependencies with a clean
   audit, routed optional recommendations to `gemini-3.5-flash-lite`, retained
   `gemini-3.1-flash-lite-image` for image-capable generation, and replaced

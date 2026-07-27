@@ -1,0 +1,37 @@
+[
+  { "version": "v0.9", "createSurface": { "surfaceId": "espresso-1", "catalogId": "atlas://maps-agentic-ui-catalog" } },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "espresso-1",
+      "components": [
+        { "id": "root", "component": "Column", "children": ["title", "carousel", "chips"] },
+        { "id": "title", "component": "Text", "variant": "h3", "text": "Top espresso near the Ferry Building" },
+        {
+          "id": "carousel",
+          "component": "List",
+          "direction": "horizontal",
+          "children": { "componentId": "placeTpl", "path": "/places" }
+        },
+        { "id": "placeTpl", "component": "PlaceCard", "placeId": { "path": "placeId" } },
+        {
+          "id": "chips",
+          "component": "ChoicePicker",
+          "options": [
+            { "label": "Open now", "value": "open" },
+            { "label": "Walkable", "value": "walk" }
+          ],
+          "action": { "event": { "name": "send_prompt", "context": { "prompt": "filter the espresso list: {selection}" } } }
+        }
+      ]
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateDataModel": {
+      "surfaceId": "espresso-1",
+      "path": "/places",
+      "value": [{ "placeId": "PLACE_ID_1" }, { "placeId": "PLACE_ID_2" }]
+    }
+  }
+]

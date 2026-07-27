@@ -1,0 +1,37 @@
+[
+  { "version": "v0.9", "createSurface": { "surfaceId": "concierge-hero-1", "catalogId": "atlas://maps-agentic-ui-catalog" } },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "concierge-hero-1",
+      "components": [
+        { "id": "root", "component": "Column", "children": ["progress", "hdr", "stops"] },
+        {
+          "id": "progress",
+          "component": "ProgressStatus",
+          "label": "Building your day",
+          "state": "running",
+          "detail": "Enriching stops with photos & hours",
+          "step": 2,
+          "total": 3
+        },
+        { "id": "hdr", "component": "Text", "variant": "h4", "text": "Afternoon in North Beach" },
+        {
+          "id": "stops",
+          "component": "List",
+          "direction": "vertical",
+          "children": { "componentId": "stopTpl", "path": "/stops" }
+        },
+        { "id": "stopTpl", "component": "PlaceCard", "placeId": { "path": "placeId" } }
+      ]
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateDataModel": {
+      "surfaceId": "concierge-hero-1",
+      "path": "/stops",
+      "value": [{ "placeId": "PLACE_ID_1" }, { "placeId": "PLACE_ID_2" }]
+    }
+  }
+]

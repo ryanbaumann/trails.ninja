@@ -1,0 +1,4 @@
+{
+  "channel": "linkedin",
+  "text": "A small Hairstyle AI Studio update 😉\n\nYou can now try five AI hairstyle generations a day without setting anything up. Recommendations do not spend that image allowance, and when the shared tier runs out you can add your own Gemini key for the current tab.\n\nI also fixed the frustrating part where a personal key could still hit the demo's shared rate limit. Shared usage and bring-your-own-key usage now have separate limits and clearer recovery states.\n\nTry it: https://ryanbaumann.dev/hairstyle-ai-studio/?utm_source=linkedin&utm_medium=organic_social&utm_campaign=lab_hairstyle_free_tier_202607&utm_content=post_update_a"
+}

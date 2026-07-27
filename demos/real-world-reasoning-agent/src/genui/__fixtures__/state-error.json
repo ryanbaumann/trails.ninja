@@ -1,0 +1,19 @@
+[
+  { "version": "v0.9", "createSurface": { "surfaceId": "state-error-1", "catalogId": "atlas://maps-agentic-ui-catalog" } },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "state-error-1",
+      "components": [
+        { "id": "root", "component": "Column", "children": ["err"] },
+        {
+          "id": "err",
+          "component": "RecoverableError",
+          "message": "Couldn't reach the Places service.",
+          "retryLabel": "Try again",
+          "action": { "event": { "name": "send_prompt", "context": { "prompt": "Retry the place search" } } }
+        }
+      ]
+    }
+  }
+]

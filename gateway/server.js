@@ -12,7 +12,13 @@ import { join } from 'node:path';
 
 import { loadApps, toPublicApp, appVisibility } from './lib/apps.js';
 import { applySecurityHeaders, serveFromDir, serveFileWithStatus, sendCompressibleBody, cspForApp } from './lib/staticFiles.js';
-import { createRateLimiter, clientIp, RATE_LIMIT_POLICIES, rateLimitPolicyForPath } from './lib/rateLimit.js';
+import {
+  createDailyRateLimiter,
+  createRateLimiter,
+  clientIp,
+  RATE_LIMIT_POLICIES,
+  rateLimitPolicyForPath,
+} from './lib/rateLimit.js';
 import { resolveProvider } from './lib/config.js';
 import {
   verifyAuthCookie,
@@ -21,7 +27,10 @@ import {
 } from './lib/auth.js';
 import { handleStravaApi } from './lib/strava.js';
 import { handleIsochronesApi } from './lib/isochrones.js';
-import { handleHairstyleAiApi } from './lib/hairstyleAi.js';
+import { handleHairstyleAiApi, validateHairstyleApiKey } from './lib/hairstyleAi.js';
+import {
+  createRealWorldReasoningHandler,
+} from './lib/realWorldReasoning.js';
 import { publishWritingUpdate, requestWritingReview, saveWritingDraft } from './lib/writer.js';
 import { stageWriterSocialDraft } from './lib/buffer.js';
 import { beginGoogleLogin, finishGoogleLogin, googleLoginPage, hasGoogleSession } from './lib/googleAuth.js';
@@ -81,6 +90,9 @@ const routeRateLimiters = Object.fromEntries(
 // For a portfolio site the single-instance limiter is the right trade-off.
 const authRateLimiter = routeRateLimiters.auth;
 const upstreamRateLimiter = createRateLimiter({ windowMs: 60_000, max: 60 });
+const hairstyleFreeRateLimiter = createDailyRateLimiter({ max: 5 });
+const hairstyleGlobalFreeRateLimiter = createDailyRateLimiter({ max: 100 });
+const handleRealWorldReasoningApi = createRealWorldReasoningHandler();
 
 function sendJson(request, response, statusCode, payload) {
   applySecurityHeaders(response);
@@ -498,6 +510,18 @@ async function handleApi(request, response, pathname, searchParams) {
     return;
   }
 
+  if (pathname.startsWith('/api/real-world-reasoning-agent/')) {
+    applySecurityHeaders(response);
+    await handleRealWorldReasoningApi({
+      request,
+      response,
+      pathname,
+      searchParams,
+      env: process.env,
+    });
+    return;
+  }
+
   if (pathname === '/api/contact') {
     await handleContactRequest(request, response);
     return;
@@ -609,6 +633,19 @@ async function handleApi(request, response, pathname, searchParams) {
   }
 
   if (pathname.startsWith('/api/hairstyle-ai-studio/')) {
+    const freeTierKey = `hairstyle-free:${ip}`;
+    if (pathname === '/api/hairstyle-ai-studio/quota') {
+      if (request.method !== 'GET') {
+        sendJson(request, response, 405, { error: 'Method not allowed' });
+        return;
+      }
+      sendJson(request, response, 200, {
+        enabled: Boolean(validateHairstyleApiKey(process.env.GEMINI_API_KEY)),
+        ...hairstyleFreeRateLimiter.status(freeTierKey),
+      });
+      return;
+    }
+
     if (request.method !== 'POST') {
       sendJson(request, response, 405, { error: 'Method not allowed' });
       return;
@@ -626,10 +663,79 @@ async function handleApi(request, response, pathname, searchParams) {
         return;
       }
     }
+
+    const hasPersonalKeyHeader = Object.hasOwn(request.headers, 'x-gemini-api-key');
+    const personalApiKey = hasPersonalKeyHeader
+      ? validateHairstyleApiKey(request.headers['x-gemini-api-key'])
+      : null;
+    if (hasPersonalKeyHeader && !personalApiKey) {
+      sendJson(request, response, 401, {
+        error: 'Enter a valid Gemini API key to continue.',
+        code: 'INVALID_GEMINI_KEY',
+      });
+      return;
+    }
+    if (pathname === '/api/hairstyle-ai-studio/validate-key' && !personalApiKey) {
+      sendJson(request, response, 401, {
+        error: 'Enter a Gemini API key to validate.',
+        code: 'INVALID_GEMINI_KEY',
+      });
+      return;
+    }
+    const credentialSource = personalApiKey ? 'byok' : 'hosted';
+    const apiKey = personalApiKey || validateHairstyleApiKey(process.env.GEMINI_API_KEY);
+    if (!apiKey) {
+      sendJson(request, response, 503, {
+        error: 'The shared Gemini allowance is not configured. Add your own key to continue.',
+        code: 'FREE_TIER_UNAVAILABLE',
+      });
+      return;
+    }
+
+    const isImageRequest = pathname === '/api/hairstyle-ai-studio/generate'
+      || pathname === '/api/hairstyle-ai-studio/refine';
+    let freeTierReserved = false;
+    let globalFreeTierReserved = false;
+    if (isImageRequest && credentialSource === 'byok') {
+      const policy = RATE_LIMIT_POLICIES.hairstyleByokImage;
+      if (!routeRateLimiters.hairstyleByokImage.check(`hairstyle-byok:${ip}`)) {
+        response.setHeader('Retry-After', String(Math.ceil(policy.windowMs / 1000)));
+        sendJson(request, response, 429, {
+          error: 'Too many generation requests. Please wait a moment and try again.',
+          code: 'SITE_ABUSE_LIMIT',
+        });
+        return;
+      }
+    } else if (isImageRequest) {
+      freeTierReserved = hairstyleFreeRateLimiter.take(freeTierKey);
+      if (!freeTierReserved) {
+        const quota = hairstyleFreeRateLimiter.status(freeTierKey);
+        response.setHeader('Retry-After', String(Math.max(1, Math.ceil((Date.parse(quota.resetAt) - Date.now()) / 1000))));
+        sendJson(request, response, 429, {
+          error: 'You have used today’s 5 free generations. Add your own Gemini API key to continue.',
+          code: 'FREE_TIER_EXHAUSTED',
+          freeTier: quota,
+        });
+        return;
+      }
+      globalFreeTierReserved = hairstyleGlobalFreeRateLimiter.take('hairstyle-global');
+      if (!globalFreeTierReserved) {
+        hairstyleFreeRateLimiter.refund(freeTierKey);
+        freeTierReserved = false;
+        sendJson(request, response, 429, {
+          error: 'The shared daily generation budget is exhausted. Add your own Gemini API key to continue.',
+          code: 'FREE_TIER_EXHAUSTED',
+        });
+        return;
+      }
+    }
+
     let body;
     try {
       body = await readJsonBody(request, 12 * 1024 * 1024);
     } catch (err) {
+      if (freeTierReserved) hairstyleFreeRateLimiter.refund(freeTierKey);
+      if (globalFreeTierReserved) hairstyleGlobalFreeRateLimiter.refund('hairstyle-global');
       sendJson(request, response, err.statusCode || 400, { error: err.message });
       return;
     }
@@ -643,9 +749,16 @@ async function handleApi(request, response, pathname, searchParams) {
       pathname,
       method: request.method,
       body,
-      apiKey: request.headers['x-gemini-api-key'],
+      apiKey,
+      credentialSource,
       signal: upstreamAbort.signal,
     });
+    if (freeTierReserved && (result.statusCode < 200 || result.statusCode >= 300)) {
+      hairstyleFreeRateLimiter.refund(freeTierKey);
+      hairstyleGlobalFreeRateLimiter.refund('hairstyle-global');
+    } else if (freeTierReserved) {
+      result.json.freeTier = hairstyleFreeRateLimiter.status(freeTierKey);
+    }
     if (!response.destroyed && !response.writableEnded) {
       sendJson(request, response, result.statusCode, result.json);
     }
@@ -840,4 +953,14 @@ if (process.env.NODE_ENV !== 'test' && !process.env.NODE_TEST_CONTEXT) {
   });
 }
 
-export { server, apps, publicApps, appsByPathLength, authRateLimiter, routeRateLimiters, CONTACT_INTENTS };
+export {
+  server,
+  apps,
+  publicApps,
+  appsByPathLength,
+  authRateLimiter,
+  routeRateLimiters,
+  hairstyleFreeRateLimiter,
+  hairstyleGlobalFreeRateLimiter,
+  CONTACT_INTENTS,
+};

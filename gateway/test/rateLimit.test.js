@@ -1,6 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { clientIp, createRateLimiter, rateLimitPolicyForPath, RATE_LIMIT_POLICIES } from '../lib/rateLimit.js';
+import {
+  clientIp,
+  createDailyRateLimiter,
+  createRateLimiter,
+  rateLimitPolicyForPath,
+  RATE_LIMIT_POLICIES,
+} from '../lib/rateLimit.js';
 
 test('createRateLimiter allows up to max requests per window then blocks', () => {
   const limiter = createRateLimiter({ windowMs: 60_000, max: 3 });
@@ -18,9 +24,32 @@ test('rateLimitPolicyForPath assigns independent route policies', () => {
   assert.equal(rateLimitPolicyForPath('/api/photo-proxy'), 'photo');
   assert.equal(rateLimitPolicyForPath('/api/isochrones'), 'isochrones');
   assert.equal(rateLimitPolicyForPath('/api/hairstyle-ai-studio/analyze'), 'hairstyleText');
-  assert.equal(rateLimitPolicyForPath('/api/hairstyle-ai-studio/generate'), 'hairstyleImage');
-  assert.equal(rateLimitPolicyForPath('/api/hairstyle-ai-studio/refine'), 'hairstyleImage');
+  assert.equal(rateLimitPolicyForPath('/api/hairstyle-ai-studio/generate'), null);
+  assert.equal(rateLimitPolicyForPath('/api/hairstyle-ai-studio/refine'), null);
+  assert.equal(rateLimitPolicyForPath('/api/hairstyle-ai-studio/quota'), null);
   assert.equal(rateLimitPolicyForPath('/api/apps'), null);
+});
+
+test('createDailyRateLimiter resets at UTC midnight and can refund failed work', () => {
+  let timestamp = Date.parse('2026-07-27T23:59:00Z');
+  const limiter = createDailyRateLimiter({ max: 2, now: () => timestamp });
+
+  assert.deepEqual(limiter.status('visitor'), {
+    limit: 2,
+    remaining: 2,
+    resetAt: '2026-07-28T00:00:00.000Z',
+  });
+  assert.equal(limiter.take('visitor'), true);
+  assert.equal(limiter.take('visitor'), true);
+  assert.equal(limiter.take('visitor'), false);
+  assert.equal(limiter.status('visitor').remaining, 0);
+
+  limiter.refund('visitor');
+  assert.equal(limiter.status('visitor').remaining, 1);
+
+  timestamp = Date.parse('2026-07-28T00:00:01Z');
+  assert.equal(limiter.status('visitor').remaining, 2);
+  assert.equal(limiter.take('visitor'), true);
 });
 
 // Regression: publish/save/review/social used to leave three of the four

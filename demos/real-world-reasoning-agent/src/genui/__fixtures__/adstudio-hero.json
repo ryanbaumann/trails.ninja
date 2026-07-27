@@ -1,0 +1,74 @@
+[
+  { "version": "v0.9", "createSurface": { "surfaceId": "adstudio-hero-1", "catalogId": "atlas://maps-agentic-ui-catalog" } },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "adstudio-hero-1",
+      "components": [
+        { "id": "root", "component": "Column", "children": ["stats", "creatives", "preview", "confirm", "disclaimer"] },
+        {
+          "id": "stats",
+          "component": "StatGrid",
+          "items": [
+            { "label": "Rating", "value": "4.6", "hint": "312 reviews" },
+            { "label": "Neighborhood", "value": "Mission District" },
+            { "label": "Vibe", "value": "Sunny afternoon, high foot traffic" }
+          ]
+        },
+        {
+          "id": "creatives",
+          "component": "List",
+          "direction": "horizontal",
+          "children": { "componentId": "creativeTpl", "path": "/creatives" }
+        },
+        {
+          "id": "creativeTpl",
+          "component": "AdCreative",
+          "imageRef": { "path": "imageRef" },
+          "headline": { "path": "headline" },
+          "body": { "path": "body" },
+          "cta": { "path": "cta" }
+        },
+        {
+          "id": "preview",
+          "component": "MapPreview",
+          "lat": 37.7599,
+          "lng": -122.4148,
+          "zoom": 15,
+          "markers": [{ "lat": 37.7599, "lng": -122.4148, "color": "#a78bfa", "label": "Business" }]
+        },
+        {
+          "id": "confirm",
+          "component": "ConfirmationResult",
+          "title": "Campaign ready to publish",
+          "status": "success",
+          "detail": "2 creatives generated for Mission District espresso.",
+          "actionLabel": "Publish",
+          "action": { "event": { "name": "send_prompt", "context": { "prompt": "Publish the Mission District espresso campaign" } } }
+        },
+        { "id": "disclaimer", "component": "Text", "variant": "caption", "text": "AI-generated image · concept — verify claims before publishing" }
+      ]
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateDataModel": {
+      "surfaceId": "adstudio-hero-1",
+      "path": "/creatives",
+      "value": [
+        {
+          "imageRef": "img:1",
+          "headline": "Fresh brews, fresh views",
+          "body": "Sunny-day espresso in the heart of the Mission.",
+          "cta": "Order ahead"
+        },
+        {
+          "imageRef": "img:2",
+          "headline": "Your afternoon reset",
+          "body": "Grounded in real foot traffic near 24th & Valencia.",
+          "cta": "Stop by today"
+        }
+      ]
+    }
+  }
+]

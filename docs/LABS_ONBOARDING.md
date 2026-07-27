@@ -125,9 +125,9 @@ canaries belong after deploy, not in fork PR CI.
 | Demo | Verified source state | Path through this workflow | Current blocking gate |
 |---|---|---|---|
 | Infographic Agent | Public repo at `214191bdceaf337ad0b1c3f8c19563fd0378f4ff`; Vite single-file static build | `labs:import`, then `/infographic-agent/`; BYOK may remain `api.type: none` | Upstream package omits `engines.node`; add it and verify the imported build/test/preview before registration |
-| Real-World Reasoning Agent | Private repo at `e60bf823ddb4ce89fd435eec9094f6d2b6cd4dfe`; Node 22 full-stack service | Private artifact frontend plus authenticated `/api/real-world-reasoning-agent/*` upstream | Private repo must publish the immutable frontend artifact and adapt its current `/gmp`, `/ai`, and `/capabilities` calls to the namespaced API prefix |
+| Real-World Reasoning Agent | Owner-authorized private snapshot at `68e8c34547066a984ccb97f5b587caeb97561ec1`; reviewed for public release | First-party workspace at `/real-world-reasoning-agent/` with guarded `/api/real-world-reasoning-agent/*` gateway routes | Migrated; `PROVENANCE.md` records the private-to-public release boundary |
 
-Neither source repository should be deleted now. The two revisions above were
-inspected to choose the workflow; no private source or build bytes are added
-to this public PR. Once each blocking gate is green, run the command shown,
-verify production, then archive the predecessor with a canonical redirect.
+Do not delete predecessor repositories. After a migration is verified in
+production, archive the predecessor with a canonical link to its Fieldwork
+directory. A private-to-open-source snapshot is an owner-authorized exception,
+not a reason to weaken `labs:import` or falsely confirm that a source was public.

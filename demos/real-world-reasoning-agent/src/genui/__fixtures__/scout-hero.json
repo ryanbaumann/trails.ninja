@@ -1,0 +1,58 @@
+[
+  { "version": "v0.9", "createSurface": { "surfaceId": "scout-hero-1", "catalogId": "atlas://maps-agentic-ui-catalog" } },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "scout-hero-1",
+      "components": [
+        { "id": "root", "component": "Column", "children": ["matrix", "evObserved", "evComputed", "takeaway"] },
+        {
+          "id": "matrix",
+          "component": "ComparisonTable",
+          "caption": "Site comparison — North Beach",
+          "columns": { "path": "/columns" },
+          "rows": { "path": "/rows" }
+        },
+        {
+          "id": "evObserved",
+          "component": "EvidenceSource",
+          "label": "Street View — Columbus & Green",
+          "provenance": "observed",
+          "confidence": 0.9
+        },
+        {
+          "id": "evComputed",
+          "component": "EvidenceSource",
+          "label": "Fused visibility score",
+          "provenance": "computed",
+          "confidence": 0.82
+        },
+        {
+          "id": "takeaway",
+          "component": "Text",
+          "variant": "body",
+          "text": "Columbus & Green wins because Street View showed the widest sightline — visibility 90 and the highest total score (92)."
+        }
+      ]
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateDataModel": {
+      "surfaceId": "scout-hero-1",
+      "path": "/columns",
+      "value": ["Visibility", "Foot traffic", "Access", "Total"]
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateDataModel": {
+      "surfaceId": "scout-hero-1",
+      "path": "/rows",
+      "value": [
+        { "label": "Columbus & Green", "values": ["90", "9.0", "99", "92"], "highlight": true },
+        { "label": "Columbus & Union", "values": ["85", "8.2", "97", "88"] }
+      ]
+    }
+  }
+]

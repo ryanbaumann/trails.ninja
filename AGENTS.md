@@ -19,6 +19,8 @@ picture.
 - `demos/strava-explorer/`: Vite app for exploring Strava activities on Google Maps Platform 3D Maps.
 - `demos/aqi-map/`: Vite app rendering Air Quality API heatmap tiles and point conditions on a 2D Google map.
 - `demos/isochrones/`: Vite + Node app for reachability analysis using Google Maps Platform Isochrones.
+- `demos/hairstyle-ai-studio/`: React + Vite app for Gemini-powered hairstyle generation, with a gateway-hosted daily allowance and optional tab-memory personal key.
+- `demos/real-world-reasoning-agent/`: React + Vite Google Maps Platform and Gemini agent demo with first-party gateway proxies for live Maps and AI missions.
 - `gateway/`: zero-npm-dependency Node server that serves the portfolio at
   the root path, every workspace demo app's static build (both routed via the root
   `apps.json` manifest, most-specific path first), and same-origin `/api/*`

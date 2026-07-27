@@ -3,17 +3,25 @@ import { OutputLayout, HairstyleOption, GenerationMode } from '../types';
 const API_BASE = '/api/hairstyle-ai-studio';
 const GENERATION_TIMEOUT_MS = 120_000;
 
+export interface FreeTierStatus {
+  enabled: boolean;
+  limit: number;
+  remaining: number;
+  resetAt: string;
+}
+
 const headersFor = (apiKey: string) => ({
   'Content-Type': 'application/json',
-  'X-Gemini-API-Key': apiKey,
+  ...(apiKey ? { 'X-Gemini-API-Key': apiKey } : {}),
 });
 
 async function readJson(response: Response) {
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = typeof data?.error === 'string' ? data.error : 'Gemini request failed.';
-    if (response.status === 429) throw new RateLimitError(message);
-    throw new Error(message);
+    const code = typeof data?.code === 'string' ? data.code : 'GEMINI_REQUEST_FAILED';
+    if (response.status === 429) throw new RateLimitError(message, code);
+    throw new GeminiApiError(message, code);
   }
   return data;
 }
@@ -24,12 +32,34 @@ const withTimeout = (signal?: AbortSignal): AbortSignal => {
   return typeof AbortSignal.any === 'function' ? AbortSignal.any([signal, timeout]) : signal;
 };
 
-export class RateLimitError extends Error {
-  constructor(message: string) {
+export class GeminiApiError extends Error {
+  constructor(message: string, public readonly code: string) {
     super(message);
+    this.name = 'GeminiApiError';
+  }
+}
+
+export class RateLimitError extends GeminiApiError {
+  constructor(message: string, code = 'RATE_LIMITED') {
+    super(message, code);
     this.name = 'RateLimitError';
   }
 }
+
+export const getFreeTierStatus = async (): Promise<FreeTierStatus> => {
+  const response = await fetch(`${API_BASE}/quota`, { method: 'GET' });
+  return readJson(response);
+};
+
+export const validateGeminiKey = async (apiKey: string): Promise<boolean> => {
+  const response = await fetch(`${API_BASE}/validate-key`, {
+    method: 'POST',
+    headers: headersFor(apiKey),
+    body: '{}',
+  });
+  const data = await readJson(response);
+  return data.valid === true;
+};
 
 export const analyzeUserImage = async (
   apiKey: string,

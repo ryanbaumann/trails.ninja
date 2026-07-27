@@ -1,0 +1,36 @@
+[
+  { "version": "v0.9", "createSurface": { "surfaceId": "state-update-1", "catalogId": "atlas://maps-agentic-ui-catalog" } },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "state-update-1",
+      "components": [
+        { "id": "root", "component": "Column", "children": ["status"] },
+        {
+          "id": "status",
+          "component": "ProgressStatus",
+          "label": { "path": "/status/label" },
+          "state": { "path": "/status/state" },
+          "step": { "path": "/status/step" },
+          "total": { "path": "/status/total" }
+        }
+      ]
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateDataModel": {
+      "surfaceId": "state-update-1",
+      "path": "/status",
+      "value": { "label": "Generating creatives", "state": "running", "step": 1, "total": 2 }
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateDataModel": {
+      "surfaceId": "state-update-1",
+      "path": "/status",
+      "value": { "label": "Creatives ready", "state": "done", "step": 2, "total": 2 }
+    }
+  }
+]

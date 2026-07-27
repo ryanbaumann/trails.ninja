@@ -1,0 +1,22 @@
+[
+  { "version": "v0.9", "createSurface": { "surfaceId": "cinema-hero-1", "catalogId": "atlas://maps-agentic-ui-catalog" } },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "cinema-hero-1",
+      "components": [
+        { "id": "root", "component": "Column", "children": ["hdr", "confirm"] },
+        { "id": "hdr", "component": "Text", "variant": "h3", "text": "Cinematic tour — North Beach at golden hour" },
+        {
+          "id": "confirm",
+          "component": "ConfirmationResult",
+          "title": "Your tour is ready",
+          "status": "success",
+          "detail": "3 stops · about 90 seconds",
+          "actionLabel": "Play tour",
+          "action": { "event": { "name": "send_prompt", "context": { "prompt": "Play the North Beach golden-hour tour" } } }
+        }
+      ]
+    }
+  }
+]

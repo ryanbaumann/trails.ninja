@@ -2,6 +2,56 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-07-27 - Per-user free tiers still need a global spend ceiling
+
+Context: IP allowances limited ordinary use but an IP-rotating caller could
+still spend the hosted provider key, and imported Maps proxy limits were sized
+for load testing rather than a public portfolio.
+Learning: Separate per-user fairness, process-wide daily spend ceilings, and
+provider-side quotas. Pin exact upstream routes and methods; same-origin checks
+alone are not caller authentication.
+Evidence: Hairstyle now has per-IP and global hosted-generation caps; Real
+World Reasoning has separate request classes, daily Maps/Gemini ceilings,
+bounded limiter memory, exact route/method allowlists, and focused regressions.
+Use next time: Define the maximum affordable provider usage before exposing a
+public proxy, then make cloud quotas the hard backstop for restart and botnet
+scenarios.
+
+## 2026-07-27 - A private-to-open-source migration needs explicit release provenance
+
+Context: Real World Reasoning Agent was still private when its owner requested
+that Fieldwork become the first-party open-source home. The public-import
+command correctly refused to accept a false public-source confirmation.
+Learning: Explicit owner authorization can release a reviewed snapshot without
+changing the predecessor repository's visibility, but the boundary must remain
+auditable: pin the exact commit, exclude Git history, environment and deployment
+files, scan for credentials, record the source visibility and release authority,
+and make the new repository the canonical public link.
+Evidence: `demos/real-world-reasoning-agent/PROVENANCE.md` records private source
+commit `68e8c34547066a984ccb97f5b587caeb97561ec1`; the pre-import scan found no
+credentials; and the public tree excludes history, environment files, and
+private deployment configuration.
+Use next time: Never pass `--confirm-source-public` for a private source. Require
+explicit release authority, a clean snapshot scan, and provenance that explains
+the exception before public integration.
+
+## 2026-07-27 - Hosted allowance and personal-key abuse limits are different controls
+
+Context: Hairstyle AI Studio put every image request behind one five-per-hour
+IP limiter. Entering a personal Gemini key therefore did not help: the gateway
+rejected the request before it inspected which credential would pay for it.
+Learning: Select and validate the credential before applying spend controls.
+Hosted calls consume the shared daily allowance; valid personal-key calls
+bypass that spend cap but retain a separate, generous site-abuse limiter.
+Malformed personal keys fail closed instead of silently falling back. Provider
+quota errors need a different code from local allowance exhaustion so the UI
+can offer the right recovery.
+Evidence: Gateway regressions cover five successful hosted image generations,
+UTC reset metadata, failed-request refunds, personal-key bypass, malformed-key
+denial, non-generating key validation, and distinct upstream quota responses.
+Use next time: Model shared budget, provider quota, and gateway abuse as
+separate policies, then test routing order across every credential source.
+
 ## 2026-07-27 - Buffer staging inputs need an explicit merge trigger
 
 Context: The existing Buffer workflow could stage social copy only when a new

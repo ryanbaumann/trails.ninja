@@ -23,8 +23,10 @@ Model IDs are server-owned in the repository root's `gateway/lib/hairstyleAi.js`
 
 ## Secret handling
 - Never add `VITE_GEMINI_API_KEY`; Vite would publish it in the browser bundle.
-- Users provide their own key at runtime. Keep it only in React memory and pass it transiently in `X-Gemini-API-Key` to the same-origin `/api/hairstyle-ai-studio/*` gateway routes.
-- The gateway must never log, store, return, or send the key to analytics.
+- The server-side `GEMINI_API_KEY` owns the five-successful-image-generations-per-IP daily allowance. Recommendation analysis does not consume it.
+- A user may override the shared key at runtime. Validate the personal key through the non-generating proxy endpoint before activation, keep it only in React memory, and pass it transiently in `X-Gemini-API-Key`.
+- A valid personal key bypasses the shared daily spend cap but remains subject to the gateway's separate abuse limiter. Never silently fall back to the shared key when a supplied personal key is malformed or rejected.
+- The gateway must never log, store, return, or send either key to analytics.
 - Never commit real API keys or screenshots containing keys.
 
 ## UX rules

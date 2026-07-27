@@ -1,0 +1,73 @@
+/* Scout context drawer: one glass container (the drawer) with a pinned mission
+   header and a single scroll region holding the board + relocated mission
+   panels. Nothing floats over the map anymore. */
+.scout-drawer {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  gap: 12px;
+}
+
+.scout-drawer__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 2px;
+}
+/* Pin children to content height so the region scrolls instead of compressing
+   cards into each other (see .panel-scroll note in global.css). */
+.scout-drawer__scroll > * {
+  flex-shrink: 0;
+}
+
+/* Unify to a single glass layer: the drawer is the only real glass surface, so
+   nested cards drop their own blur + shadow and share one flat treatment. */
+.scout-drawer .glass {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  background: var(--glass-2);
+}
+
+/* The condition scrubber, evidence strip and claim lens used to float; here
+   they are plain stacked sections. Neutralize their standalone positioning and
+   custom chrome so they match the rest of the drawer. */
+.scout-drawer .env-scrubber,
+.scout-drawer .evidence-strip,
+.scout-drawer .claim-lens {
+  position: static;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 1px solid var(--glass-line);
+  border-radius: var(--r-md);
+  background: var(--glass-2);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  z-index: auto;
+}
+.scout-drawer .env-scrubber { padding: 14px; }
+
+/* Consistent uppercase section labels. */
+.scout-drawer .env-scrubber__header h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Narrow drawer: single-column controls and evidence cards. */
+.scout-drawer .env-scrubber__controls {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+.scout-drawer .evidence-strip__grid {
+  grid-template-columns: 1fr;
+}

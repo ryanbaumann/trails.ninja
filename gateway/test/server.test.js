@@ -151,10 +151,15 @@ test('Strava token endpoints reject a mismatched Origin but allow same-origin an
   }
 });
 
-test('Hairstyle AI routes enforce same-origin BYO-key requests through the gateway', async () => {
+test('Hairstyle AI routes use the hosted key by default and never fall back from a malformed personal key', async () => {
   const originalFetch = globalThis.fetch;
+  const previousGeminiKey = process.env.GEMINI_API_KEY;
+  process.env.GEMINI_API_KEY = 'hosted-test-key-with-enough-characters';
   globalThis.fetch = async (_url, init) => {
-    assert.equal(init.headers['x-goog-api-key'], 'test-key-with-enough-characters');
+    assert.ok([
+      'hosted-test-key-with-enough-characters',
+      'personal-test-key-with-enough-characters',
+    ].includes(init.headers['x-goog-api-key']));
     return {
       ok: true,
       status: 200,
@@ -180,19 +185,123 @@ test('Hairstyle AI routes enforce same-origin BYO-key requests through the gatew
     });
     assert.equal(crossSite.res.statusCode, 403);
 
-    const missingKey = await postJson(port, '/api/hairstyle-ai-studio/analyze', payload, {
+    const hosted = await postJson(port, '/api/hairstyle-ai-studio/analyze', payload, {
       Origin: `http://localhost:${port}`,
     });
-    assert.equal(missingKey.res.statusCode, 401);
+    assert.equal(hosted.res.statusCode, 200);
 
-    const accepted = await postJson(port, '/api/hairstyle-ai-studio/analyze', payload, {
+    const malformed = await postJson(port, '/api/hairstyle-ai-studio/analyze', payload, {
       Origin: `http://localhost:${port}`,
-      'X-Gemini-API-Key': 'test-key-with-enough-characters',
+      'X-Gemini-API-Key': 'bad',
     });
-    assert.equal(accepted.res.statusCode, 200);
-    assert.deepEqual(JSON.parse(accepted.body), { recommendedStyleId: null });
+    assert.equal(malformed.res.statusCode, 401);
+    assert.equal(JSON.parse(malformed.body).code, 'INVALID_GEMINI_KEY');
+
+    const personal = await postJson(port, '/api/hairstyle-ai-studio/analyze', payload, {
+      Origin: `http://localhost:${port}`,
+      'X-Gemini-API-Key': 'personal-test-key-with-enough-characters',
+    });
+    assert.equal(personal.res.statusCode, 200);
+    assert.deepEqual(JSON.parse(personal.body), { recommendedStyleId: null });
   } finally {
     globalThis.fetch = originalFetch;
+    if (previousGeminiKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousGeminiKey;
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+test('Hairstyle AI gives each IP five successful daily image generations while personal keys bypass that spend cap', async () => {
+  const originalFetch = globalThis.fetch;
+  const previousGeminiKey = process.env.GEMINI_API_KEY;
+  process.env.GEMINI_API_KEY = 'hosted-test-key-with-enough-characters';
+  const upstreamKeys = [];
+  globalThis.fetch = async (_url, init) => {
+    upstreamKeys.push(init.headers['x-goog-api-key']);
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        steps: [{
+          type: 'model_output',
+          content: [{ type: 'image', mime_type: 'image/jpeg', data: 'ZmluYWw=' }],
+        }],
+      }),
+    };
+  };
+  server.listen(0);
+  const port = server.address().port;
+  const origin = `http://localhost:${port}`;
+  const visitorHeaders = {
+    Origin: origin,
+    'X-Forwarded-For': '203.0.113.177, 169.254.1.1',
+  };
+  const payload = {
+    images: { front: 'data:image/jpeg;base64,YWJj' },
+    styleDescription: 'Textured bob',
+  };
+
+  try {
+    for (let index = 0; index < 5; index += 1) {
+      const response = await postJson(port, '/api/hairstyle-ai-studio/generate', payload, visitorHeaders);
+      assert.equal(response.res.statusCode, 200);
+      assert.equal(JSON.parse(response.body).freeTier.remaining, 4 - index);
+    }
+
+    const exhausted = await postJson(port, '/api/hairstyle-ai-studio/generate', payload, visitorHeaders);
+    assert.equal(exhausted.res.statusCode, 429);
+    assert.equal(JSON.parse(exhausted.body).code, 'FREE_TIER_EXHAUSTED');
+
+    const personal = await postJson(port, '/api/hairstyle-ai-studio/generate', payload, {
+      ...visitorHeaders,
+      'X-Gemini-API-Key': 'personal-test-key-with-enough-characters',
+    });
+    assert.equal(personal.res.statusCode, 200);
+    assert.equal(upstreamKeys.filter((key) => key === 'hosted-test-key-with-enough-characters').length, 5);
+    assert.equal(upstreamKeys.at(-1), 'personal-test-key-with-enough-characters');
+
+    const quota = await request(port, '/api/hairstyle-ai-studio/quota', visitorHeaders);
+    assert.equal(quota.res.statusCode, 200);
+    assert.deepEqual(JSON.parse(quota.body), {
+      enabled: true,
+      limit: 5,
+      remaining: 0,
+      resetAt: JSON.parse(exhausted.body).freeTier.resetAt,
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (previousGeminiKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousGeminiKey;
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+test('Real World Reasoning capability preflight is mounted under its Fieldwork API namespace', async () => {
+  const previous = {
+    GMP_SERVER_API_KEY: process.env.GMP_SERVER_API_KEY,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    RWR_GROUNDING_LITE_ENABLED: process.env.RWR_GROUNDING_LITE_ENABLED,
+  };
+  process.env.GMP_SERVER_API_KEY = 'maps-server-test-key';
+  process.env.GEMINI_API_KEY = 'gemini-server-test-key';
+  process.env.RWR_GROUNDING_LITE_ENABLED = 'true';
+  server.listen(0);
+  const port = server.address().port;
+
+  try {
+    const response = await request(port, '/api/real-world-reasoning-agent/capabilities');
+    assert.equal(response.res.statusCode, 200);
+    assert.deepEqual(JSON.parse(response.body), {
+      maps: true,
+      gemini: true,
+      groundingLite: true,
+    });
+    assert.match(response.res.headers['content-security-policy'], /default-src 'self'/);
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
     await new Promise((resolve) => server.close(resolve));
   }
 });

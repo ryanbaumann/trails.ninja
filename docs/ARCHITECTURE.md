@@ -22,17 +22,20 @@ secrets belong in browser bundles.
 │       ├── /aqi-map/        → static dist                           │
 │       ├── /isochrones/     → static dist                           │
 │       ├── /hairstyle-ai-studio/ → static dist                      │
+│       ├── /real-world-reasoning-agent/ → static dist               │
 │       ├── /portfolio/*     → 308 redirect to /*                    │
 │       └── /api/*           → secret proxy layer                    │
 │            ├── /api/strava/*      (OAuth broker + photo proxy)     │
 │            ├── /api/isochrones    (GMP server)                     │
-│            ├── /api/hairstyle-ai-studio/* (BYO Gemini key)         │
+│            ├── /api/hairstyle-ai-studio/* (shared + BYO Gemini)    │
+│            ├── /api/real-world-reasoning-agent/* (Maps + Gemini)   │
 │            ├── /api/subscribe     (Resend Contact + Segment/Topic) │
 │            └── /api/writer/publish (authenticated GitHub update)   │
 └────────────────────────────────────────────────────────────────────┘
                   ▲
   secrets via Cloud Run env / Secret Manager:
-  STRAVA_CLIENT_SECRET, GMP_SERVER_API_KEY, RESEND_API_KEY,
+  STRAVA_CLIENT_SECRET, GMP_SERVER_API_KEY, GMP_MCP_KEY, GEMINI_API_KEY,
+  RESEND_API_KEY,
   GOOGLE_OAUTH_CLIENT_SECRET, GOOGLE_OAUTH_SESSION_SECRET,
   GITHUB_CONTENT_TOKEN, GITHUB_REVIEW_TOKEN, BUFFER_API_KEY
 ```
@@ -76,11 +79,12 @@ plain-HTTP gateway development URL.
    environment as non-`VITE_` vars, reachable only through `/api/*` with
    validation + rate limiting. A missing secret returns a JSON `503`, never
    a crash — the container always boots keyless.
-   Hairstyle AI Studio is the deliberate BYO-key exception: its visitor enters
-   a Gemini key at runtime, React keeps it only in memory, and the browser sends
-   it transiently in `X-Gemini-API-Key` to the same-origin gateway. The gateway
-   validates and rate-limits the request but never stores, logs, or returns the
-   key. It is never a `VITE_` build variable.
+   Hairstyle AI Studio uses a server-side `GEMINI_API_KEY` for five successful
+   image generations per client IP per UTC day. A visitor can override that
+   shared allowance with a personal Gemini key; React keeps it only in memory
+   and sends it transiently in `X-Gemini-API-Key` to the same-origin gateway.
+   The gateway validates personal keys without generating content and never
+   stores, logs, or returns them. Gemini keys are never `VITE_` build variables.
 3. **Same-origin by default.** In the container, clients call `/api/...` on
    their own origin — no CORS, no cross-origin token endpoints. OAuth redirect
    URIs derive from `window.location.origin` unless explicitly overridden.
@@ -145,10 +149,21 @@ Runtime secrets (`STRAVA_CLIENT_SECRET`, `GMP_SERVER_API_KEY`,
 `GITHUB_CONTENT_TOKEN`, `GITHUB_REVIEW_TOKEN`, and `BUFFER_API_KEY`) are set on the Cloud Run service
 as Secret Manager references, never in the image or repo. `CONTACT_FROM_EMAIL`
 is optional non-secret sender configuration and must use a sender accepted by
-the mail provider. `GEMINI_API_KEY` is optional when contact classification is
-disabled; when enabled, create a Secret Manager secret named `gemini-api-key`
-and map it to the Cloud Run environment as shown in `deploy.yml`. Never create
-a `VITE_GEMINI_API_KEY`: Vite would expose it in the browser bundle.
+the mail provider. `GEMINI_API_KEY` powers Hairstyle AI Studio's shared daily
+allowance and optional contact classification; create a Secret Manager secret
+named `gemini-api-key` and map it to the Cloud Run environment as shown in
+`deploy.yml`. Never create a `VITE_GEMINI_API_KEY`: Vite would expose it in the
+browser bundle.
+
+Real World Reasoning Agent shares `GMP_SERVER_API_KEY` and `GEMINI_API_KEY`
+with the gateway. `GMP_MCP_KEY` may provide a separately restricted
+server-to-server credential for Maps Grounding Lite; when omitted, the handler
+falls back to `GMP_SERVER_API_KEY`. Set `RWR_GROUNDING_LITE_ENABLED=true` only after
+the selected server key is enabled for that product. Browser Maps uses the
+existing referrer-restricted `VITE_GMP_API_KEY`.
+
+See [LABS_SECURITY.md](LABS_SECURITY.md) for the exact gateway assumptions,
+CSP contract, key restrictions, cost ceilings, and regression checks.
 
 ## Paved paths
 

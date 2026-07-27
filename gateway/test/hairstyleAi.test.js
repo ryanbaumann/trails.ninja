@@ -26,7 +26,7 @@ test('API key validation rejects empty, short, and malformed values', () => {
   assert.equal(validateHairstyleApiKey(API_KEY), API_KEY);
 });
 
-test('handler requires POST and a transient caller key', async () => {
+test('handler requires POST and a selected hosted or transient key', async () => {
   const methodResult = await handleHairstyleAiApi({
     pathname: '/api/hairstyle-ai-studio/analyze',
     method: 'GET',
@@ -42,6 +42,28 @@ test('handler requires POST and a transient caller key', async () => {
     apiKey: '',
   });
   assert.equal(keyResult.statusCode, 401);
+  assert.equal(keyResult.json.code, 'INVALID_GEMINI_KEY');
+});
+
+test('key validation checks Gemini without generating content', async () => {
+  let upstreamRequest;
+  const validation = await handleHairstyleAiApi({
+    pathname: '/api/hairstyle-ai-studio/validate-key',
+    method: 'POST',
+    body: {},
+    apiKey: API_KEY,
+    credentialSource: 'byok',
+    fetchImpl: async (url, init) => {
+      upstreamRequest = { url, init };
+      return jsonResponse({ name: `models/${HAIRSTYLE_MODELS.image}` });
+    },
+  });
+
+  assert.equal(validation.statusCode, 200);
+  assert.deepEqual(validation.json, { valid: true });
+  assert.match(upstreamRequest.url, /\/v1beta\/models\//);
+  assert.equal(upstreamRequest.init.method, 'GET');
+  assert.equal(upstreamRequest.init.headers['x-goog-api-key'], API_KEY);
 });
 
 test('analysis is stateless, bounded, and uses the caller key only upstream', async () => {
@@ -162,4 +184,26 @@ test('upstream authentication and quota failures are sanitized', async () => {
     assert.equal(result.statusCode, expected);
     assert.doesNotMatch(JSON.stringify(result), /provider detail/);
   }
+});
+
+test('upstream quota errors distinguish personal keys from the shared tier', async () => {
+  const personal = await handleHairstyleAiApi({
+    pathname: '/api/hairstyle-ai-studio/analyze',
+    method: 'POST',
+    apiKey: API_KEY,
+    credentialSource: 'byok',
+    body: { base64Image: FRONT_IMAGE, availableStyles: [] },
+    fetchImpl: async () => jsonResponse({}, { ok: false, status: 429 }),
+  });
+  assert.equal(personal.json.code, 'GEMINI_QUOTA_EXHAUSTED');
+
+  const hosted = await handleHairstyleAiApi({
+    pathname: '/api/hairstyle-ai-studio/analyze',
+    method: 'POST',
+    apiKey: API_KEY,
+    credentialSource: 'hosted',
+    body: { base64Image: FRONT_IMAGE, availableStyles: [] },
+    fetchImpl: async () => jsonResponse({}, { ok: false, status: 429 }),
+  });
+  assert.equal(hosted.json.code, 'FREE_TIER_UNAVAILABLE');
 });

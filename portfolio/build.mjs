@@ -1293,7 +1293,7 @@ function buildHome(collections) {
   const visibleDemos = demos.filter((d) => !d.hideOnHome);
   const pinnedDemo = visibleDemos.find((d) => d.order !== undefined) || visibleDemos[0];
   const otherDemos = visibleDemos.filter((d) => d !== pinnedDemo);
-  const homeDemos = [pinnedDemo, ...otherDemos].filter(Boolean).slice(0, 3);
+  const homeDemos = [pinnedDemo, ...otherDemos].filter(Boolean).slice(0, 4);
   const demosSection = homeDemos.length
     ? `
 <section>
@@ -1727,7 +1727,7 @@ function robotsTxt() {
 
 function permanentRedirects(collections) {
   if (WRITER_MODE) return {};
-  const redirects = demos.length ? { '/lab/': '/demos/', '/labs/': '/demos/', '/atlas/': 'https://atlas-demo-561209038703.us-central1.run.app/', '/labs/atlas/': 'https://atlas-demo-561209038703.us-central1.run.app/', '/demos/atlas/': 'https://atlas-demo-561209038703.us-central1.run.app/' } : {};
+  const redirects = demos.length ? { '/lab/': '/demos/', '/labs/': '/demos/', '/atlas/': '/real-world-reasoning-agent/', '/labs/atlas/': '/real-world-reasoning-agent/', '/demos/atlas/': '/real-world-reasoning-agent/' } : {};
   const canonicalPaths = new Set(['/', '/demos/', ...COLLECTIONS.filter((item) => item.listPage).map((item) => `/${item.name}/`)]);
   for (const collection of COLLECTIONS) {
     for (const entry of collections[collection.name]) {
