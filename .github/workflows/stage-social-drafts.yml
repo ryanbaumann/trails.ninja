@@ -1,4 +1,4 @@
-name: Stage Field Note social drafts
+name: Stage social drafts
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'portfolio/content/writing/*.md'
+      - 'docs/social-drafts/*.json'
 
 jobs:
   stage:

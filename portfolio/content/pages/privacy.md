@@ -26,7 +26,11 @@ Arbitrary query parameters are excluded. Analytics events must not contain names
 
 ## Labs
 
-Same-origin Lab applications can call third-party services to provide their core functionality. Strava 3D Explorer can process account and activity data after you choose to connect Strava. Air Quality Map and Isochrones can send a selected location to their supporting APIs. Do not submit a location or connect an account unless you accept the relevant provider terms and privacy practices.
+Same-origin Lab applications can call third-party services to provide their core functionality. Strava 3D Explorer can process account and activity data after you choose to connect Strava. Air Quality Map and Isochrones can send a selected location to their supporting APIs.
+
+Hairstyle AI Studio sends photos and style instructions to Google's Gemini service only after you request a recommendation, generation, or refinement. You provide the Gemini API key. The app keeps it in the current browser tab's memory and passes it through Fieldwork's same-origin gateway for each request; Fieldwork does not store the key or include it in analytics. Photos are not stored on the Fieldwork server. Generated looks and history stay in your browser until you delete them or clear the site's local data.
+
+Do not submit a location, connect an account, provide an API key, or upload a photo unless you accept the relevant provider terms and privacy practices.
 
 Labs also links to experiments hosted outside Fieldwork. Those destinations run separately and are governed by their own privacy notices and providers.
 

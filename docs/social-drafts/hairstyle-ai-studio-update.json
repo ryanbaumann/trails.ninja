@@ -1,0 +1,4 @@
+{
+  "channel": "linkedin",
+  "text": "Small update to Hairstyle AI Studio 😉\n\nA makeover now takes one Gemini image call instead of three. The better product change is “Recommend for me”: photo analysis happens only when you ask, then gives you a starting style you can keep refining.\n\nI also rebuilt the mobile flow so every style is directly tappable, moved Gemini keys to a memory-only bring-your-own-key setup, and brought the whole demo into Fieldwork.\n\nTry the update: https://ryanbaumann.dev/hairstyle-ai-studio/?utm_source=linkedin&utm_medium=organic_social&utm_campaign=fn_hairstyle_ai_studio_202607&utm_content=post_hook_a"
+}

@@ -21,10 +21,12 @@ secrets belong in browser bundles.
 │       ├── /strava-explorer/→ static dist                           │
 │       ├── /aqi-map/        → static dist                           │
 │       ├── /isochrones/     → static dist                           │
+│       ├── /hairstyle-ai-studio/ → static dist                      │
 │       ├── /portfolio/*     → 308 redirect to /*                    │
 │       └── /api/*           → secret proxy layer                    │
 │            ├── /api/strava/*      (OAuth broker + photo proxy)     │
 │            ├── /api/isochrones    (GMP server)                     │
+│            ├── /api/hairstyle-ai-studio/* (BYO Gemini key)         │
 │            ├── /api/subscribe     (Resend Contact + Segment/Topic) │
 │            └── /api/writer/publish (authenticated GitHub update)   │
 └────────────────────────────────────────────────────────────────────┘
@@ -74,6 +76,11 @@ plain-HTTP gateway development URL.
    environment as non-`VITE_` vars, reachable only through `/api/*` with
    validation + rate limiting. A missing secret returns a JSON `503`, never
    a crash — the container always boots keyless.
+   Hairstyle AI Studio is the deliberate BYO-key exception: its visitor enters
+   a Gemini key at runtime, React keeps it only in memory, and the browser sends
+   it transiently in `X-Gemini-API-Key` to the same-origin gateway. The gateway
+   validates and rate-limits the request but never stores, logs, or returns the
+   key. It is never a `VITE_` build variable.
 3. **Same-origin by default.** In the container, clients call `/api/...` on
    their own origin — no CORS, no cross-origin token endpoints. OAuth redirect
    URIs derive from `window.location.origin` unless explicitly overridden.

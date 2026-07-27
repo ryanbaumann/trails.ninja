@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { buildSocialDrafts, parseFrontMatter, stageBufferDraft } from './lib/social-drafts.mjs';
+import { buildSocialDrafts, parseFrontMatter, parseReleaseDraft, stageBufferDraft } from './lib/social-drafts.mjs';
 
 const REPO_ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const args = process.argv.slice(2);
@@ -24,16 +24,32 @@ if (missing.length) {
   process.exit(1);
 }
 
-const files = execFileSync('git', [
+const fieldNoteFiles = execFileSync('git', [
   'diff', '--name-only', '--diff-filter=A', before, after, '--', 'portfolio/content/writing/*.md',
 ], { cwd: REPO_ROOT, encoding: 'utf8' }).trim().split('\n').filter(Boolean);
+const releaseDraftFiles = execFileSync('git', [
+  'diff', '--name-only', '--diff-filter=A', before, after, '--', 'docs/social-drafts/*.json',
+], { cwd: REPO_ROOT, encoding: 'utf8' }).trim().split('\n').filter(Boolean);
 
-if (files.length === 0) {
-  console.log('[social-drafts] no newly added Field Notes to stage');
+if (fieldNoteFiles.length === 0 && releaseDraftFiles.length === 0) {
+  console.log('[social-drafts] no newly added drafts to stage');
   process.exit(0);
 }
 
-for (const file of files) {
+async function stage(draft, label) {
+  const channelId = draft.channel === 'linkedin'
+    ? process.env.BUFFER_LINKEDIN_CHANNEL_ID
+    : process.env.BUFFER_X_CHANNEL_ID;
+  const result = await stageBufferDraft({
+    apiKey: process.env.BUFFER_API_KEY,
+    organizationId: process.env.BUFFER_ORGANIZATION_ID,
+    channelId,
+    text: draft.text,
+  });
+  console.log(`[social-drafts] ${result.duplicate ? 'reused' : 'staged'} ${draft.channel} draft for ${label} (${result.id})`);
+}
+
+for (const file of fieldNoteFiles) {
   const slug = file.split('/').at(-1).replace(/\.md$/, '');
   const meta = parseFrontMatter(readFileSync(resolve(REPO_ROOT, file), 'utf8'));
   const drafts = buildSocialDrafts(meta, slug);
@@ -42,15 +58,12 @@ for (const file of files) {
     continue;
   }
   for (const draft of drafts) {
-    const channelId = draft.channel === 'linkedin'
-      ? process.env.BUFFER_LINKEDIN_CHANNEL_ID
-      : process.env.BUFFER_X_CHANNEL_ID;
-    const result = await stageBufferDraft({
-      apiKey: process.env.BUFFER_API_KEY,
-      organizationId: process.env.BUFFER_ORGANIZATION_ID,
-      channelId,
-      text: draft.text,
-    });
-    console.log(`[social-drafts] ${result.duplicate ? 'reused' : 'staged'} ${draft.channel} draft for ${slug} (${result.id})`);
+    await stage(draft, slug);
   }
+}
+
+for (const file of releaseDraftFiles) {
+  const label = file.split('/').at(-1).replace(/\.json$/, '');
+  const draft = parseReleaseDraft(readFileSync(resolve(REPO_ROOT, file), 'utf8'));
+  await stage(draft, label);
 }

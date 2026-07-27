@@ -62,6 +62,8 @@ export const RATE_LIMIT_POLICIES = Object.freeze({
   writerSave: Object.freeze({ windowMs: 60_000, max: 20 }),
   oauth: Object.freeze({ windowMs: 60_000, max: 20 }),
   isochrones: Object.freeze({ windowMs: 60_000, max: 30 }),
+  hairstyleText: Object.freeze({ windowMs: 60_000, max: 20 }),
+  hairstyleImage: Object.freeze({ windowMs: 60 * 60_000, max: 5 }),
   photo: Object.freeze({ windowMs: 60_000, max: 120 }),
 });
 
@@ -71,6 +73,8 @@ export function rateLimitPolicyForPath(pathname) {
   if (pathname === '/api/writer/publish' || pathname === '/api/writer/review' || pathname === '/api/writer/social') return 'writer';
   if (pathname === '/api/writer/save') return 'writerSave';
   if (pathname === '/api/isochrones') return 'isochrones';
+  if (pathname === '/api/hairstyle-ai-studio/generate' || pathname === '/api/hairstyle-ai-studio/refine') return 'hairstyleImage';
+  if (pathname.startsWith('/api/hairstyle-ai-studio/')) return 'hairstyleText';
   if (pathname === '/api/photo-proxy' || pathname === '/api/strava/photo') return 'photo';
   if (pathname.startsWith('/api/strava/')) return 'oauth';
   return null;

@@ -17,6 +17,9 @@ test('rateLimitPolicyForPath assigns independent route policies', () => {
   assert.equal(rateLimitPolicyForPath('/api/strava/photo'), 'photo');
   assert.equal(rateLimitPolicyForPath('/api/photo-proxy'), 'photo');
   assert.equal(rateLimitPolicyForPath('/api/isochrones'), 'isochrones');
+  assert.equal(rateLimitPolicyForPath('/api/hairstyle-ai-studio/analyze'), 'hairstyleText');
+  assert.equal(rateLimitPolicyForPath('/api/hairstyle-ai-studio/generate'), 'hairstyleImage');
+  assert.equal(rateLimitPolicyForPath('/api/hairstyle-ai-studio/refine'), 'hairstyleImage');
   assert.equal(rateLimitPolicyForPath('/api/apps'), null);
 });
 
