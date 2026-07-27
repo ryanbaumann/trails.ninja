@@ -418,6 +418,22 @@ Evidence: Social cards were regenerated with `ryanbaumann.dev`; Lab metadata now
 Use next time: Treat a domain move as a dependency inventory, not a string replacement. Check generated text in images, absolute asset URLs, deployment health targets, OAuth origins, email senders, analytics, API referrers, and search ownership before changing DNS.
 
 
+## 2026-07-27 - Production smoke must reach metadata gates after config gates
+
+Context: Two deploys built and routed healthy Cloud Run revisions but stopped
+at the runtime-variable check because `GEMINI_API_KEY` was not attached. Once
+the existing secret was attached, the next production smoke exposed a missing
+canonical URL on the newly imported Real World Reasoning page.
+Learning: Runtime configuration and rendered metadata are separate deployment
+boundaries. Clear configuration blockers before calling a release verified,
+then run the complete production smoke against the service URL so later gates
+are not hidden behind an earlier failure.
+Evidence: Cloud Run revision `fieldwork-00099-c2z` serves with
+`GEMINI_API_KEY` attached, and `demos/real-world-reasoning-agent/index.html`
+now owns one canonical and matching Open Graph URL.
+Use next time: For a new hosted demo, verify required runtime variable names
+before the paid build and verify its canonical URL in built HTML before merge.
+
 ## 2026-07-27 - Compile the deployable graph once per CI event
 
 Context: Pull-request CI built each app in its package job, rebuilt every app
