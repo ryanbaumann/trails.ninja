@@ -3,6 +3,7 @@
 interface ImportMetaEnv {
   readonly VITE_GMP_API_KEY: string;
   readonly VITE_GMP_MAP_ID?: string;
+  readonly VITE_ANALYTICS_MEASUREMENT_ID?: string;
   readonly VITE_GEMINI_CHAT_MODEL?: string;
   readonly VITE_GEMINI_IMAGE_MODEL?: string;
 }

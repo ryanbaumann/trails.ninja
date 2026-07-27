@@ -2,6 +2,21 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-07-27 - Per-user free tiers still need a global spend ceiling
+
+Context: IP allowances limited ordinary use but an IP-rotating caller could
+still spend the hosted provider key, and imported Maps proxy limits were sized
+for load testing rather than a public portfolio.
+Learning: Separate per-user fairness, process-wide daily spend ceilings, and
+provider-side quotas. Pin exact upstream routes and methods; same-origin checks
+alone are not caller authentication.
+Evidence: Hairstyle now has per-IP and global hosted-generation caps; Real
+World Reasoning has separate request classes, daily Maps/Gemini ceilings,
+bounded limiter memory, exact route/method allowlists, and focused regressions.
+Use next time: Define the maximum affordable provider usage before exposing a
+public proxy, then make cloud quotas the hard backstop for restart and botnet
+scenarios.
+
 ## 2026-07-27 - A private-to-open-source migration needs explicit release provenance
 
 Context: Real World Reasoning Agent was still private when its owner requested

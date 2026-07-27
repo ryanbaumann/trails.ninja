@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Security
+- Documented and enforced the Lab gateway's key boundaries, CSP assumptions,
+  conservative per-IP and process-wide daily Maps/Gemini ceilings, bounded
+  limiter memory, privacy-limited analytics, and production Grounding Lite
+  configuration.
 - Added a same-origin, BYO-key Gemini gateway for Hairstyle AI Studio. Visitor
   keys stay in React memory, pass transiently in a request header, and are
   never stored or included in analytics. The gateway validates image data and

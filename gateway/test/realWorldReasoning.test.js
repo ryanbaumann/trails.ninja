@@ -300,6 +300,46 @@ test('Air Quality heatmap tiles include both required header and tile solution q
   assert.equal(upstream.init.headers['X-Goog-Maps-Solution-ID'], GMP_SOLUTION_ID);
 });
 
+test('shared Maps proxy stops at independent daily REST and tile cost ceilings', async () => {
+  let calls = 0;
+  const handler = createRealWorldReasoningHandler({ logger: () => {} });
+  const fetchImpl = async () => {
+    calls += 1;
+    return new Response('{}', {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+  const env = {
+    ...BASE_ENV,
+    GMP_SERVER_API_KEY: 'maps-test-key',
+    RWR_DAILY_GMP_CAP: '1',
+    RWR_DAILY_GMP_TILE_CAP: '1',
+  };
+
+  const restOptions = {
+    handler,
+    path: 'gmp/weather/v1/currentConditions:lookup',
+    search: 'location.latitude=1&location.longitude=2',
+    headers: { origin: 'https://fieldwork.test' },
+    env,
+    fetchImpl,
+  };
+  assert.equal((await invoke(restOptions)).response.statusCode, 200);
+  assert.equal((await invoke(restOptions)).response.statusCode, 429);
+
+  const tileOptions = {
+    handler,
+    path: 'gmp/airquality/v1/mapTypes/US_AQI/heatmapTiles/2/1/1',
+    headers: { origin: 'https://fieldwork.test' },
+    env,
+    fetchImpl,
+  };
+  assert.equal((await invoke(tileOptions)).response.statusCode, 200);
+  assert.equal((await invoke(tileOptions)).response.statusCode, 429);
+  assert.equal(calls, 2);
+});
+
 test('GMP proxy blocks cross-origin and attacker-controlled targets before fetch', async () => {
   let calls = 0;
   const fetchImpl = async () => {
@@ -313,6 +353,13 @@ test('GMP proxy blocks cross-origin and attacker-controlled targets before fetch
     fetchImpl,
   });
   assert.equal(crossOrigin.response.statusCode, 429);
+  const fetchMetadataBlocked = await invoke({
+    path: 'gmp/weather/v1/currentConditions:lookup',
+    headers: { 'sec-fetch-site': 'cross-site' },
+    env: { ...BASE_ENV, GMP_SERVER_API_KEY: 'maps-test-key' },
+    fetchImpl,
+  });
+  assert.equal(fetchMetadataBlocked.response.statusCode, 429);
 
   const photo = await invoke({
     path: 'gmp/placephoto',
@@ -328,12 +375,19 @@ test('GMP proxy blocks cross-origin and attacker-controlled targets before fetch
     fetchImpl,
   });
   assert.equal(pinned.response.statusCode, 404);
+  const wrongMethod = await invoke({
+    path: 'gmp/weather/v1/currentConditions:lookup',
+    method: 'POST',
+    env: { ...BASE_ENV, GMP_SERVER_API_KEY: 'maps-test-key' },
+    fetchImpl,
+  });
+  assert.equal(wrongMethod.response.statusCode, 404);
   assert.equal(calls, 0);
 });
 
 test('Places photo proxy allows only pinned Google-hosted image URLs', async () => {
   let upstream;
-  const photoUrl = 'https://places.googleapis.com/v1/photos/example/media?maxWidthPx=640';
+  const photoUrl = 'https://places.googleapis.com/v1/places/example/photos/photo/media?maxWidthPx=640';
   const result = await invoke({
     path: 'gmp/placephoto',
     search: `url=${encodeURIComponent(photoUrl)}`,
@@ -350,6 +404,13 @@ test('Places photo proxy allows only pinned Google-hosted image URLs', async () 
   assert.equal(result.response.statusCode, 200);
   assert.equal(upstream.hostname, 'places.googleapis.com');
   assert.equal(upstream.searchParams.get('key'), 'maps-test-key');
+
+  const directCdn = await invoke({
+    path: 'gmp/placephoto',
+    search: `url=${encodeURIComponent('https://lh3.googleusercontent.com/arbitrary')}`,
+    env: { ...BASE_ENV, GMP_SERVER_API_KEY: 'maps-test-key' },
+  });
+  assert.equal(directCdn.response.statusCode, 400);
 });
 
 test('BYOK Gemini traffic bypasses hosted caps, strips URL keys, and preserves caller budget', async () => {

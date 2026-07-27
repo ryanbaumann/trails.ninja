@@ -19,6 +19,7 @@ const REQUIRED_GEMINI_MODELS = Object.freeze([
   'gemini-3.5-flash-lite',
 ]);
 const METADATA_MAX_RECORDS = 500;
+const MAX_RATE_BUCKETS = 10_000;
 const PROXY_ENDPOINTS = new Set(['ai', 'gmp', 'gmp:tile', 'gmp:photo']);
 const HEARTBEAT_MS = 10 * 60 * 1000;
 const SOLUTION_HEADER_HOSTS = new Set([
@@ -196,11 +197,19 @@ const numberFromEnv = (env, name, fallback, { min = 0, max = Number.MAX_SAFE_INT
 };
 
 const configFromEnv = (env) => ({
-  aiLimit: numberFromEnv(env, 'RWR_AI_RATE_LIMIT', 36_000, { max: 1_000_000 }),
-  gmpLimit: numberFromEnv(env, 'RWR_GMP_RATE_LIMIT', 180_000, { max: 2_000_000 }),
+  aiLimit: numberFromEnv(env, 'RWR_AI_RATE_LIMIT', 120, { min: 1, max: 10_000 }),
+  gmpLimit: numberFromEnv(env, 'RWR_GMP_RATE_LIMIT', 300, { min: 1, max: 10_000 }),
+  gmpTileLimit: numberFromEnv(env, 'RWR_GMP_TILE_RATE_LIMIT', 3_000, { min: 1, max: 100_000 }),
+  gmpPhotoLimit: numberFromEnv(env, 'RWR_GMP_PHOTO_RATE_LIMIT', 600, { min: 1, max: 20_000 }),
+  mcpLimit: numberFromEnv(env, 'RWR_MCP_RATE_LIMIT', 120, { min: 1, max: 10_000 }),
+  metadataLimit: numberFromEnv(env, 'RWR_METADATA_RATE_LIMIT', 60, { min: 1, max: 10_000 }),
   windowMs: numberFromEnv(env, 'RWR_RATE_LIMIT_WINDOW_MS', 15 * 60_000, { min: 1_000, max: 60 * 60_000 }),
   dailyAiCap: numberFromEnv(env, 'RWR_DAILY_AI_CAP', 50, { max: 100_000 }),
   dailyAiInputBytes: numberFromEnv(env, 'RWR_DAILY_AI_INPUT_BYTES', 1_400_000, { max: 100 * 1024 * 1024 }),
+  dailyGmpCap: numberFromEnv(env, 'RWR_DAILY_GMP_CAP', 1_000, { min: 1, max: 100_000 }),
+  dailyGmpTileCap: numberFromEnv(env, 'RWR_DAILY_GMP_TILE_CAP', 10_000, { min: 1, max: 1_000_000 }),
+  dailyGmpPhotoCap: numberFromEnv(env, 'RWR_DAILY_GMP_PHOTO_CAP', 1_000, { min: 1, max: 100_000 }),
+  dailyMcpCap: numberFromEnv(env, 'RWR_DAILY_MCP_CAP', 250, { min: 1, max: 100_000 }),
   hostedAiMaxOutputTokens: numberFromEnv(env, 'RWR_HOSTED_AI_MAX_OUTPUT_TOKENS', 2_048, { min: 1, max: 65_536 }),
   dailyVideoCap: numberFromEnv(env, 'RWR_DAILY_VIDEO_CAP', 0, { max: 10_000 }),
   bodyCap: numberFromEnv(env, 'RWR_BODY_CAP_BYTES', 1024 * 1024, { min: 1_024, max: 16 * 1024 * 1024 }),
@@ -212,6 +221,7 @@ const configFromEnv = (env) => ({
 });
 
 const sameOrigin = (request) => {
+  if (headerValue(request.headers, 'sec-fetch-site') === 'cross-site') return false;
   const host = headerValue(request.headers, 'x-forwarded-host') || headerValue(request.headers, 'host');
   const source = headerValue(request.headers, 'origin') || headerValue(request.headers, 'referer');
   if (!source) return true;
@@ -282,7 +292,19 @@ const pinnedTarget = (rest, searchParams, origin) => {
   return target;
 };
 
-const gmpTarget = (path, searchParams, gmpKey) => {
+const gmpTarget = (path, searchParams, gmpKey, method) => {
+  const allowed = [
+    ['GET', /^\/gmp\/geocode\/json$/],
+    ['POST', /^\/gmp\/airquality\/v1\/currentConditions:lookup$/],
+    ['GET', /^\/gmp\/airquality\/v1\/mapTypes\/US_AQI\/heatmapTiles\/\d+\/\d+\/\d+$/],
+    ['GET', /^\/gmp\/weather\/v1\/currentConditions:lookup$/],
+    ['GET', /^\/gmp\/pollen\/v1\/forecast:lookup$/],
+    ['GET', /^\/gmp\/pollen\/v1\/mapTypes\/TREE_UPI\/heatmapTiles\/\d+\/\d+\/\d+$/],
+    ['GET', /^\/gmp\/solar\/v1\/buildingInsights:findClosest$/],
+    ['GET', /^\/gmp\/streetview\/maps\/api\/streetview(?:\/metadata)?$/],
+    ['GET', /^\/gmp\/staticmap\/maps\/api\/staticmap$/],
+  ];
+  if (!allowed.some(([verb, pattern]) => verb === method && pattern.test(path))) return null;
   let origin = 'https://maps.googleapis.com';
   let rest = path;
   if (path.startsWith('/gmp/geocode')) {
@@ -318,11 +340,16 @@ const gmpTarget = (path, searchParams, gmpKey) => {
 const allowedPhotoTarget = (raw, gmpKey) => {
   try {
     const target = new URL(raw);
-    const allowedHost = target.hostname === 'places.googleapis.com'
-      || target.hostname === 'googleusercontent.com'
-      || target.hostname.endsWith('.googleusercontent.com');
-    if (target.protocol !== 'https:' || !allowedHost) return null;
-    if (target.hostname === 'places.googleapis.com') appendKey(target, gmpKey);
+    if (
+      target.protocol !== 'https:'
+      || target.hostname !== 'places.googleapis.com'
+      || !/^\/v1\/places\/[^/]+\/photos\/[^/]+\/media$/.test(target.pathname)
+    ) return null;
+    for (const name of ['maxWidthPx', 'maxHeightPx']) {
+      const value = target.searchParams.get(name);
+      if (value !== null && (!/^\d{1,4}$/.test(value) || Number(value) > 1_600)) return null;
+    }
+    appendKey(target, gmpKey);
     return target;
   } catch {
     return null;
@@ -380,11 +407,18 @@ export function createRealWorldReasoningHandler({
     ai: 0,
     inputBytes: 0,
     video: 0,
+    gmp: 0,
+    gmpTile: 0,
+    gmpPhoto: 0,
+    mcp: 0,
   };
 
   const rate = (request, kind, limit, windowMs) => {
     const key = `${kind}:${clientIp(request)}`;
     const timestamp = now();
+    if (!rateBuckets.has(key) && rateBuckets.size >= MAX_RATE_BUCKETS) {
+      rateBuckets.delete(rateBuckets.keys().next().value);
+    }
     const recent = (rateBuckets.get(key) || []).filter((hit) => timestamp - hit < windowMs);
     recent.push(timestamp);
     rateBuckets.set(key, recent);
@@ -393,7 +427,25 @@ export function createRealWorldReasoningHandler({
 
   const resetDaily = () => {
     const day = new Date(now()).toISOString().slice(0, 10);
-    if (daily.day !== day) daily = { day, ai: 0, inputBytes: 0, video: 0 };
+    if (daily.day !== day) {
+      daily = {
+        day,
+        ai: 0,
+        inputBytes: 0,
+        video: 0,
+        gmp: 0,
+        gmpTile: 0,
+        gmpPhoto: 0,
+        mcp: 0,
+      };
+    }
+  };
+
+  const takeDaily = (kind, limit) => {
+    resetDaily();
+    if (daily[kind] >= limit) return false;
+    daily[kind] += 1;
+    return true;
   };
 
   const shouldHeartbeat = (endpoint, intervalMs) => {
@@ -515,7 +567,7 @@ export function createRealWorldReasoningHandler({
         sendText(response, 405, 'Metadata only accepts POST');
         return true;
       }
-      if (!sameOrigin(request) || !rate(request, 'gmp', config.gmpLimit, config.windowMs)) {
+      if (!sameOrigin(request) || !rate(request, 'metadata', config.metadataLimit, config.windowMs)) {
         sendText(response, 429, 'The demo is busy right now — try again in a few minutes');
         return true;
       }
@@ -568,7 +620,7 @@ export function createRealWorldReasoningHandler({
         sendProxy(response, 'gmp', 405, 'Grounding Lite only accepts POST', config);
         return true;
       }
-      if (!sameOrigin(request) || !rate(request, 'gmp', config.gmpLimit, config.windowMs)) {
+      if (!sameOrigin(request) || !rate(request, 'gmp:mcp', config.mcpLimit, config.windowMs)) {
         sendProxy(response, 'gmp', 429, 'The demo is busy right now — try again in a few minutes', config);
         return true;
       }
@@ -596,6 +648,10 @@ export function createRealWorldReasoningHandler({
         sendProxy(response, 'gmp', 403, 'MCP tool or arguments are not allowed', config);
         return true;
       }
+      if (!takeDaily('mcp', config.dailyMcpCap)) {
+        sendProxy(response, 'gmp', 429, 'The shared Maps daily budget is exhausted', config);
+        return true;
+      }
       await proxy({
         request,
         response,
@@ -619,13 +675,21 @@ export function createRealWorldReasoningHandler({
         return true;
       }
       if (path === '/gmp/placephoto') {
-        if (!sameOrigin(request) || !rate(request, 'gmp', config.gmpLimit * 10, config.windowMs)) {
+        if (request.method !== 'GET') {
+          sendProxy(response, 'gmp:photo', 405, 'Photo proxy only accepts GET', config);
+          return true;
+        }
+        if (!sameOrigin(request) || !rate(request, 'gmp:photo', config.gmpPhotoLimit, config.windowMs)) {
           sendProxy(response, 'gmp:photo', 429, 'The demo is busy right now — try again in a few minutes', config);
           return true;
         }
         const target = allowedPhotoTarget(query.get('url') || '', gmpKey);
         if (!target) {
           sendProxy(response, 'gmp:photo', 400, 'Unsupported photo URL', config);
+          return true;
+        }
+        if (!takeDaily('gmpPhoto', config.dailyGmpPhotoCap)) {
+          sendProxy(response, 'gmp:photo', 429, 'The shared Maps daily budget is exhausted', config);
           return true;
         }
         await proxy({
@@ -643,14 +707,20 @@ export function createRealWorldReasoningHandler({
         || path.includes('/streetview')
         || path.includes('/staticmap');
       const endpoint = isTile ? 'gmp:tile' : 'gmp';
-      const limit = isTile ? config.gmpLimit * 10 : config.gmpLimit;
-      if (!sameOrigin(request) || !rate(request, 'gmp', limit, config.windowMs)) {
+      const limit = isTile ? config.gmpTileLimit : config.gmpLimit;
+      if (!sameOrigin(request) || !rate(request, endpoint, limit, config.windowMs)) {
         sendProxy(response, endpoint, 429, 'The demo is busy right now — try again in a few minutes', config);
         return true;
       }
-      const target = gmpTarget(path, query, gmpKey);
+      const target = gmpTarget(path, query, gmpKey, request.method);
       if (!target) {
         sendProxy(response, endpoint, 404, 'Unknown GMP proxy route', config);
+        return true;
+      }
+      const dailyKind = isTile ? 'gmpTile' : 'gmp';
+      const dailyLimit = isTile ? config.dailyGmpTileCap : config.dailyGmpCap;
+      if (!takeDaily(dailyKind, dailyLimit)) {
+        sendProxy(response, endpoint, 429, 'The shared Maps daily budget is exhausted', config);
         return true;
       }
       await proxy({

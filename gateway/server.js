@@ -91,6 +91,7 @@ const routeRateLimiters = Object.fromEntries(
 const authRateLimiter = routeRateLimiters.auth;
 const upstreamRateLimiter = createRateLimiter({ windowMs: 60_000, max: 60 });
 const hairstyleFreeRateLimiter = createDailyRateLimiter({ max: 5 });
+const hairstyleGlobalFreeRateLimiter = createDailyRateLimiter({ max: 100 });
 const handleRealWorldReasoningApi = createRealWorldReasoningHandler();
 
 function sendJson(request, response, statusCode, payload) {
@@ -694,6 +695,7 @@ async function handleApi(request, response, pathname, searchParams) {
     const isImageRequest = pathname === '/api/hairstyle-ai-studio/generate'
       || pathname === '/api/hairstyle-ai-studio/refine';
     let freeTierReserved = false;
+    let globalFreeTierReserved = false;
     if (isImageRequest && credentialSource === 'byok') {
       const policy = RATE_LIMIT_POLICIES.hairstyleByokImage;
       if (!routeRateLimiters.hairstyleByokImage.check(`hairstyle-byok:${ip}`)) {
@@ -716,6 +718,16 @@ async function handleApi(request, response, pathname, searchParams) {
         });
         return;
       }
+      globalFreeTierReserved = hairstyleGlobalFreeRateLimiter.take('hairstyle-global');
+      if (!globalFreeTierReserved) {
+        hairstyleFreeRateLimiter.refund(freeTierKey);
+        freeTierReserved = false;
+        sendJson(request, response, 429, {
+          error: 'The shared daily generation budget is exhausted. Add your own Gemini API key to continue.',
+          code: 'FREE_TIER_EXHAUSTED',
+        });
+        return;
+      }
     }
 
     let body;
@@ -723,6 +735,7 @@ async function handleApi(request, response, pathname, searchParams) {
       body = await readJsonBody(request, 12 * 1024 * 1024);
     } catch (err) {
       if (freeTierReserved) hairstyleFreeRateLimiter.refund(freeTierKey);
+      if (globalFreeTierReserved) hairstyleGlobalFreeRateLimiter.refund('hairstyle-global');
       sendJson(request, response, err.statusCode || 400, { error: err.message });
       return;
     }
@@ -742,6 +755,7 @@ async function handleApi(request, response, pathname, searchParams) {
     });
     if (freeTierReserved && (result.statusCode < 200 || result.statusCode >= 300)) {
       hairstyleFreeRateLimiter.refund(freeTierKey);
+      hairstyleGlobalFreeRateLimiter.refund('hairstyle-global');
     } else if (freeTierReserved) {
       result.json.freeTier = hairstyleFreeRateLimiter.status(freeTierKey);
     }
@@ -947,5 +961,6 @@ export {
   authRateLimiter,
   routeRateLimiters,
   hairstyleFreeRateLimiter,
+  hairstyleGlobalFreeRateLimiter,
   CONTACT_INTENTS,
 };

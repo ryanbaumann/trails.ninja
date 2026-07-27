@@ -209,6 +209,7 @@ jobs:
           #     --project "$GCP_PROJECT_ID" --region "$GCP_REGION" \
           #     --update-secrets=STRAVA_CLIENT_SECRET=strava-client-secret:latest \
           #     --update-secrets=GMP_SERVER_API_KEY=gmp-server-api-key:latest \
+          #     --update-secrets=GMP_MCP_KEY=gmp-mcp-key:latest \
           #     --update-secrets=RESEND_API_KEY=resend-api-key:latest \
           #     --update-secrets=RESEND_SEGMENT_ID=resend-segment-id:latest \
           #     --update-secrets=RESEND_TOPIC_ID=resend-topic-id:latest \
@@ -219,7 +220,7 @@ jobs:
           #     --update-secrets=GITHUB_CONTENT_TOKEN=github-content-token:latest \
           #     --update-secrets=GITHUB_REVIEW_TOKEN=github-review-token:latest \
           #     --update-secrets=BUFFER_API_KEY=buffer-api-key:latest \
-          #     --set-env-vars=STRAVA_CLIENT_ID=<your Strava app's client id>,CONTACT_FROM_EMAIL=<verified sender>,GOOGLE_OAUTH_CLIENT_ID=<oauth-client-id>,WRITER_PUBLIC_ORIGIN=https://ryanbaumann-dashboardfolio.admin.com,BUFFER_ORGANIZATION_ID=<buffer-org-id>,BUFFER_LINKEDIN_CHANNEL_ID=<buffer-linkedin-id>,BUFFER_X_CHANNEL_ID=<buffer-x-id>
+          #     --update-env-vars=STRAVA_CLIENT_ID=<your Strava app's client id>,CONTACT_FROM_EMAIL=<verified sender>,GOOGLE_OAUTH_CLIENT_ID=<oauth-client-id>,WRITER_PUBLIC_ORIGIN=https://ryanbaumann-dashboardfolio.admin.com,BUFFER_ORGANIZATION_ID=<buffer-org-id>,BUFFER_LINKEDIN_CHANNEL_ID=<buffer-linkedin-id>,BUFFER_X_CHANNEL_ID=<buffer-x-id>,RWR_GROUNDING_LITE_ENABLED=true
           #
           # STRAVA_CLIENT_ID isn't secret on its own (it's public in the
           # OAuth authorize URL), so plain --set-env-vars is fine for it.

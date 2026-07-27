@@ -162,6 +162,9 @@ falls back to `GMP_SERVER_API_KEY`. Set `RWR_GROUNDING_LITE_ENABLED=true` only a
 the selected server key is enabled for that product. Browser Maps uses the
 existing referrer-restricted `VITE_GMP_API_KEY`.
 
+See [LABS_SECURITY.md](LABS_SECURITY.md) for the exact gateway assumptions,
+CSP contract, key restrictions, cost ceilings, and regression checks.
+
 ## Paved paths
 
 | I want to… | Run |
