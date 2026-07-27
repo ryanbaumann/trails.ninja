@@ -34,7 +34,7 @@ export function createRateLimiter({ windowMs = 60_000, max = 30 } = {}) {
   return { check, stop };
 }
 
-export function createDailyRateLimiter({ max = 5, now = () => Date.now() } = {}) {
+export function createDailyRateLimiter({ max = 5, maxKeys = 10_000, now = () => Date.now() } = {}) {
   const hits = new Map();
 
   function windowFor(timestamp) {
@@ -52,6 +52,12 @@ export function createDailyRateLimiter({ max = 5, now = () => Date.now() } = {})
     const existing = hits.get(key);
     if (existing?.windowStart === window.windowStart) {
       return { record: existing, ...window };
+    }
+    if (!hits.has(key) && hits.size >= maxKeys) {
+      for (const [storedKey, stored] of hits) {
+        if (stored.windowStart !== window.windowStart) hits.delete(storedKey);
+      }
+      while (hits.size >= maxKeys) hits.delete(hits.keys().next().value);
     }
     const record = { windowStart: window.windowStart, count: 0 };
     hits.set(key, record);

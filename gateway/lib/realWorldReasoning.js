@@ -146,8 +146,9 @@ export function validateRealWorldReasoningMetadata(payload) {
       if (!ALLOWED_METADATA_KEYS.has(key)) return { ok: false, reason: `unexpected key: ${key}` };
     }
     const { scenario, tool, status, category, detailLabels, tsBucket } = record;
-    if (typeof scenario !== 'string' || typeof tool !== 'string' || typeof category !== 'string') {
-      return { ok: false, reason: 'scenario/tool/category must be strings' };
+    const token = (value) => typeof value === 'string' && /^[a-z0-9][a-z0-9:_-]{0,63}$/i.test(value);
+    if (!token(scenario) || !token(tool) || !token(category)) {
+      return { ok: false, reason: 'scenario/tool/category must be bounded tokens' };
     }
     if (!ALLOWED_METADATA_STATUS.has(status)) return { ok: false, reason: 'invalid status' };
     if (typeof tsBucket !== 'number' || !Number.isFinite(tsBucket)) {
@@ -155,8 +156,12 @@ export function validateRealWorldReasoningMetadata(payload) {
     }
     if (
       detailLabels !== undefined
-      && (!Array.isArray(detailLabels) || detailLabels.some((label) => typeof label !== 'string'))
-    ) return { ok: false, reason: 'detailLabels must be a string array' };
+      && (
+        !Array.isArray(detailLabels)
+        || detailLabels.length > 10
+        || detailLabels.some((label) => typeof label !== 'string' || !/^[a-z0-9][a-z0-9 _:-]{0,63}$/i.test(label))
+      )
+    ) return { ok: false, reason: 'detailLabels must be bounded structural labels' };
     if (hasForbiddenMetadata([scenario, tool, category, ...(detailLabels ?? [])].join(' '))) {
       return { ok: false, reason: 'forbidden content in metadata' };
     }

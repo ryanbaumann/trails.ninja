@@ -65,5 +65,7 @@ npm run smoke
 
 The gateway suite covers trusted IP selection, fail-closed key routing, hosted
 versus BYOK budgets, daily Maps ceilings, pinned targets, allowlists, body
-caps, and CSP selection. Smoke scans all staged/served text assets for actual
-secret values and verifies routes, assets, and home links.
+caps, and CSP selection. Smoke scans staged/served text assets for known
+high-risk secret patterns and verifies routes, assets, and home links. When
+local secrets are available, also compare their exact values against tracked
+files and built assets without printing those values.

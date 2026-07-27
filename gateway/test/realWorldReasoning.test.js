@@ -596,6 +596,11 @@ test('metadata sink accepts only consented, structural, content-free records', a
   }];
   assert.deepEqual(validateRealWorldReasoningMetadata(records), { ok: true, count: 1 });
   assert.equal(validateRealWorldReasoningMetadata([{ ...records[0], url: 'https://example.com' }]).ok, false);
+  assert.equal(validateRealWorldReasoningMetadata([{ ...records[0], tool: 'x'.repeat(65) }]).ok, false);
+  assert.equal(validateRealWorldReasoningMetadata([{
+    ...records[0],
+    detailLabels: Array.from({ length: 11 }, () => 'Label'),
+  }]).ok, false);
 
   const logs = [];
   const handler = createRealWorldReasoningHandler({ logger: (line) => logs.push(line) });
