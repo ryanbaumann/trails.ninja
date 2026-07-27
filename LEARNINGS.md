@@ -418,6 +418,23 @@ Evidence: Social cards were regenerated with `ryanbaumann.dev`; Lab metadata now
 Use next time: Treat a domain move as a dependency inventory, not a string replacement. Check generated text in images, absolute asset URLs, deployment health targets, OAuth origins, email senders, analytics, API referrers, and search ownership before changing DNS.
 
 
+## 2026-07-27 - Compile the deployable graph once per CI event
+
+Context: Pull-request CI built each app in its package job, rebuilt every app
+for a staged gateway smoke test, then rebuilt them again inside Docker. A
+main-branch push repeated the Docker verification immediately before Cloud
+Build produced the production image.
+Learning: Keep fast package lint and unit tests isolated, but use the deployable
+container as the single full compilation and smoke boundary on pull requests.
+On main, let the production build own that boundary. Since Cloud Build workers
+are ephemeral, explicitly pull the last successful image and export inline
+BuildKit cache metadata.
+Evidence: `.github/workflows/ci.yml` removes the duplicate staged build and
+per-package build step, and gates Docker verification to pull requests.
+`cloudbuild.yaml` pulls, consumes, and refreshes the `build-cache` image.
+Use next time: Before adding a build job, map which existing job already proves
+compilation, packaging, or runtime liveness and add only missing evidence.
+
 ## 2026-07-17 - Distribution and privacy copy must match the deployed data path
 
 Context: The live site loaded privacy-preserving GA4 analytics by default while the Privacy page described an opt-in control, and the email implementation still used Resend's retired Audience API.

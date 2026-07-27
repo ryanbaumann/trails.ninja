@@ -62,6 +62,14 @@ All notable changes to this project will be documented in this file.
 - Added gateway test coverage verifying that all external image, font, and avatar hosts loaded by demo apps are permitted by their respective CSP policies.
 
 ### Changed
+- Consolidated the pending Dependabot updates across Atlas, Hairstyle AI
+  Studio, Strava Explorer, Isochrones, and Air Quality Map, including the
+  required Tailwind 4 PostCSS compatibility update for Hairstyle AI Studio.
+- Reduced CI/CD duplication so pull requests compile the complete application
+  once in the deployable Docker image, while package jobs retain isolated lint
+  and unit tests. Main-branch pushes now rely on the production Cloud Build
+  instead of rebuilding the same container in GitHub Actions, and Cloud Build
+  reuses the last successful image as an inline BuildKit cache.
 - Reworked Hairstyle AI Studio's Gemini access to match the proven hosted-plus-BYOK pattern: each client IP receives five successful image generations per UTC day, recommendation analysis stays outside that spend cap, and a validated memory-only personal key bypasses the shared allowance while retaining a separate abuse guard. The UI now opens directly into the studio, shows remaining free generations, and distinguishes shared exhaustion from personal-key provider quota.
 - Updated Hairstyle AI Studio to current compatible dependencies with a clean
   audit, routed optional recommendations to `gemini-3.5-flash-lite`, retained

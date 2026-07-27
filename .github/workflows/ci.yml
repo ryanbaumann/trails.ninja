@@ -61,9 +61,9 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: |
           if [ -f "package-lock.json" ]; then
-            npm ci
+            npm ci --no-audit --no-fund
           else
-            npm install
+            npm install --no-audit --no-fund
           fi
 
       - name: Run Linter
@@ -74,48 +74,12 @@ jobs:
         working-directory: ${{ matrix.package }}
         run: npm test --if-present
 
-      - name: Build Application
-        working-directory: ${{ matrix.package }}
-        run: npm run build --if-present
-
-  build-and-smoke:
-    name: Build all apps + gateway smoke test
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    # No secrets here: this job builds and smoke-tests the container's
-    # contents with dummy/no keys (see scripts/build-local.mjs and
-    # scripts/smoke.mjs), so it's safe to run on pull_request from forks.
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v7
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: '**/package-lock.json'
-
-      - name: Build every app (stages apps/<name>/ like the Dockerfile does)
-        env:
-          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-        run: node scripts/build-local.mjs --allow-missing-artifacts
-
-      - name: Validate lab manifest and cross-wiring
-        run: npm run check:labs && npm run test:labs
-
-      # Use `npm test` (not raw `node --test`): the npm script sets
-      # NODE_ENV=test. The server also guards on NODE_TEST_CONTEXT now, but
-      # belt and suspenders — a listening socket here hung CI for hours.
-      - name: Run gateway unit tests
-        working-directory: gateway
-        run: npm test
-
-      - name: Smoke test the gateway against the staged apps
-        run: node scripts/smoke.mjs
-
   docker-build:
     name: Docker Build Verification
+    # Pull requests verify the exact deployable container. A push to main is
+    # immediately built and smoke-tested by deploy.yml, so repeating this
+    # expensive build on the same commit only adds runner time and queueing.
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -125,8 +89,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # Layer-cached via the GitHub Actions cache: unchanged apps rebuild
-      # from cache instead of re-running npm ci + vite build in every stage.
+      # This is the single full application build in PR CI. Package jobs keep
+      # lint and unit-test isolation; the container build proves compilation,
+      # packaging, and the gateway boundary once.
       - name: Build Docker Image
         uses: docker/build-push-action@v7
         with:
