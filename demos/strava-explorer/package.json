@@ -19,7 +19,7 @@
   "devDependencies": {
     "@playwright/test": "^1.62.0",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/google.maps": "^3.65.1",
+    "@types/google.maps": "^3.65.3",
     "eslint": "^10.8.0",
     "tailwindcss": "^4.3.3",
     "vite": "^8.1.5",
