@@ -53,7 +53,7 @@
     "lucide-react": "1.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "terra-draw": "^1.31.2",
+    "terra-draw": "^1.32.2",
     "terra-draw-google-maps-adapter": "^1.6.1",
     "zustand": "5.0.14"
   },
