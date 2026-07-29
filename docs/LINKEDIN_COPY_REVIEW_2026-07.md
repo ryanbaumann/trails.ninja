@@ -48,24 +48,25 @@ Replace the whole section. The first 300 characters are what most readers see
 before the fold, so the platform scale and the tension sit there.
 
 ```text
-I lead Developer Experience Engineering for Google Maps Platform, which powers more than 10 million websites and apps. A lot of builders now reach it through an agent first, and when that agent writes wrong code, the developer blames us, not the model.
+I lead Developer Experience Engineering for Google Maps Platform, which powers more than 10 million websites and apps.
 
-That gap is most of my job. The work runs as a loop with a short cycle time: find the friction that repeats, ship the smallest artifact that removes it, put that artifact where builders already are, then check whether behavior actually changed. I work across product, engineering, UX, DevX, DRE, technical writing, and field engineering, and I stay close enough to the work to write the first evals or ship the reference app myself.
+More and more, the first thing to read our docs isn't a developer. It's their agent. And when the agent gets it wrong, the developer blames us, not the model. So my team builds for that reader: Code Assist grounds agents in current official docs, agent skills teach them how we'd actually build, and evals tell us whether any of it worked before we ship. The open-source side has gone well, and the React library we sponsor passed a million weekly downloads.
 
-Recent work:
+The rest of the job is old-fashioned. Find the friction that keeps showing up, ship the smallest thing that kills it, then go check whether anyone's behavior changed. I still write the first evals myself, mostly because it's the fastest way to find out I was wrong.
 
-• Code Assist, a hosted MCP service our team shipped. It gives AI coding agents current official platform documentation and samples instead of relying only on training memory. I set the direction from the first GitHub alpha through hosted launch.
-• Agent skills, portable workflow modules our team launched. One command installs them wherever a compatible agent runs, including AI Studio, and evals gate each release.
-• Task-based evals scored against a no-context baseline, so a launch call rests on a measured delta.
-• API references answer what an endpoint does. They don't answer how to build a fleet tracker that scales, so I started the Geo Architecture Center and wrote several of its guides.
-• Open source. Google Maps Platform sponsors @vis.gl/react-google-maps, now past 1 million weekly downloads. Between early 2025 and 2026 our open-source ecosystem more than doubled its unique active users, and API engagement grew with it.
+Before this I led Intelligent Product Essentials at Google Cloud, built the solutions architecture team at Instabase, and was Mapbox's first customer-facing engineer, where I wrote mapboxgl-jupyter and mapboxgl-powerbi and took Boundaries and Atlas from zero to one.
 
-Earlier: Google Cloud, Instabase, Mapbox, and Caterpillar. The experience section below has the artifacts. The through line is that field friction, looked at long enough, turns into a product.
+Before I wrote software I raced bikes for a living. Both jobs pay off the same habit: pick the signal that actually matters and stay on it longer than is comfortable.
 
-I studied mechanical engineering at Wisconsin, and before I wrote software I raced professionally for Trek-Livestrong and Bahati Foundation, which is where I learned to pace a long effort and watch the one signal that matters.
-
-Nobody has figured out yet what a builder platform should look like when the first user is an agent. I publish what I learn, and the artifacts behind it, at ryanbaumann.dev.
+I write it down at ryanbaumann.dev.
 ```
+
+An earlier draft ran 2,237 characters and read as generated: a four-beat loop
+definition, five appositive bullets stacked under a "Recent work" header, and a
+"the through line is" summary paragraph. This version is 1,318 characters. The
+three AI products now share one sentence because they are one system, the
+open-source claim keeps only the public npm figure, and the OSS active-user
+growth stays in the Google experience entry rather than being repeated here.
 
 ## 4. Experience descriptions
 
@@ -153,10 +154,12 @@ than inside position descriptions, where LinkedIn renders them as plain text.
 
 ## 8. Checks run
 
-- Character counts: headline 156 of 220, About 2,237 of 2,600, every position
+- Character counts: headline 156 of 220, About 1,318 of 2,600, every position
   description under the 2,000 limit (Google 1,582, Mapbox 882, Google Cloud 486,
   Projects 245, Caterpillar 234, Instabase 151).
 - Zero em-dashes and zero en-dashes.
+- About rhythm: sentence lengths run 3 to 38 words, with 3 of 13 sentences in
+  the flat 10 to 16 word band. Exactly two "not X, Y" turns, both in the hook.
 - Recent internal current-employer metrics use the ledger's qualitative framing.
   No precise percentages.
 - Phrase reuse: no verbatim run longer than the ledger-approved growth sentence,
