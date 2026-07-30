@@ -350,7 +350,7 @@ async function init() {
   state.map = new Map(elements.map, {
     center: DEFAULT_CENTER,
     zoom: 9,
-    mapId: '556022f677234497',
+    mapId: '9e6b48a5b3653026f9d7556d',
     colorScheme: 'DARK',
     clickableIcons: false,
     mapTypeControl: false,
