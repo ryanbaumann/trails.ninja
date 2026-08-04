@@ -9,12 +9,12 @@ draft: false
 noindex: false
 # Required before publishing: three distinct visuals, each with its own alt text.
 # Point every path at a real asset, then uncomment. Never a generic site preview.
-image: /img/writing/fine-tuning-was-the-easy-part.svg
+image: /img/writing/fine-tuning-was-the-easy-part.jpg
 imageAlt: Artifact card stating that fine-tuning was the easy part
-socialImage: /img/writing/fine-tuning-was-the-easy-part.svg
+socialImage: /img/writing/fine-tuning-was-the-easy-part-social.jpg
 shareTitle: Fine-Tuning Was the Easy Part
-shareSummary: A wrong field name costs four times list price. A small tuned model fixes the billing leak, but the fix never reaches developers.
-shareImageAlt: Artifact card stating that fine-tuning was the easy part
+shareSummary: I taught a small model to fix a huge Maps API billing leak, but that barely matters. The real problem is distributing that fix to developers.
+shareImageAlt: A social preview card highlighting the billing cost of legacy API calls
 ---
 
 I wanted to make my backyard better for hosting guests and making it safe for kids to play. Naturally while learning about AI Agents more. I wanted somewhere nearby that stocked native plants, so I asked an agent hooked up to the public [Maps APIs](https://developers.google.com/maps/documentation/places/web-service/usage-and-billing) to find me a plant nursery. It gave me four good options with their operating hours.
@@ -38,6 +38,8 @@ So, I explored how I could teach a small model in the Gemma 4 series to actually
 | `google/gemma-4-E4B-it` | Base | 18 |
 | `google/gemma-4-E4B-it` | +SFT (LoRA) | 94 |
 
+![An evidence diagram showing the baseline vs fine-tuned exact match scores](/img/writing/fine-tuning-evidence-inline.jpg)
+
 To do this tuning of Gemma 4, I created (with Gemini 3.1 Pro) 300 synthetic Places API requests using the latest and greatest [Google Maps Platform Agent Skills](https://developers.google.com/maps/ai/agent-skills). 
 
 Then I created a basic deterministic grader. It checks for a valid schema, a live 200 response, requested mask matches required fields, and a penalty per over-fetched billable field weighted by cost. That last clause is the interesting one; because over-requesting is a billing event, a single number carries correctness and cost at the same time.
@@ -60,7 +62,7 @@ But real fine-tuning agent traces are the only artifact that reaches the model w
 
 To see this play out in the real world, look at what Harvey did. They [published a benchmark](https://www.harvey.ai/blog/introducing-harveys-legal-agent-benchmark) in May containing twelve hundred agent tasks across twenty-four legal practice areas, graded against seventy-five thousand criteria. At the time, the best frontier model scored just 7.1%. The top score since then is only 13.3%; getting that score takes a model that costs about fifty-one dollars and twenty-two minutes to run a single task!
 
-Three weeks later, they published the follow-through [with Baseten](https://www.harvey.ai/blog/post-training-open-legal-agents-with-baseten-research). They took that benchmark signal, put it inside an evaluation harness built for long legal matters, and post-trained an open-weight 27B model. The pass rate jumped massively—from 42.5% up to 63.0%—landing it firmly in the frontier performance band.
+Three weeks later, they published the follow-through [with Baseten](https://www.harvey.ai/blog/post-training-open-legal-agents-with-baseten-research). They took that benchmark signal, put it inside an evaluation harness built for long legal matters, and post-trained an open-weight 27B model. The pass rate jumped massively, from 42.5% up to 63.0%, landing it firmly in the frontier performance band.
 
 But the detail that matters most is buried in that write-up: the harness alone barely moved the needle for the 27B model, while the massive frontier models got its benefit immediately. What does this tell us? Good context engineering has a capability floor; if your model is below that floor, you have to change the actual weights.
 
