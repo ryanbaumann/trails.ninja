@@ -89,7 +89,7 @@ If you want to solve this for your developer platform, you generally have three 
 
 Notice the pattern? Control drops at every step while durability climbs. You can have the version you steer, or you can have the version that outlasts you.
 
-Right now, platforms like [Fireworks](https://fireworks.ai/) sell that top rung. They raised a $250M Series C and partnered with Harvey, but they are selling the tier with the absolute least reach. Nobody sells you the bottom three rungs because there's nothing to sell; you either publish your traces and benchmarks, or you don't exist to the next generation of models.
+Right now, the AI industry heavily monetizes the top two rungs. You can buy agent hosting, custom routing, and fast inference from dozens of providers. But nobody sells you the bottom two rungs because there's nothing to sell; you either proactively publish your traces and benchmarks, or you simply don't exist to the next generation of models.
 
 Call it "share of gradient". Share of gradient measures whether a model was shaped by you or by other content on the internet. Publishing open weight models along with traces and benchmarks offers the signal for models to train on and improve on.
 
