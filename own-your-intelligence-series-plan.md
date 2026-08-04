@@ -126,6 +126,12 @@ Fireworks' homepage headline is literally **"Own Your Specialized Intelligence,"
 
 "Own Your Intelligence" as a series title reads as an echo of a vendor campaign. Two honest options: retitle the series, or keep it and open by naming Fireworks as the vendor already selling the shovel. The second is more interesting and fits the voice better, but it can't be accidental.
 
+### 1.12 MLX natively rejects unified multimodal architectures for text tuning
+
+The `google/gemma-4-E4B-it` weights on Hugging Face are for a unified multimodal architecture. MLX (`mlx-lm`) does not natively support loading just the text backbone of a unified model. It threw a 54-parameter mismatch because the language keys were nested under `language_model.model.*` alongside `vision_tower` and `audio_tower` parameters. 
+
+**The Fix:** To successfully fine-tune the text backbone, you must clone `mlx-examples`, create a custom `mlx_lm/models/gemma4_unified.py` architecture patch (preserving SwitchGLU routing), adjust KV cache assumptions, and rewrite the `sanitize()` function to strip the vision/audio towers and remap the language keys to the root state dict. Once patched, the 100-iteration LoRA fine-tuning loop on `field-mask` succeeds with a 0.028 validation loss.
+
 ---
 
 ## 2. Editorial constraints this series has to respect
