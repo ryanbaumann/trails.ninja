@@ -124,9 +124,9 @@ const CARDS = [
   {
     file: 'writing/fine-tuning-was-the-easy-part.svg',
     eyebrow: 'OWN YOUR INTELLIGENCE',
-    title: 'Fine-Tuning Was the Easy Part',
+    title: 'Context Engineering Is Not Enough',
     lines: ['a wrong field name costs 4x list price'],
-    footer: 'the billing leak and the distribution problem',
+    footer: 'context engineering has a ceiling. traces reach the weights.',
   },
 ];
 

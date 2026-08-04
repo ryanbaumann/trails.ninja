@@ -1,6 +1,6 @@
 ---
-title: Fine-Tuning Was the Easy Part
-summary: A wrong field name costs four times list price. A small tuned model fixes the billing leak, but the fix never reaches developers.
+title: Context Engineering Is Not Enough
+summary: A wrong field name costs four times list price. A small tuned model fixes the billing leak, but the fix never reaches developers without a share of the gradient.
 date: 2026-08-04
 updated: 2026-08-04
 canonical: https://ryanbaumann.dev/writing/fine-tuning-was-the-easy-part/
@@ -10,10 +10,10 @@ noindex: false
 # Required before publishing: three distinct visuals, each with its own alt text.
 # Point every path at a real asset, then uncomment. Never a generic site preview.
 image: /img/writing/fine-tuning-was-the-easy-part.jpg
-imageAlt: Artifact card stating that fine-tuning was the easy part
+imageAlt: Artifact card stating that context engineering is not enough
 socialImage: /img/writing/fine-tuning-was-the-easy-part-social.jpg
-shareTitle: Fine-Tuning Was the Easy Part
-shareSummary: I taught a small model to fix a huge Maps API billing leak, but that barely matters. The real problem is distributing that fix to developers.
+shareTitle: Context Engineering Is Not Enough
+shareSummary: I taught a small model to fix a huge Maps API billing leak. But to distribute that fix, context engineering isn't enough: you have to reach the base model.
 shareImageAlt: A social preview card highlighting the billing cost of legacy API calls
 ---
 
@@ -50,13 +50,17 @@ What does this mean? You only need grounded examples to solve narrow tasks for y
 
 ## The distribution problem
 
-That got me to thinking - the fine tuned model fixes my use case, my API calls. It helps exactly one person.
+That got me to thinking - the fine-tuned model fixes my use case and my API calls. It helps exactly one person.
 
-The model or agent any developer opens tomorrow morning remains broken. It didn't learn from my samples. The opinion it holds about any developer platform platform was set months (or years) before the last release - instead you have to rely on a lot of context engineering and skills to use the latest and greatest platform learnings. That's expensive token bloat.
+The model or agent any developer opens tomorrow morning remains broken because it didn't learn from my samples. Its opinion about your developer platform was set months or years before your last release. 
 
-Your docs reach humans;SDKs reach applications; [Skills or MCP servers](/work/agent-skills/) reach the agent harness. You version, measure, and fix all three. 
+Everyone has been doing context engineering with agent skills and [MCP servers](/work/agent-skills/). That gets you far, and you should absolutely continue doing it. But context engineering has efficiency costs: token bloat, added latency, and the hard truth that not every developer is going to discover your custom skill or MCP. 
 
-But real fine-tuning agent traces are the only artifact that reaches the model weights. Can we fix that and make it easier to get those traces into the hands of devs and AI labs who fine-tune their own models?
+Ideally, the base model just knows how to use your API correctly out of the box. You still have the option to publish context for the agent harness, but we need to talk about how you can have even more impact on the base models themselves. That matters immensely in a world where there will be five or ten really good, popular models for every tier of task, and a lot of them are going to be open source and open weight.
+
+Your docs reach humans; SDKs reach applications; skills reach the agent harness. You version, measure, and fix all three. 
+
+But real fine-tuning traces are the only artifact that reaches the model weights. Can we make it easier to get those traces into the hands of the AI labs who train those models?
 
 ## The benchmark path
 
