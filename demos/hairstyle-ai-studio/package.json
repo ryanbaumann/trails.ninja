@@ -15,7 +15,7 @@
     "check": "npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
-    "lucide-react": "^1.22.0",
+    "lucide-react": "^1.28.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
