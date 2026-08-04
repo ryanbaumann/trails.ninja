@@ -5,7 +5,7 @@ Infographic Agent — portable skill (direct Gemini image generation)
 Turns any topic, note, or file of text into a polished infographic PNG using the
 exact same two-agent pipeline as the web demo:
 
-  1. Research orchestrator  (gemini-3.6-flash) — grounds the topic with Google
+  1. Research orchestrator  (gemini-3.5-flash) — grounds the topic with Google
      Search, then engineers a precise, text-accurate image-generation prompt.
   2. Image generator        (gemini-3.1-flash-lite-image) — renders the prompt
      directly into a PNG.
@@ -67,7 +67,7 @@ def ensure_genai() -> None:
 # --------------------------------------------------------------------------- #
 
 ORCHESTRATOR_MODEL = "gemini-3.6-flash"          # research + prompt engineering
-IMAGE_MODEL = "gemini-3.1-flash-lite-image"      # direct infographic rendering
+IMAGE_MODEL = "gemini-3.1-flash-image"           # direct infographic rendering
 QUALITY_IMAGE_MODEL = "gemini-3.1-flash-image"   # skill-only quality option
 SUPPORTED_IMAGE_MODELS = (IMAGE_MODEL, QUALITY_IMAGE_MODEL)
 IMAGE_PROMPT_PREFIX = "Generate a professional infographic image"
@@ -168,6 +168,8 @@ infographic from the provided prompt.
 - Clear visual hierarchy via size, weight, and spacing. Balanced composition with intentional whitespace.
 - Padding & Gutters: Standard padding 5-8% on all edges, consistent spacing between sections (3-5%).
 - Details: Include clean structural elements like thin rules, browser chrome borders, or small labels where appropriate.
+- STRICTLY NO humans, random dudes, or people in the image. Keep it tech-focused and abstract.
+- STRICTLY NO prompt instructions or meta-text rendered in the image itself.
 </requirements>"""
 
 REFINE_SYSTEM_PROMPT = """<role>
@@ -519,7 +521,7 @@ def build_client(api_key: str) -> "genai.Client":
 
 
 # --------------------------------------------------------------------------- #
-# Agent 1 — research orchestrator (gemini-3.6-flash + Google Search grounding)
+# Agent 1 — research orchestrator (gemini-3.5-flash + Google Search grounding)
 # --------------------------------------------------------------------------- #
 
 def research_prompt(client, content: str, mode: str, aspect: str, extra: str) -> dict:
@@ -546,7 +548,7 @@ def research_prompt(client, content: str, mode: str, aspect: str, extra: str) ->
         http_options=types.HttpOptions(timeout=180_000),
     )
 
-    info("🔎 Researching and planning the infographic (gemini-3.6-flash)...")
+    info("🔎 Researching and planning the infographic (gemini-3.5-flash)...")
     last_error = None
     for attempt in range(3):
         try:
@@ -792,8 +794,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output", "-o", default="infographic.png", help="Output PNG path (default: infographic.png)")
     parser.add_argument("--mode", "-m", default="data-story", choices=sorted(MODES.keys()),
                         help="Infographic style (default: data-story)")
-    parser.add_argument("--aspect", "-a", default="9:16", choices=sorted(SUPPORTED_ASPECTS),
-                        help="Aspect ratio (default: 9:16)")
+    parser.add_argument("--aspect", "-a", default="16:9", choices=sorted(SUPPORTED_ASPECTS),
+                        help="Aspect ratio (default: 16:9)")
     parser.add_argument("--resolution", "-r", default="1K", choices=["0.5K", "1K", "2K"],
                         help="Image resolution / size to request from the API (default: 1K)")
     parser.add_argument("--instructions", "-i", default="", help="Extra styling / content instructions")

@@ -3,7 +3,7 @@ name: infographic-agent
 description: >
   Generate professional infographics, visual summaries, charts, and data visualizations directly with Gemini.
   A research agent (gemini-3.6-flash) grounds the topic with Google Search and engineers a precise prompt,
-  then gemini-3.1-flash-lite-image renders it into a PNG. No browser, Playwright, or Chromium dependencies —
+  then gemini-3.1-flash-image renders it into a PNG. No browser, Playwright, or Chromium dependencies —
   the only requirement is Google's GenAI SDK. Fully portable to any agent CLI environment.
 metadata:
   version: "3.2.2"
@@ -20,7 +20,7 @@ You are an expert AI Infographic Designer and Coordinator. You generate high-qua
 This skill mirrors the repo's web demo as a two-agent pipeline, both powered by Gemini:
 
 1. **Research orchestrator (`gemini-3.6-flash`):** reads the user's topic/content, optionally grounds it with Google Search, and returns the same `PrepareResult` contract as the web app: analysis metadata, exact text strings, and a precise image-generation prompt.
-2. **Image generator (`gemini-3.1-flash-lite-image` by default):** renders that prompt directly into a polished infographic PNG. The portable skill may use `gemini-3.1-flash-image` via `--image-model` when the caller explicitly chooses quality over latency. The web app remains locked to `gemini-3.1-flash-lite-image`.
+2. **Image generator (`gemini-3.1-flash-image` by default):** renders that prompt directly into a polished infographic PNG. The portable skill uses `gemini-3.1-flash-image` to ensure high quality for the portfolio.
 
 Before rendering, `portable_infographic.py` runs the same deterministic Prepare eval gate as the web app: schema, explicit image-prompt prefix, quoted text strings, source attribution, accessibility guidance, and prompt length. Blocking failures stop before Render; warnings are printed but do not block the artifact.
 
@@ -92,10 +92,10 @@ python3 skill/infographic-agent/portable_infographic.py \
 
 **Key flags:**
 - `--mode` — `data-story` (default), `executive-summary`, `technical-deep-dive`, `classroom`, `quick-slide`, `brandkit`, `blog-post`, `portfolio-showcase`, `custom`
-- `--aspect` — `1:1`, `9:16` (default), `16:9`, `3:4`, `4:3`, `1:4`, `16:10`, `21:9`
+- `--aspect` — `1:1`, `9:16`, `16:9` (default), `3:4`, `4:3`, `1:4`, `16:10`, `21:9`
 - `--resolution` — `0.5K`, `1K` (default), `2K` (image size to request from the API)
 - `--instructions` — extra styling/content guidance
-- `--image-model` — `gemini-3.1-flash-lite-image` (default) or skill-only `gemini-3.1-flash-image`
+- `--image-model` — `gemini-3.1-flash-image` (default) or skill-only `gemini-3.1-flash-lite-image`
 - `--no-research` — skip the research agent and generate directly from the text (faster, no web grounding)
 - `--yes` — non-interactive: generate once and exit (use this when running autonomously or in CI)
 - `--no-open` — do not auto-open the result in an image viewer
@@ -105,9 +105,9 @@ When invoking this skill autonomously (no human at the terminal), always pass `-
 
 ### Alternative: orchestrate directly with subagents
 If you prefer to orchestrate without the script:
-1. Ask a research/LLM subagent (e.g. `gemini-3.6-flash`) to produce the web-compatible `PrepareResult` JSON from the user's content.
+1. Ask a research/LLM subagent (e.g. `gemini-3.5-flash`) to produce the web-compatible `PrepareResult` JSON from the user's content.
 2. Run local checks before rendering: required schema, prompt starts with `"Generate a professional infographic image"`, final text strings exist, quoted strings are present in the prompt, source attribution exists, accessibility guidance exists, and prompt length is bounded.
-3. Send the validated prompt to an image model (`gemini-3.1-flash-lite-image` by default; `gemini-3.1-flash-image` for skill-only quality runs) with `responseModalities: ['TEXT', 'IMAGE']` and save the returned PNG.
+3. Send the validated prompt to an image model (`gemini-3.1-flash-image` by default) with `responseModalities: ['TEXT', 'IMAGE']` and save the returned PNG.
 4. Provide the link to the user, and offer refinement turns by re-sending the previous image plus the edit instruction.
 </instructions>
 
