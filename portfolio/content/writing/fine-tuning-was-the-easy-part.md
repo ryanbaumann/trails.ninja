@@ -1,6 +1,6 @@
 ---
-title: Context Engineering Is Not Enough
-summary: A wrong API field name can cost four times list price. Context engineering and MCPs fix it for a few, but here are four ways to get all models to train on your APIs instead.
+title: Fine-Tuning Was the Easy Part
+summary: Tuning a model for your own app is easy. The real challenge is distribution: publishing traces and benchmarks so every AI agent automatically learns your platform's best practices.
 date: 2026-08-04
 updated: 2026-08-04
 canonical: https://ryanbaumann.dev/writing/fine-tuning-was-the-easy-part/
@@ -10,11 +10,11 @@ noindex: false
 # Required before publishing: three distinct visuals, each with its own alt text.
 # Point every path at a real asset, then uncomment. Never a generic site preview.
 image: /img/writing/fine-tuning-was-the-easy-part.png
-imageAlt: Artifact card stating that context engineering is not enough
+imageAlt: Artifact card stating that fine-tuning was the easy part
 socialImage: /img/writing/fine-tuning-was-the-easy-part-social.png
-shareTitle: Context Engineering Is Not Enough
+shareTitle: Fine-Tuning Was the Easy Part
 shareSummary: Publishing API skills and MCPs forces developers to actively discover your tools. The real leverage is moving down the stack: publishing traces and benchmarks so the next generation of models automatically trains on you.
-shareImageAlt: A social preview card highlighting the billing cost of legacy API calls
+shareImageAlt: A social preview card highlighting how to capture a share of the gradient
 ---
 
 I wanted to make my backyard better for hosting guests and safe for kids to play. Because I was knee-deep in researching AI Agents at the time, I asked a custom agent hooked up to the public [Maps APIs](https://developers.google.com/maps/documentation/places/web-service/usage-and-billing) to find me a nearby plant nursery. It gave me four good options with their operating hours.
