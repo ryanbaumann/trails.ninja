@@ -2,6 +2,14 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-04 - Fine-tuning a unified multimodal model in MLX requires stripping tower parameters and remapping language keys
+
+Context: Attempting to fine-tune `google/gemma-4-E4B-it` via `mlx-lm` failed repeatedly. The model weights declared 42 attention layers, but `mlx-lm` threw a parameter mismatch because the architecture (`gemma4_unified`) was unsupported, and the weights were deeply nested inside `language_model.model.*` alongside `vision_tower` and `audio_tower` parameters.
+Learning: MLX (`mlx-lm`) does not natively support unified multimodal checkpoints for text-only LoRA tuning out of the box. To fine-tune the text backbone of a unified model, you must patch the architecture definition (e.g. duplicating the text model structure but preserving SwitchGLU routing), adjust KV cache assumptions, and rewrite the `sanitize()` function to strip `vision_tower` and `audio_tower` keys while elevating `model.language_model.*` back to `model.*` before loading the `safetensors`.
+Evidence: A subagent cloned `mlx-examples`, implemented `mlx_lm/models/gemma4_unified.py`, stripped the tower keys in the load step, and successfully completed 100 iterations of LoRA fine-tuning on the `field-mask` dataset with a final validation loss of 0.028.
+Use next time: When fine-tuning a multimodal or unified model on a text-only dataset using MLX, do not rely on default architecture mappers. Inspect the `.safetensors` keys, write a custom sanitize function to strip non-text towers, remap the language keys to the root state dict, and run from a local source clone.
+
+
 ## 2026-08-04 - TypeScript 7.0 removes baseUrl and requires relative path mappings in tsconfig.json
 
 Context: Dependabot bumped TypeScript to 7.0.2 in `demos/real-world-reasoning-agent`, breaking `tsc --noEmit` due to removed `baseUrl` and non-relative path aliases.
