@@ -383,8 +383,95 @@ If you're further down this road, tell me what I got wrong.
 
 ---
 
+# Draft D: the merge candidate (B's voice, C's brevity, linked)
+
+Ryan's pick was B, tightened toward C, with links. This is that draft.
+
+**What changed from B:** the opening scene compresses from six paragraphs to three so the title's promise pays off early, which was B's one hard failure against the skill. "My platform" becomes second person throughout. Every claim that presupposed a successful run is gone. The doubled negation, "the sentence I haven't stopped thinking about," "that's the part I keep turning over," and "it cost less than a coffee and it worked" are cut. Desert Ant drops from a product list to one example. Roughly 1,100 words down to about 850.
+
+**Link note:** the evals Field Note is still `draft: true`, so the callback points at the published `builder-platforms` post and `/work/agent-skills/` instead. If the evals post ships first, add it.
+
+**Measured rhythm, so this isn't a claim:** 72 sentences, median 10 words, longest 46, zero em-dashes, 932 words total. Long end is healthy at 15% over 25 words, against a corpus norm of 7% and a calibration norm of 25%. **Short end runs hot at 44% under eight words, against a corpus norm of 32%.** That's the cost of borrowing C's compression, and it's the one number I'd want a second opinion on. It's nowhere near C's 70% failure, but if it reads clipped when you say it aloud, the fix is joining three or four of the short pairs back together rather than adding words.
+
+---
+
+**Title:** Fine-Tuning Was the Easy Part
+**Summary:** I taught a small model to stop overcharging me for my own API calls. Then I found out I had no way to give the fix to anyone else.
+
+---
+
+I wanted a nursery that stocked native plants.
+
+That's the whole backyard project. I'd wired a small agent to the public [Maps APIs](https://developers.google.com/maps/documentation/places/web-service/usage-and-billing) to answer questions like that, and it did: four nurseries nearby, ranked sensibly, open on a Sunday. Then I read what it had actually asked for.
+
+The model requested the name, the address, the coordinates, the opening hours, the photos, and the rating. I needed three of those. The other three quietly moved my request into a different billing tier.
+
+[Place Details bills in three tiers](https://developers.google.com/maps/billing-and-pricing/sku-details), and you pay the highest tier that any field in your request touches. Name, address, and coordinates is Essentials, around five dollars per thousand calls. Add `rating` and the identical call bills as Enterprise, around twenty. My agent had been paying four times list price to fetch data it never showed me, and none of it surfaced anywhere: no error, no failing test, no warning. Just a larger invoice, a month later.
+
+It does this because it reaches for the old parameters. Google [closed the legacy Places surfaces](https://developers.google.com/maps/deprecations) to new customers in March 2025, and models learned to write Maps code from an internet that was saturated with them for a decade before that. The weights are a photograph of a moment that has already passed.
+
+That generalizes well beyond Maps. Researchers at ICSE 2025 [tested seven models](https://arxiv.org/abs/2406.09834) across 145 API migrations in eight Python libraries and found deprecated calls between twenty-five and thirty-eight percent of the time. Stale knowledge going in, no awareness of API status at inference, and no mechanism for the model to find out it's wrong.
+
+So I built a grader and fine-tuned a small model against it.
+
+[TABLE: Gemma 4 base / +SFT / +RL across schema validity, HTTP 200 rate, exact mask match, mean billable SKU tier, tokens per successful call, cost per successful call]
+
+Three hundred synthetic requests off the backyard project, Gemma 4, QLoRA, and a reward with no judge anywhere in it: valid schema, live 200, requested mask matches the required field set, minus a penalty for each over-fetched billable field weighted by what that field actually costs. Because over-requesting is a billing event, a single number carries correctness and cost at the same time. That's the part worth stealing.
+
+What the table doesn't have yet is a row for a frontier model running the same tasks. Until it does, I can tell you a small model got better at this job. I can't tell you it beat a big one.
+
+## The wall
+
+Here's what I have: a model that gets my field masks right, helping exactly one person.
+
+The model a developer opens tomorrow morning isn't mine. I didn't train it, I don't host it, and the opinion it holds about your platform was set months before you shipped whatever you shipped last quarter.
+
+Docs reach humans. SDKs reach applications. [Skills and MCP servers](/work/agent-skills/) reach the harness. You version all three, measure them, and fix them on your own schedule. Traces are the only thing that reaches the weights.
+
+## Somebody already ran this experiment
+
+Harvey [published a benchmark](https://www.harvey.ai/blog/introducing-harveys-legal-agent-benchmark) in May: twelve hundred agent tasks across twenty-four legal practice areas, seventy-five thousand rubric criteria, all-pass grading. The best frontier model scored 7.1%. The best score anyone has posted since is 13.3%, at roughly fifty-one dollars and twenty-two minutes per task.
+
+Three weeks later came the follow-through, [with Baseten](https://www.harvey.ai/blog/post-training-open-legal-agents-with-baseten-research): take that benchmark's signal, put it inside a harness built for long legal matters, and post-train an open-weight 27B model with the harness in the loop. Criterion pass rate went from 42.5% to 63.0%, landing in the closed-source frontier band.
+
+One line in that write-up matters more than the headline. The harness alone barely moved the 27B model. The frontier models got its benefit immediately.
+
+I've argued for two years that [portable context and task-based evals](/writing/builder-platforms-grow-by-owning-the-agent-loop/) are how a platform survives model churn, and I still believe that. But there's a floor under it. Above some capability line, better context is enough. Below it, you train.
+
+## Three ways down, and they run backwards
+
+**Tune it yourself.** Total control, immediate result, reach of one. It's already a market: [Desert Ant Labs](https://desertant.com/), a Dutch lab about two months old, ships small on-device models that each do exactly one job, down to redacting personal data without the text ever leaving the handset.
+
+**Publish traces.** No control, broad reach. Hugging Face [hosts agent sessions natively](https://huggingface.co/docs/hub/en/agent-traces) now, with no conversion step. The friction excuse has expired.
+
+**Get onto a benchmark.** Zero control, longest life. Labs don't read your documentation. They climb leaderboards.
+
+| Tier | Control | Lifespan |
+|---|---|---|
+| Your own features | Total | Until you retrain |
+| Developers running your model | High | Until your API changes |
+| Open-weight post-training | None | A model generation |
+| Frontier pretraining | Zero | Effectively forever |
+
+Control falls at every step. Durability rises at every step. The tier you steer most precisely is the one that expires fastest, and the tier that outlives everything is the one where your only move is publishing and hoping.
+
+[Fireworks](https://fireworks.ai/) sells that top rung, and sells it well: "Own Your Specialized Intelligence," a quarter-billion-dollar Series C in February, a named partner on the Harvey work. They're right about the tier they're selling. It's also the tier with the least reach, and nobody is selling you the bottom three, because there's nothing there to sell.
+
+Call it share of gradient. Answer-engine optimization one layer down: not whether a model cites you, but whether it was shaped by you. The crude version of that decision already lives in your `robots.txt`.
+
+## Start here
+
+Take the narrowest expensive thing your platform does. Write the grader before you write anything else and put the cost inside it, because a metric that only measures correctness will cheerfully approve something you can't afford to run. Then measure a base model against it and see how bad the number really is.
+
+You'll probably find what I found. The fine-tune is a weekend. The distribution is the rest of your life.
+
+If you're further down this road, tell me what I got wrong.
+
+---
+
 ## Notes for the reviewer
 
+- **Draft D** is the current candidate. B's scene and warmth, C's compression, links throughout.
 - **Draft A** is closest to the existing corpus and the safest publish. It argues from structure and uses the demo as evidence. Risk: the opening is the most abstract of the three, and the piece is the longest.
 - **Draft B** has the best hook and the most human opening. Risk: it fails the skill's hard rule that the first paragraph pays off the title, landing the thesis four sections in.
 - **Draft C** reads fastest and quotes best on social. Risk: measured rhythm is far outside the corpus, and it contains the banned four-beat run.
