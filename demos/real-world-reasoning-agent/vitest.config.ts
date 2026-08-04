@@ -23,7 +23,6 @@ export default defineConfig({
           // the run (heavy @google/genai / deck.gl imports), so sharing the graph
           // is the biggest single speed lever. jsdom project stays isolated below.
           pool: 'threads',
-          poolOptions: { threads: { isolate: false } },
         },
       },
       {
