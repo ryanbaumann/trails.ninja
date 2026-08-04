@@ -40,11 +40,11 @@ I wanted to see if I could teach a small model in the Gemma 4 series to pause, c
 
 ![An evidence diagram showing the baseline vs fine-tuned exact match scores](/img/writing/fine-tuning-evidence-inline.png)
 
-To do this tuning of Gemma 4, I created (with Gemini 3.1 Pro) 300 synthetic Places API requests using the latest and greatest [Google Maps Platform Agent Skills](https://developers.google.com/maps/ai/agent-skills). 
+To do this tuning of Gemma 4, I created (with Gemini 3.1 Pro) [300 synthetic Places API requests](https://github.com/ryanbaumann/fieldwork/tree/main/evals/field-mask) using the latest and greatest [Google Maps Platform Agent Skills](https://developers.google.com/maps/ai/agent-skills). 
 
 Then I created a basic deterministic grader. It checks for a valid schema, a live 200 response, and that the requested mask matches the required fields perfectly. It also applies a penalty for every over-fetched billable field, weighted by its cost. Because over-requesting is a billing event, a single grading metric captures both correctness and cost efficiency. We call this the Exact Match Score: the percentage of times the model perfectly parses the fields with zero over-fetching on a holdout set of 100 eval cases.
 
-The tuning step worked flawlessly compared to the baseline Gemma 4 models. The base 12B model scored a 42% exact match rate, and the base E4B scored a dismal 18%. After training a LoRA adapter on those 300 synthetic traces, the E4B jumped to 94%, nearly matching the tuned 12B at 97%. Both wiped the floor with the generic models. 
+The tuning step worked flawlessly compared to the baseline Gemma 4 models (you can [see the training run and results on GitHub](https://github.com/ryanbaumann/fieldwork/tree/main/evals/field-mask)). The base 12B model scored a 42% exact match rate, and the base E4B scored a dismal 18%. After training a LoRA adapter on those 300 synthetic traces, the E4B jumped to 94%, nearly matching the tuned 12B at 97%. Both wiped the floor with the generic models. 
 
 What does this mean? You only need grounded examples to solve narrow tasks for your top developer tasks.
 
