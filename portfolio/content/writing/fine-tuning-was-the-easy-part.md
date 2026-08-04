@@ -13,7 +13,7 @@ image: /img/writing/fine-tuning-was-the-easy-part.png
 imageAlt: Artifact card stating that context engineering is not enough
 socialImage: /img/writing/fine-tuning-was-the-easy-part-social.png
 shareTitle: Context Engineering Is Not Enough
-shareSummary: Publishing API skills and MCPs forces developers to actively discover your tools. The real leverage is moving down the stack—publishing traces and benchmarks so the next generation of models automatically trains on you.
+shareSummary: Publishing API skills and MCPs forces developers to actively discover your tools. The real leverage is moving down the stack: publishing traces and benchmarks so the next generation of models automatically trains on you.
 shareImageAlt: A social preview card highlighting the billing cost of legacy API calls
 ---
 
@@ -93,7 +93,7 @@ Notice the pattern? Control drops at every step while durability climbs. You can
 
 Right now, the AI industry heavily monetizes the top two rungs. You can buy agent hosting, custom routing, and fast inference from dozens of providers like [Fireworks](https://fireworks.ai/), or run custom on-device models with platforms like [Desert Ant Labs](https://desertant.com/). But nobody sells you the bottom two rungs because there's nothing to sell; you either proactively publish your traces and benchmarks, or you simply don't exist to the next generation of models.
 
-Call it "share of gradient". Share of gradient measures whether a model was shaped by your best practices or by obsolete StackOverflow answers. By publishing traces and benchmarks, you aren't just helping one developer—you are forcing the next generation of models to train on you.
+Call it "share of gradient". Share of gradient measures whether a model was shaped by your best practices or by obsolete StackOverflow answers. By publishing traces and benchmarks, you aren't just helping one developer. You are forcing the next generation of models to train on you.
 
 ## The next step
 
