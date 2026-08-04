@@ -1,0 +1,15 @@
+workerPoolSpecs:
+  - machineSpec:
+      machineType: a2-highgpu-1g
+      acceleratorType: NVIDIA_TESLA_A100
+      acceleratorCount: 1
+    replicaCount: 1
+    containerSpec:
+      imageUri: us-docker.pkg.dev/vertex-ai/training/pytorch-gpu.2-2.py310:latest
+      command:
+        - bash
+      args:
+        - "-c"
+        - "git clone -b series/own-your-intelligence-plan https://github.com/ryanbaumann/fieldwork.git && cd fieldwork && pip install trl peft accelerate datasets transformers>=4.40.0 && python evals/field-mask/train.py"
+scheduling:
+  timeout: 86400s

@@ -121,6 +121,13 @@ const CARDS = [
     lines: ['grounded platform expertise in any AI assistant'],
     footer: 'mapsplatform.google.com',
   },
+  {
+    file: 'writing/fine-tuning-was-the-easy-part.svg',
+    eyebrow: 'OWN YOUR INTELLIGENCE',
+    title: 'Context Engineering Is Not Enough',
+    lines: ['a wrong field name costs 4x list price'],
+    footer: 'context engineering has a ceiling. traces reach the weights.',
+  },
 ];
 
 const FLOWS = [
