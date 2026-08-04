@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="OWN YOUR INTELLIGENCE: Fine-Tuning Was the Easy Part">
+  <style>:root {
+      --bg: #faf9f6; --surface: #ffffff; --ink: #111827; --muted: #4b5563; --faint: #5f6875;
+      --line: #e5e7eb; --accent: #3b82f6; --accent-ink: #2563eb;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #030712; --surface: #111827; --ink: #f9fafb; --muted: #9ca3af; --faint: #aeb7c4;
+        --line: #1f2937; --accent: #60a5fa; --accent-ink: #93c5fd;
+      }
+    }
+    .surface { fill: var(--surface); }
+    .bg { fill: var(--bg); }
+    .border { stroke: var(--line); }
+    .eyebrow { fill: var(--accent-ink); }
+    .title { fill: var(--ink); }
+    .body { fill: var(--muted); }
+    .footer { fill: var(--faint); }
+  </style>
+  <rect class="surface" width="1200" height="675"/>
+  
+  <!-- Subtle schematic grid for infographic vibe -->
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" class="border" stroke-width="1" opacity="0.35"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="675" fill="url(#grid)" />
+  
+  <!-- Subtle top accent -->
+  <rect x="0" y="0" width="1200" height="8" fill="var(--accent)"/>
+  
+  <!-- Outer border -->
+  <rect class="border" x="0" y="0" width="1200" height="675" fill="none" stroke-width="2"/>
+
+  <!-- Content -->
+  <text class="eyebrow" x="90" y="254.5" text-anchor="start" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" letter-spacing="2">OWN YOUR INTELLIGENCE</text>
+  <text class="title" x="90" y="322.5" text-anchor="start" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="70" font-weight="750" letter-spacing="-2">Fine-Tuning Was the Easy Part</text>
+  
+  <text class="body" x="90" y="369.5" text-anchor="start" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="36">a wrong field name costs 4x list price</text>
+  
+  <!-- Footer -->
+  <line class="border" x1="90" y1="571" x2="1110" y2="571" stroke-width="2"/>
+  <text class="footer" x="90" y="617" text-anchor="start" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28">the billing leak and the distribution problem</text>
+</svg>

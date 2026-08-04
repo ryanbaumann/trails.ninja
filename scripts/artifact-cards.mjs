@@ -121,6 +121,13 @@ const CARDS = [
     lines: ['grounded platform expertise in any AI assistant'],
     footer: 'mapsplatform.google.com',
   },
+  {
+    file: 'writing/fine-tuning-was-the-easy-part.svg',
+    eyebrow: 'OWN YOUR INTELLIGENCE',
+    title: 'Fine-Tuning Was the Easy Part',
+    lines: ['a wrong field name costs 4x list price'],
+    footer: 'the billing leak and the distribution problem',
+  },
 ];
 
 const FLOWS = [
