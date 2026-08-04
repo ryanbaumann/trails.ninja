@@ -557,7 +557,8 @@ ${ogImageAltTag}
 ${ogImageDetails}
 ${localeTags}
 ${twitterTags}
-${articleTags ? articleTags + '\n' : ''}<link rel="icon" href="${BASE}favicon.svg" type="image/svg+xml" />
+${articleTags ? articleTags + '\n' : ''}<link rel="icon" href="${BASE}favicon.ico" sizes="any" />
+<link rel="icon" href="${BASE}favicon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="${BASE}apple-touch-icon.png" />
 <meta name="thumbnail" content="${BASE}img/ryan-baumann-profile.jpg" />
 <link rel="alternate" type="application/rss+xml" title="${escapeHtml(site.name)} Writing" href="${absoluteUrl('/feed.xml')}" />

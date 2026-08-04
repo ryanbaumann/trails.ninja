@@ -13,4 +13,3 @@ workerPoolSpecs:
         - "git clone -b series/own-your-intelligence-plan https://github.com/ryanbaumann/fieldwork.git && cd fieldwork && pip install trl peft accelerate datasets transformers>=4.40.0 && python evals/field-mask/train.py"
 scheduling:
   timeout: 86400s
-  strategy: SPOT
