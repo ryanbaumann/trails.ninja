@@ -94,12 +94,31 @@ Worth one sentence: "own your intelligence" has a license column, and it isn't a
 
 Gemma 4 shipped April 2026 (E4B, 26B-A4B MoE, 31B dense, 256K context, 140+ languages). Unsloth documents Gemma 4 QLoRA on a single RTX 4090 for the 26B MoE. VESSL documents a 15-minute, $0.38 cloud fine-tune. **Go Gemma.** The better story and the workable tooling are the same choice, which is rare.
 
-### 1.10 Two things to cut
+### 1.10 One thing to coin
 
-- **The European company. Still unresolved after a third pass.** Ryan identified it as **Desert Ant Labs**. Searching that name directly returns nothing: no company site, no funding record, no coverage. The nearest hit is **Ant Lab AI**, an unfunded Ljubljana company founded in 2025 by Jernej Strasner, building agent infrastructure for observability, orchestration, compliance, and reliability. That's European and developer-facing, which fits, but it is not a "bring your own open-weight fine-tuned model" company, which is the part the argument would rest on. Mistral, Prem Labs, Aleph Alpha, Bielik, PLLuM, and Scaleway are all real and none of them match either.
-
-  **Recommendation: keep it out until Ryan supplies a URL.** If the company is pre-launch or stealth, that's a fine reason for the silence and a bad reason to cite it as a market signal. The Harvey and Fireworks proof points already carry this argument, so nothing is lost by dropping it.
 - **"Share of gradient" has no prior art**, which is good: it's Ryan's to coin. Adjacent verified fact worth using instead of hand-waving: the crude version of this decision already exists as `robots.txt`. Allowing ClaudeBot lets a model learn your platform; blocking it protects IP and guarantees the model won't know you. Publishing traces is that same decision one layer down, with a much higher-quality signal.
+
+### 1.10b Desert Ant Labs: found, and it's the opposite of what the brief said
+
+Resolved. `github.com/Desert-Ant-Labs` is real. Every earlier search missed it because the **org was created 2026-06-14**, roughly seven weeks ago.
+
+- European AI lab, **Netherlands**, site at `desertant.com` (`desertant.ai` redirects). Two members, 18 public repos, single-digit stars.
+- Positioning, verbatim: **"A frontier AI lab for on-device models."** Tagline: **"Little brains in every product."** They describe themselves as building **"the intelligence layer for every app."**
+- Nine or ten narrow models, one job each: **Redact** (PII redaction across EU languages), **Tongue** (language ID, 84 languages), **Gist** (36 topics, 101 languages), **Clear** (denoise and dereverb at 48 kHz), **Uhm** (filler-word detection, 20 ms frame-precise), **Emo**, **Shapes** (single-stroke recognition), **Align**, **Moderator**, **Schemer**.
+- Distribution: native SDKs for Swift/iOS, Kotlin/Android, and TypeScript for Node and browser. SDKs on GitHub, models on Hugging Face.
+- Pricing: **free up to 100k monthly active devices per SDK, unlimited inference per user**, commercial licensing above that.
+
+**The important correction:** the brief has this backwards. It describes a "bring your own open weight, fine tuned model" company. Desert Ant is the inverse. They ship *their* pre-baked narrow models embedded in SDKs. There is no fine-tuning offer and no BYO-model path anywhere in their positioning.
+
+That inversion makes them more useful to the series, not less, and they belong in **post 1** for three reasons:
+
+1. **They make the small end concrete.** §2.4's full-size-range riff was going to get cut to one sentence. That sentence can now cite a company whose entire product is "one model, one job, on device" rather than gesturing at a hypothetical.
+2. **They're a competitive argument, not a supporting example.** Desert Ant proves the narrow on-device tier is a product category someone will occupy. If a platform doesn't ship the distilled model for its own narrow CUJs, a third party ships one that works across everyone's. The brief never makes this point and it's the sharpest thing the reference buys.
+3. **They're evidence for the §2.7 fix.** Replacing "general intelligence is expensive and will be for a while" with the latency/residency/determinism framing needs proof. On-device PII redaction across EU languages and 20 ms frame-precise audio detection are not cost plays. They're physics and jurisdiction, and neither one gets solved by the per-token price falling.
+
+**Honesty constraint:** seven weeks old, two people, five followers. Cite as a signal of where the market is heading, never as a proven success. The series spends its credibility criticizing vendor-reported numbers, so inflating a brand-new company would be self-inflicted.
+
+**Voice-skill check:** the "don't enumerate third-party AI products" rule targets tool-shopping lists of competitor coding agents and IDEs. Naming Desert Ant once, with a link, in a post about market structure is the same move as naming Harvey and Fireworks, and it's consistent with how the prior posts cite outside work.
 
 ### 1.11 Title collision, flagged
 
@@ -143,6 +162,7 @@ The brief proposes five. Three is the right first tranche, and post 1 stands alo
 - The 4x SKU fact as the reason the table matters.
 - The pivot: I can do this for myself in a weekend. I can't do it for every developer on the platform, and I can't ship weights into DeepSeek.
 - Three mechanisms, ascending leverage and descending control: fine-tune it yourself, publish into corpora, get your tasks into a benchmark labs climb.
+- Desert Ant Labs as the one-sentence proof that the first mechanism is already a product category, and as the competitive warning: if you don't ship the small model for your own narrow jobs, someone ships one that works across everyone's.
 - Harvey as proof the third one works: LAB at 7.1% top score, then Qwen3.5-27B post-trained into the frontier band off LAB signal.
 - The ladder table (four tiers, control down, durability up).
 - One honest sentence on break-even: you're trading inference COGS for MLOps headcount.
@@ -337,3 +357,8 @@ Writers must not share files. Each owns one slug under `portfolio/content/writin
 - [Unsloth, Gemma 4 fine-tuning guide](https://unsloth.ai/docs/models/gemma-4/train)
 - [Fireworks AI](https://fireworks.ai/)
 - [opentraces.ai](https://www.opentraces.ai/)
+- [Desert Ant Labs on GitHub](https://github.com/Desert-Ant-Labs)
+- [Desert Ant Labs](https://desertant.com/)
+- [Vertex AI, fine-tuning and serving Gemma 4](https://discuss.google.dev/t/end-to-end-guide-fine-tuning-and-serving-gemma-4-on-vertex-ai/345865)
+- [Gemma 4 available on Google Cloud](https://cloud.google.com/blog/products/ai-machine-learning/gemma-4-available-on-google-cloud)
+- [Fine-tune Gemma 4 with TRL on Vertex AI](https://huggingface.co/docs/google-cloud/examples/vertex-ai-notebooks-fine-tune-gemma-4)
