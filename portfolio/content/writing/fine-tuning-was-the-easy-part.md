@@ -1,6 +1,6 @@
 ---
 title: Context Engineering Is Not Enough
-summary: A wrong field name costs four times list price. A small tuned model fixes the billing leak, but the fix never reaches developers without a share of the gradient.
+summary: A wrong API field name can cost four times list price. Context engineering and MCPs fix it for a few, but here are four ways to get all models to train on your APIs instead.
 date: 2026-08-04
 updated: 2026-08-04
 canonical: https://ryanbaumann.dev/writing/fine-tuning-was-the-easy-part/
@@ -13,7 +13,7 @@ image: /img/writing/fine-tuning-was-the-easy-part.png
 imageAlt: Artifact card stating that context engineering is not enough
 socialImage: /img/writing/fine-tuning-was-the-easy-part-social.png
 shareTitle: Context Engineering Is Not Enough
-shareSummary: Context engineering is token-inefficient and requires developers to actively discover your skills. To bake your API best practices directly into agent platforms, you have to publish your traces and capture a share of the gradient.
+shareSummary: Publishing API skills and MCPs forces developers to actively discover your tools. The real leverage is moving down the stack—publishing traces and benchmarks so the next generation of models automatically trains on you.
 shareImageAlt: A social preview card highlighting the billing cost of legacy API calls
 ---
 
@@ -93,7 +93,7 @@ Notice the pattern? Control drops at every step while durability climbs. You can
 
 Right now, the AI industry heavily monetizes the top two rungs. You can buy agent hosting, custom routing, and fast inference from dozens of providers like [Fireworks](https://fireworks.ai/), or run custom on-device models with platforms like [Desert Ant Labs](https://desertant.com/). But nobody sells you the bottom two rungs because there's nothing to sell; you either proactively publish your traces and benchmarks, or you simply don't exist to the next generation of models.
 
-Call it "share of gradient". Share of gradient measures whether a model was shaped by you or by other content on the internet. Publishing open weight models along with traces and benchmarks offers the signal for models to train on and improve on.
+Call it "share of gradient". Share of gradient measures whether a model was shaped by your best practices or by obsolete StackOverflow answers. By publishing traces and benchmarks, you aren't just helping one developer—you are forcing the next generation of models to train on you.
 
 ## The next step
 
