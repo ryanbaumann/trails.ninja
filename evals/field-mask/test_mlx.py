@@ -16,14 +16,12 @@ def main():
     cases = [c for c in dataset.get("cases", []) if c["category"] in ["normal", "prompt_injection"]]
     print(f"Found {len(cases)} cases.")
     
-    results = {"base": {"exact_match": 0}, "sft": {"exact_match": 0}}
+    results = {"base_31b": {"exact_match": 0}, "base": {"exact_match": 0}, "sft": {"exact_match": 0}}
     
     for case in cases:
         req = case["input"]["request"]
         expected_mask = case["expectation"]["required_fields"]
         prompt = format_prompt(req)
-        
-        # Test Base Model (No Adapter)
         cmd_base = [
             "uvx", "--from", "mlx-lm", "mlx_lm.generate", 
             "--model", "google/gemma-4-E4B-it", 
@@ -36,6 +34,14 @@ def main():
             "uvx", "--from", "mlx-lm", "mlx_lm.generate", 
             "--model", "google/gemma-4-E4B-it",
             "--adapter-path", str(ROOT / "adapters"),
+            "--max-tokens", "50",
+            "--prompt", prompt
+        ]
+        
+        # Test 31B Base Model
+        cmd_base_31b = [
+            "uvx", "--from", "mlx-lm", "mlx_lm.generate", 
+            "--model", "google/gemma-4-31B-it", 
             "--max-tokens", "50",
             "--prompt", prompt
         ]
