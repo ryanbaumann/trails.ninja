@@ -70,15 +70,17 @@ Three weeks later, they published the follow-through [with Baseten](https://www.
 
 But the detail that matters most is buried in that write-up: the harness alone barely moved the needle for the 27B model, while the massive frontier models got its benefit immediately. What does this tell us? Good context engineering has a capability floor; if your model is below that floor, you have to change the actual weights.
 
-## Three paths to distribution
+## Four paths to distribution
 
-If you want to solve this for your developer platform, you generally have three paths:
+If you want to solve this for your developer platform, you generally have four paths:
 
-**1. Tune it yourself.** You keep total control and gain an immediate result, but you have a reach of exactly one. A great example is [Desert Ant Labs](https://desertant.com/); they ship small on-device models that each perform a single job, like redacting personal data without the text ever leaving the handset. If you don't build the small model for your own narrow platform jobs, someone else will eventually build one that spans everyone's.
+**1. Build your own features.** You keep total control and gain an immediate result, but you have a reach of exactly one. A great example is [Desert Ant Labs](https://desertant.com/); they ship small on-device models that each perform a single job, like redacting personal data without the text ever leaving the handset. If you don't build the small model for your own narrow platform jobs, someone else will eventually build one that spans everyone's.
 
-**2. Publish traces.** You lose control, but you achieve broad reach. For instance, Hugging Face now [hosts agent sessions natively](https://huggingface.co/docs/hub/en/agent-traces) without needing any conversion steps, making it incredibly easy for others to learn from your platform's successful agent runs.
+**2. Publish context and tools.** You make it easy for existing agents to use your platform by publishing API Skills and MCP servers. You maintain high control over how your API is used, but your lifespan is limited to your current API version, and developers still have to actively discover your tools.
 
-**3. Get onto a benchmark.** You forfeit all control, but you gain the longest possible lifespan. AI labs climb leaderboards instead of reading developer documentation; if your API is in the benchmark, it gets learned.
+**3. Publish traces.** You lose control, but you achieve broad reach. For instance, Hugging Face now [hosts agent sessions natively](https://huggingface.co/docs/hub/en/agent-traces) without needing any conversion steps, making it incredibly easy for others to learn from your platform's successful agent runs.
+
+**4. Get onto a benchmark.** You forfeit all control, but you gain the longest possible lifespan. AI labs climb leaderboards instead of reading developer documentation; if your API is in the benchmark, it gets learned.
 
 | Strategy | Example | Control | Lifespan |
 | :--- | :--- | :--- | :--- |
@@ -89,7 +91,7 @@ If you want to solve this for your developer platform, you generally have three 
 
 Notice the pattern? Control drops at every step while durability climbs. You can have the version you steer, or you can have the version that outlasts you.
 
-Right now, the AI industry heavily monetizes the top two rungs. You can buy agent hosting, custom routing, and fast inference from dozens of providers. But nobody sells you the bottom two rungs because there's nothing to sell; you either proactively publish your traces and benchmarks, or you simply don't exist to the next generation of models.
+Right now, the AI industry heavily monetizes the top two rungs. You can buy agent hosting, custom routing, and fast inference from dozens of providers like [Fireworks](https://fireworks.ai/), or run custom on-device models with platforms like [Desert Ant Labs](https://desertant.com/). But nobody sells you the bottom two rungs because there's nothing to sell; you either proactively publish your traces and benchmarks, or you simply don't exist to the next generation of models.
 
 Call it "share of gradient". Share of gradient measures whether a model was shaped by you or by other content on the internet. Publishing open weight models along with traces and benchmarks offers the signal for models to train on and improve on.
 
