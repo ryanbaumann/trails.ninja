@@ -16,7 +16,7 @@ def main():
     cases = [c for c in dataset.get("cases", []) if c["category"] in ["normal", "prompt_injection"]]
     print(f"Found {len(cases)} cases.")
     
-    results = {"base_31b": {"exact_match": 0}, "base": {"exact_match": 0}, "sft": {"exact_match": 0}}
+    results = {"base_12b": {"exact_match": 0}, "base": {"exact_match": 0}, "sft": {"exact_match": 0}}
     
     for case in cases:
         req = case["input"]["request"]
@@ -38,10 +38,10 @@ def main():
             "--prompt", prompt
         ]
         
-        # Test 31B Base Model
-        cmd_base_31b = [
+        # Test 12B Base Model
+        cmd_base_12b = [
             "uvx", "--from", "mlx-lm", "mlx_lm.generate", 
-            "--model", "google/gemma-4-31B-it", 
+            "--model", "google/gemma-4-12B-it", 
             "--max-tokens", "50",
             "--prompt", prompt
         ]
