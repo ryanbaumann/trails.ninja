@@ -1,6 +1,6 @@
 ---
 title: Context Engineering Is Not Enough
-summary: A wrong field name costs four times list price. A small tuned model fixes the billing leak, but the fix never reaches developers without a share of the gradient.
+summary: A wrong API field name can cost four times list price. Context engineering and MCPs fix it for a few, but here are four ways to get all models to train on your APIs instead.
 date: 2026-08-04
 updated: 2026-08-04
 canonical: https://ryanbaumann.dev/writing/fine-tuning-was-the-easy-part/
@@ -13,7 +13,7 @@ image: /img/writing/fine-tuning-was-the-easy-part.png
 imageAlt: Artifact card stating that context engineering is not enough
 socialImage: /img/writing/fine-tuning-was-the-easy-part-social.png
 shareTitle: Context Engineering Is Not Enough
-shareSummary: Context engineering is token-inefficient and requires developers to actively discover your skills. To bake your API best practices directly into agent platforms, you have to publish your traces and capture a share of the gradient.
+shareSummary: Publishing API skills and MCPs forces developers to actively discover your tools. The real leverage is moving down the stack: publishing traces and benchmarks so the next generation of models automatically trains on you.
 shareImageAlt: A social preview card highlighting the billing cost of legacy API calls
 ---
 
@@ -70,28 +70,30 @@ Three weeks later, they published the follow-through [with Baseten](https://www.
 
 But the detail that matters most is buried in that write-up: the harness alone barely moved the needle for the 27B model, while the massive frontier models got its benefit immediately. What does this tell us? Good context engineering has a capability floor; if your model is below that floor, you have to change the actual weights.
 
-## Three paths to distribution
+## Four paths to distribution
 
-If you want to solve this for your developer platform, you generally have three paths:
+If you want to solve this for your developer platform, you generally have four paths:
 
-**1. Tune it yourself.** You keep total control and gain an immediate result, but you have a reach of exactly one. A great example is [Desert Ant Labs](https://desertant.com/); they ship small on-device models that each perform a single job, like redacting personal data without the text ever leaving the handset. If you don't build the small model for your own narrow platform jobs, someone else will eventually build one that spans everyone's.
+**1. Build your own features.** You keep total control and gain an immediate result, but you have a reach of exactly one. A great example is [Desert Ant Labs](https://desertant.com/); they ship small on-device models that each perform a single job, like redacting personal data without the text ever leaving the handset. If you don't build the small model for your own narrow platform jobs, someone else will eventually build one that spans everyone's.
 
-**2. Publish traces.** You lose control, but you achieve broad reach. For instance, Hugging Face now [hosts agent sessions natively](https://huggingface.co/docs/hub/en/agent-traces) without needing any conversion steps, making it incredibly easy for others to learn from your platform's successful agent runs.
+**2. Publish context and tools.** You make it easy for existing agents to use your platform by publishing API Skills and MCP servers. You maintain high control over how your API is used, but your lifespan is limited to your current API version, and developers still have to actively discover your tools.
 
-**3. Get onto a benchmark.** You forfeit all control, but you gain the longest possible lifespan. AI labs climb leaderboards instead of reading developer documentation; if your API is in the benchmark, it gets learned.
+**3. Publish traces.** You lose control, but you achieve broad reach. For instance, Hugging Face now [hosts agent sessions natively](https://huggingface.co/docs/hub/en/agent-traces) without needing any conversion steps, making it incredibly easy for others to learn from your platform's successful agent runs.
 
-| Tier | Control | Lifespan |
-|---|---|---|
-| Your own features | Total | Until you retrain |
-| Developers running your model | High | Until your API changes |
-| Open-weight post-training | None | A model generation |
-| Frontier pretraining | Zero | Effectively forever |
+**4. Get onto a benchmark.** You forfeit all control, but you gain the longest possible lifespan. AI labs climb leaderboards instead of reading developer documentation; if your API is in the benchmark, it gets learned.
+
+| Strategy | Example | Control | Lifespan |
+| :--- | :--- | :--- | :--- |
+| **Build your own features** | A custom support agent in your product | Total | Until you change your code |
+| **Publish Context (MCP)** | Publishing API Skills and MCP servers | High | Until your API changes |
+| **Publish Traces** | Releasing synthetic eval datasets on Hugging Face | Low | A model generation |
+| **Get on a Benchmark** | Incorporated into frontier pretraining runs | None | Effectively forever |
 
 Notice the pattern? Control drops at every step while durability climbs. You can have the version you steer, or you can have the version that outlasts you.
 
-Right now, platforms like [Fireworks](https://fireworks.ai/) sell that top rung. They raised a $250M Series C and partnered with Harvey, but they are selling the tier with the absolute least reach. Nobody sells you the bottom three rungs because there's nothing to sell; you either publish your traces and benchmarks, or you don't exist to the next generation of models.
+Right now, the AI industry heavily monetizes the top two rungs. You can buy agent hosting, custom routing, and fast inference from dozens of providers like [Fireworks](https://fireworks.ai/), or run custom on-device models with platforms like [Desert Ant Labs](https://desertant.com/). But nobody sells you the bottom two rungs because there's nothing to sell; you either proactively publish your traces and benchmarks, or you simply don't exist to the next generation of models.
 
-Call it "share of gradient". Share of gradient measures whether a model was shaped by you or by other content on the internet. Publishing open weight models along with traces and benchmarks offers the signal for models to train on and improve on.
+Call it "share of gradient". Share of gradient measures whether a model was shaped by your best practices or by obsolete StackOverflow answers. By publishing traces and benchmarks, you aren't just helping one developer. You are forcing the next generation of models to train on you.
 
 ## The next step
 
