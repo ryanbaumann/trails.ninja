@@ -42,8 +42,8 @@ describe('Gemini credential lifecycle', () => {
       apiKey: 'proxied',
       httpOptions: { headers: { [GEMINI_BYOK_HEADER]: 'test-personal-key' } },
     });
-    expect(sessionStorage.length).toBe(0);
-    expect(localStorage.length).toBe(0);
+    expect(globalThis.sessionStorage?.length ?? 0).toBe(0);
+    expect(globalThis.localStorage?.length ?? 0).toBe(0);
   });
 
   it('disconnects immediately and returns to the hosted proxy client', async () => {

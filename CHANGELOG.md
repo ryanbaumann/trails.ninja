@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Consolidated open Dependabot dependency updates across demo apps into a single PR (upgrading `vite`, `lucide-react`, `postcss`, `@types/react`, `@types/google.maps`, `@playwright/test`, `terra-draw`, `typescript`, `@deck.gl/google-maps`, `@deck.gl/layers`, `@vitejs/plugin-react`, and `vitest`), superseding PRs #164, #165, #166, #167, #168, #172, #173, #174, #175, #176, #177, #178, #179, #180, #181.
+
 ### Security
 - Documented and enforced the Lab gateway's key boundaries, CSP assumptions,
   conservative per-IP and process-wide daily Maps/Gemini ceilings, bounded

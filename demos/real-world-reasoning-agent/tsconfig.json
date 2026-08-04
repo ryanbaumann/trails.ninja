@@ -23,9 +23,8 @@
     "noUncheckedSideEffectImports": true,
 
     "types": ["google.maps", "vite/client", "node"],
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src", "scripts", "vite.config.ts"]

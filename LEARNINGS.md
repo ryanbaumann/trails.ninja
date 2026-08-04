@@ -2,6 +2,13 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-04 - TypeScript 7.0 removes baseUrl and requires relative path mappings in tsconfig.json
+
+Context: Dependabot bumped TypeScript to 7.0.2 in `demos/real-world-reasoning-agent`, breaking `tsc --noEmit` due to removed `baseUrl` and non-relative path aliases.
+Learning: TypeScript 7 deprecates/removes `baseUrl` in compilerOptions and enforces relative paths starting with `./` in `paths` mappings (e.g. `"@/*": ["./src/*"]`). Also in Vitest 4, `vitest.config.ts` deprecated `poolOptions`.
+Evidence: Updated `tsconfig.json` and `vitest.config.ts` in `demos/real-world-reasoning-agent` and confirmed `npm test && npm run build` passed cleanly.
+Use next time: When upgrading projects to TypeScript 7 or Vitest 4, remove `baseUrl`, adjust path alias prefixes to `./`, and update pool settings in vitest configuration.
+
 ## 2026-07-27 - Per-user free tiers still need a global spend ceiling
 
 Context: IP allowances limited ordinary use but an IP-rotating caller could
