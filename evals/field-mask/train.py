@@ -38,7 +38,7 @@ def main():
     # Mocking the huggingface dataset conversion and TRL process
     # hf_dataset = Dataset.from_list(training_data)
     #
-    # print("Loading model google/gemma-4-2b-it...")
+    # print("Loading model google/gemma-4-E4B-it-it...")
     # model = AutoModelForCausalLM.from_pretrained(...)
     # tokenizer = AutoTokenizer.from_pretrained(...)
     # 
