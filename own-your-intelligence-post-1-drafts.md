@@ -396,13 +396,13 @@ Ryan's pick was B, tightened toward C, with links. This is that draft.
 ---
 
 **Title:** Fine-Tuning Was the Easy Part
-**Summary:** I taught a small model to stop overcharging me for my own API calls. Then I found out I had no way to give the fix to anyone else.
+**Summary:** I'm training a small model to stop overcharging me for my own API calls. But I already know I have no way to give the fix to anyone else.
 
 ---
 
-I wanted a nursery that stocked native plants.
+I wanted a nursery that stocked native plants for a backyard project.
 
-That's the whole backyard project. I'd wired a small agent to the public [Maps APIs](https://developers.google.com/maps/documentation/places/web-service/usage-and-billing) to answer questions like that, and it did: four nurseries nearby, ranked sensibly, open on a Sunday. Then I read what it had actually asked for.
+I'd wired a small agent to the public [Maps APIs](https://developers.google.com/maps/documentation/places/web-service/usage-and-billing) to answer questions like that, and it did: four nurseries nearby, ranked sensibly, open on a Sunday. Then I read what it had actually asked for.
 
 The model requested the name, the address, the coordinates, the opening hours, the photos, and the rating. I needed three of those. The other three quietly moved my request into a different billing tier.
 
@@ -412,21 +412,21 @@ It does this because it reaches for the old parameters. Google [closed the legac
 
 That generalizes well beyond Maps. Researchers at ICSE 2025 [tested seven models](https://arxiv.org/abs/2406.09834) across 145 API migrations in eight Python libraries and found deprecated calls between twenty-five and thirty-eight percent of the time. Stale knowledge going in, no awareness of API status at inference, and no mechanism for the model to find out it's wrong.
 
-So I built a grader and fine-tuned a small model against it.
+So I built a grader and started fine-tuning a small model against it.
 
 [TABLE: Gemma 4 base / +SFT / +RL across schema validity, HTTP 200 rate, exact mask match, mean billable SKU tier, tokens per successful call, cost per successful call]
 
 Three hundred synthetic requests off the backyard project, Gemma 4, QLoRA, and a reward with no judge anywhere in it: valid schema, live 200, requested mask matches the required field set, minus a penalty for each over-fetched billable field weighted by what that field actually costs. Because over-requesting is a billing event, a single number carries correctness and cost at the same time. That's the part worth stealing.
 
-What the table doesn't have yet is a row for a frontier model running the same tasks. Until it does, I can tell you a small model got better at this job. I can't tell you it beat a big one.
+What the table doesn't have yet is a row for a frontier model running the same tasks. Until it does, I hope to show you that a small model can get better at this job. I can't tell you it beats a big one.
 
 ## The wall
 
-Here's what I have: a model that gets my field masks right, helping exactly one person.
+If this works, here is what I have: a model that gets my field masks right, helping exactly one person.
 
 The model a developer opens tomorrow morning isn't mine. I didn't train it, I don't host it, and the opinion it holds about your platform was set months before you shipped whatever you shipped last quarter.
 
-Docs reach humans. SDKs reach applications. [Skills and MCP servers](/work/agent-skills/) reach the harness. You version all three, measure them, and fix them on your own schedule. Traces are the only thing that reaches the weights.
+Your docs reach humans, SDKs reach applications, and [skills or MCP servers](/work/agent-skills/) reach the agent harness. You version all three, measure them, and fix them on your own schedule. Traces are the only thing that reaches the weights.
 
 ## Somebody already ran this experiment
 
@@ -442,7 +442,7 @@ I've argued for two years that [portable context and task-based evals](/writing/
 
 **Tune it yourself.** Total control, immediate result, reach of one. It's already a market: [Desert Ant Labs](https://desertant.com/), a Dutch lab about two months old, ships small on-device models that each do exactly one job, down to redacting personal data without the text ever leaving the handset.
 
-**Publish traces.** No control, broad reach. Hugging Face [hosts agent sessions natively](https://huggingface.co/docs/hub/en/agent-traces) now, with no conversion step. The friction excuse has expired.
+**Publish traces.** Broad reach, but no control. Hugging Face [hosts agent sessions natively](https://huggingface.co/docs/hub/en/agent-traces) now, with no conversion step. The friction excuse has expired.
 
 **Get onto a benchmark.** Zero control, longest life. Labs don't read your documentation. They climb leaderboards.
 
@@ -463,7 +463,7 @@ Call it share of gradient. Answer-engine optimization one layer down: not whethe
 
 Take the narrowest expensive thing your platform does. Write the grader before you write anything else and put the cost inside it, because a metric that only measures correctness will cheerfully approve something you can't afford to run. Then measure a base model against it and see how bad the number really is.
 
-You'll probably find what I found. The fine-tune is a weekend. The distribution is the rest of your life.
+You'll probably find what I'm finding. The fine-tune is a weekend, but the distribution is the rest of your life.
 
 If you're further down this road, tell me what I got wrong.
 
