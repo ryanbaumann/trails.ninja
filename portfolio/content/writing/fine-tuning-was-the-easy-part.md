@@ -80,12 +80,12 @@ If you want to solve this for your developer platform, you generally have three 
 
 **3. Get onto a benchmark.** You forfeit all control, but you gain the longest possible lifespan. AI labs climb leaderboards instead of reading developer documentation; if your API is in the benchmark, it gets learned.
 
-| Tier | Control | Lifespan |
-|---|---|---|
-| Your own features | Total | Until you retrain |
-| Developers running your model | High | Until your API changes |
-| Open-weight post-training | None | A model generation |
-| Frontier pretraining | Zero | Effectively forever |
+| Strategy | Example | Control | Lifespan |
+| :--- | :--- | :--- | :--- |
+| **Build your own features** | A custom support agent in your product | Total | Until you change your code |
+| **Publish Context (MCP)** | Publishing API Skills and MCP servers | High | Until your API changes |
+| **Publish Traces** | Releasing synthetic eval datasets on Hugging Face | Low | A model generation |
+| **Get on a Benchmark** | Incorporated into frontier pretraining runs | None | Effectively forever |
 
 Notice the pattern? Control drops at every step while durability climbs. You can have the version you steer, or you can have the version that outlasts you.
 
