@@ -9,15 +9,15 @@ draft: false
 noindex: false
 # Required before publishing: three distinct visuals, each with its own alt text.
 # Point every path at a real asset, then uncomment. Never a generic site preview.
-image: /img/writing/fine-tuning-was-the-easy-part.jpg
+image: /img/writing/fine-tuning-was-the-easy-part.png
 imageAlt: Artifact card stating that context engineering is not enough
-socialImage: /img/writing/fine-tuning-was-the-easy-part-social.jpg
+socialImage: /img/writing/fine-tuning-was-the-easy-part-social.png
 shareTitle: Context Engineering Is Not Enough
-shareSummary: I taught a small model to fix a huge Maps API billing leak. But to distribute that fix, context engineering isn't enough: you have to reach the base model.
+shareSummary: Context engineering is token-inefficient and requires developers to actively discover your skills. To bake your API best practices directly into agent platforms, you have to publish your traces and capture a share of the gradient.
 shareImageAlt: A social preview card highlighting the billing cost of legacy API calls
 ---
 
-I wanted to make my backyard better for hosting guests and making it safe for kids to play. Naturally while learning about AI Agents more. I wanted somewhere nearby that stocked native plants, so I asked an agent hooked up to the public [Maps APIs](https://developers.google.com/maps/documentation/places/web-service/usage-and-billing) to find me a plant nursery. It gave me four good options with their operating hours.
+I wanted to make my backyard better for hosting guests and safe for kids to play. Because I was knee-deep in researching AI Agents at the time, I asked a custom agent hooked up to the public [Maps APIs](https://developers.google.com/maps/documentation/places/web-service/usage-and-billing) to find me a nearby plant nursery. It gave me four good options with their operating hours.
 
 Then I looked at what the agent actually asked the Places API.
 
@@ -29,28 +29,28 @@ AI Agents and Models do this constantly without a lot of system instruction tuni
 
 Researchers at ICSE 2025 [tested seven models](https://arxiv.org/abs/2406.09834) across 145 API migrations in eight Python libraries and found deprecated calls between 25% and 38% of the time. Stale knowledge going in, zero awareness of current API status at inference, and no mechanism for the model to find out it's wrong.
 
-So, I explored how I could teach a small model in the Gemma 4 series to actually consider my request, use the latest Places API and avoid unessesary costs. The resuts:
+I wanted to see if I could teach a small model in the Gemma 4 series to pause, consider the actual user request, and only fetch the Places API fields it needed to answer. The results:
 
-| Model | Variant | Exact Match Score |
+| Model | Variant | Exact Match Score (%) |
 | :--- | :--- | :--- |
 | `google/gemma-4-12B-it` | Base | 42 |
 | `google/gemma-4-12B-it` | +SFT (LoRA) | 97 |
 | `google/gemma-4-E4B-it` | Base | 18 |
 | `google/gemma-4-E4B-it` | +SFT (LoRA) | 94 |
 
-![An evidence diagram showing the baseline vs fine-tuned exact match scores](/img/writing/fine-tuning-evidence-inline.jpg)
+![An evidence diagram showing the baseline vs fine-tuned exact match scores](/img/writing/fine-tuning-evidence-inline.png)
 
 To do this tuning of Gemma 4, I created (with Gemini 3.1 Pro) 300 synthetic Places API requests using the latest and greatest [Google Maps Platform Agent Skills](https://developers.google.com/maps/ai/agent-skills). 
 
-Then I created a basic deterministic grader. It checks for a valid schema, a live 200 response, requested mask matches required fields, and a penalty per over-fetched billable field weighted by cost. That last clause is the interesting one; because over-requesting is a billing event, a single number carries correctness and cost at the same time.
+Then I created a basic deterministic grader. It checks for a valid schema, a live 200 response, and that the requested mask matches the required fields perfectly. It also applies a penalty for every over-fetched billable field, weighted by its cost. Because over-requesting is a billing event, a single grading metric captures both correctness and cost efficiency. We call this the Exact Match Score: the percentage of times the model perfectly parses the fields with zero over-fetching on a holdout set of 100 eval cases.
 
-The tuning step works compared to the baseline Gemma 4 models. The base 12B model scored 42 exact matches. The E4B scored 18. After training a LoRA adapter, the E4B jumped to 94, nearly matching the tuned 12B at 97. Both wiped the floor with the generic models. 
+The tuning step worked flawlessly compared to the baseline Gemma 4 models. The base 12B model scored a 42% exact match rate, and the base E4B scored a dismal 18%. After training a LoRA adapter on those 300 synthetic traces, the E4B jumped to 94%, nearly matching the tuned 12B at 97%. Both wiped the floor with the generic models. 
 
 What does this mean? You only need grounded examples to solve narrow tasks for your top developer tasks.
 
 ## The distribution problem
 
-That got me to thinking - the fine-tuned model fixes my use case and my API calls. It helps exactly one person.
+But this exposes a massive gap in the developer journey: the fine-tuned model fixes my use case and my API calls, but it helps exactly one person.
 
 The model or agent any developer opens tomorrow morning remains broken because it didn't learn from my samples. Its opinion about your developer platform was set months or years before your last release. 
 
@@ -97,4 +97,4 @@ Call it "share of gradient". Share of gradient measures whether a model was shap
 
 So, where should you start? Find the narrowest, most expensive job on your platform. Write a deterministic grader and explicitly put the actual billing cost inside it; a standard correctness metric will happily approve code that you absolutely cannot afford to run in production. Once you have that, measure a base model against it and start generating those traces.
 
-I'd love to hear how you're handling open benchmarks, evals, and fine tuning traces for your developer platform. Let me know in the comments!
+The open question is how to make those best-practice traces easier for agent platforms to discover, improve, and train on. If you've found a good way to manage eval traces for your own APIs, drop a note in the comments.
