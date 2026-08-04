@@ -28,7 +28,7 @@ def main():
                 
     print(f"Exported {valid_cases} cases to {TRAIN_JSONL_PATH.name}")
     print("\nTo start fine-tuning, run the following command in your terminal:")
-    print(f"mlx_lm.lora --model google/gemma-4b --train --data {ROOT} --iters 100")
+    print(f"mlx_lm.lora --model google/gemma-4-2b --train --data {ROOT} --iters 100")
 
 if __name__ == "__main__":
     main()
