@@ -17,7 +17,7 @@
     "deploy:gcp": "./scripts/deploy-gcp.sh"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.0",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/google.maps": "^3.65.1",
     "eslint": "^10.8.0",
