@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="One orchestrator node decides the design and fans bounded tasks out to a swarm of cheaper worker models that write the code.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="One routing policy assigns bounded tasks to candidate capability profiles before success, attempts, latency, tokens, and cost are measured.">
   <style>
     :root { --bg: #faf9f6; --surface: #ffffff; --ink: #111827; --faint: #5f6875; --line: #d9dde5; --accent: #3b82f6; --accent-ink: #2563eb; }
     @media (prefers-color-scheme: dark) { :root { --bg: #030712; --surface: #111827; --ink: #f9fafb; --faint: #aeb7c4; --line: #334155; --accent: #60a5fa; --accent-ink: #93c5fd; } }</style>
@@ -10,11 +10,10 @@
   <rect width="1200" height="675" fill="url(#grid)"/>
   <rect width="1200" height="8" fill="var(--accent)"/>
   <rect x="1" y="1" width="1198" height="673" fill="none" stroke="var(--line)" stroke-width="2"/>
-  
-  <text x="70" y="86" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">TIERED CODING AGENTS</text>
-  <text x="70" y="152" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="52" font-weight="750" letter-spacing="-1.5" fill="var(--ink)">One decides. Many build.</text>
+  <text x="70" y="86" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">ROUTING IS A HYPOTHESIS</text>
+  <text x="70" y="152" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="46" font-weight="750" letter-spacing="-1.5" fill="var(--ink)">The policy assigns. The scoreboard decides.</text>
 
-  <text x="240" y="238" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="22" font-weight="700" letter-spacing="1.5" fill="var(--accent-ink)">1 ORCHESTRATOR · $$$</text>
+  <text x="240" y="238" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" letter-spacing="1.5" fill="var(--accent-ink)">1 ROUTING POLICY</text>
   <path d="M 410 385 C 560 385, 590 281, 760 281" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity="0.55" marker-end="url(#tip)"/>
   <path d="M 410 385 C 560 385, 590 281, 950 281" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity="0.55" marker-end="url(#tip)"/>
   <path d="M 410 385 C 560 385, 590 367, 760 367" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity="0.55" marker-end="url(#tip)"/>
@@ -24,10 +23,10 @@
   <path d="M 410 385 C 560 385, 590 539, 760 539" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity="0.55" marker-end="url(#tip)"/>
   <path d="M 410 385 C 560 385, 590 539, 950 539" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity="0.55" marker-end="url(#tip)"/>
   <rect x="110" y="288" width="260" height="194" rx="26" fill="var(--ink)"/>
-  <text x="240" y="378" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="46" font-weight="750" fill="var(--bg)">DECIDE</text>
-  <text x="240" y="420" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="23" fill="var(--bg)" opacity="0.82">the frontier tier</text>
+  <text x="240" y="378" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="46" font-weight="750" fill="var(--bg)">ASSIGN</text>
+  <text x="240" y="420" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="28" fill="var(--bg)" opacity="0.82">a capability profile</text>
 
-  <text x="865" y="238" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="22" font-weight="700" letter-spacing="1.5" fill="var(--accent-ink)">MANY WORKERS · &#162;</text>
+  <text x="865" y="238" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" letter-spacing="1.5" fill="var(--accent-ink)">CANDIDATE RUNS</text>
   <rect x="770" y="250" width="160" height="62" rx="13" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
     <rect x="788" y="276" width="124" height="4" rx="2" fill="var(--accent)" opacity="0.55"/>
     <rect x="788" y="288" width="86" height="4" rx="2" fill="var(--accent)" opacity="0.3"/>
@@ -53,5 +52,5 @@
     <rect x="978" y="534" width="124" height="4" rx="2" fill="var(--accent)" opacity="0.55"/>
     <rect x="978" y="546" width="86" height="4" rx="2" fill="var(--accent)" opacity="0.3"/>
 
-  <text x="600" y="628" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="27" fill="var(--faint)">one expensive decision routes many cheap builds</text>
+  <text x="600" y="628" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" fill="var(--faint)">measure success · attempts · latency · tokens · cost</text>
 </svg>

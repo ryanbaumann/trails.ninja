@@ -37,7 +37,7 @@
   <text class="eyebrow" x="90" y="254.5" text-anchor="start" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" letter-spacing="2">LAUNCH POST · GOOGLE MAPS PLATFORM</text>
   <text class="title" x="90" y="322.5" text-anchor="start" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="70" font-weight="750" letter-spacing="-2">Announcing Code Assist</text>
   
-  <text class="body" x="90" y="369.5" text-anchor="start" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="36">grounded platform expertise in any AI assistant</text>
+  <text class="body" x="90" y="369.5" text-anchor="start" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="36">official platform context for compatible coding agents</text>
   
   <!-- Footer -->
   <line class="border" x1="90" y1="571" x2="1110" y2="571" stroke-width="2"/>

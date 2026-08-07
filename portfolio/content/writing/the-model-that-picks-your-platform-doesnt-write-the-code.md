@@ -1,34 +1,53 @@
 ---
-title: The Model That Picks Your Platform Doesn't Write the Code
-summary: As open models make code execution cheaper, a developer platform's moat becomes the loop of context, evals, and distribution that keeps critical developer journeys working while the models underneath churn.
+title: A Model Router Needs a Scoreboard
+summary: A routing policy is a hypothesis until the same held-out tasks preserve quality and measure retries, latency, tokens, and cost across capability profiles.
 date: 2026-07-20
-updated: 2026-07-20
+updated: 2026-08-07
 canonical: https://ryanbaumann.dev/writing/the-model-that-picks-your-platform-doesnt-write-the-code/
 image: /img/writing/model-tiers-header.svg
-imageAlt: One dark orchestrator node labeled Decide fans bounded tasks out to a grid of eight smaller worker nodes, one expensive decision routing many cheap builds.
+imageAlt: One routing policy assigns bounded tasks to several capability profiles, with measurement still required before calling a route efficient.
 socialImage: /social/the-model-that-picks-your-platform-doesnt-write-the-code.jpg
-shareTitle: The Model That Picks Your Platform Doesn't Write the Code
-shareSummary: Open models are making execution cheaper. The moat is the loop that keeps your platform working while the models underneath churn.
-shareImageAlt: Social card for the field note beside a diagram of one orchestrator node fanning tasks out to many small worker nodes.
-tags: ["developer experience", "ai", "field notes"]
+shareTitle: A Model Router Needs a Scoreboard
+shareSummary: Routing by capability sounds efficient. It becomes a result only when held-out tasks preserve quality and record the real cost.
+shareImageAlt: A routing policy assigning tasks to candidate capability profiles before success, attempts, latency, tokens, and cost are measured.
+tags: ["developer experience", "ai", "evals"]
 draft: false
 noindex: false
 ---
 
-GLM 5.2, Kimi K3, and a steady run of capable open models keep landing, and each one makes it cheaper to build something with your platform. When execution gets this cheap, a developer platform faces one question: what is the moat?
+The public [Loop Engineering prompt](https://github.com/ryanbaumann/fieldwork/blob/main/agent-scripts/coding-agent-loop/SYSTEM_PROMPT.md#capability-and-model-routing) contains a routing policy. It does not contain a routing result.
 
-The easy answer is to bet on the smartest model and read this as an open-versus-frontier size race. Watch a real agent session and that framing falls apart. A frontier model reads the intent, resolves the ambiguity, and decides the design: which API fits, where the auth boundary sits, when the work is done. Then it hands bounded tasks to cheaper models that write most of the code. The model that picks your platform is not the model that writes with it.
+The policy says to use the least costly capability profile with demonstrated quality for the task family:
 
-That split is economic. The orchestrator spends its expensive reasoning on the few decisions that change the outcome. Implementation runs cheaper the moment a task is bounded and the checks are objective, because the compiler, the tests, and the linter catch what a smaller model fumbles. Good verifiers let the cheap tier carry real work. They are why open models keep sliding down the cost curve without ever winning at system design. I [codified this routing](/writing/loop-engineering-coding-agent/) in a [public prompt](https://github.com/ryanbaumann/fieldwork/tree/main/agent-scripts/coding-agent-loop) that sends each job to the least costly model that can do it.
+```text
+Tools      deterministic discovery, transformation, verification
+Fast       extraction, search, summarization, mechanical edits
+Balanced   implementation, debugging, test repair, scoped review
+Deep       architecture, security, data consistency, difficult synthesis
+```
 
-While frontier open models (with trillions of parameters) are still expensive to run and require data center-level GPUs, smaller open models make the rest of the execution significantly cheaper. What's more, using them means builder platforms can own more of how their data is used compared to relying entirely on proprietary models.
+That mapping is plausible. I haven't measured whether it saves tokens, lowers latency, or completes the same work as reliably as a stronger default. The first version of this Note wrote those outcomes as if the prompt had already earned them.
 
-Your platform meets this system twice. The orchestrator is where your platform gets chosen, so it decides activation. The workers are where it gets built, so an example tested only on the strongest model is quietly undertested.
+## What the package actually proves
 
-![A descending staircase of tiers from Frontier to Balanced to Open, the cost circle shrinking at each step, showing the same journey completing at a cheaper tier.](/img/writing/model-tiers-devx.svg)
+The package ships one operating contract, four role overlays, an installation task, a deterministic structural check, and 17 specified regression scenarios. The check currently passes. No behavioral trial results, task costs, or cross-profile comparisons are recorded.
 
-The execution scoreboard is consistency. A developer journey is cheap when a small model completes it the same way run after run, with low variance and less context each release. When work that needed Gemini Pro lands just as reliably on Gemini Flash, developers get the same result faster and cheaper, and the same holds for every model family you route. A task that drops a tier is a win worth counting.
+The scenarios are still useful because they define the bar. A diagnosis request should remain read-only. An agent should preserve a dirty worktree, stop when authority is missing, resist instructions hidden in repository data, and verify a UI change in the browser when the environment allows it. Those are requirements for a routing experiment, not evidence that one route is cheaper.
 
-The moat is the loop, not any single model. Own the context, evals, and distribution that keep your critical journeys working as the models underneath them churn. Our team runs a version of this for Google Maps Platform through portable [agent skills](/work/agent-skills/) and a [task-based eval suite](/work/agentic-evals/). Open source the skills and evals you want model teams to learn from, [keep a held-out set](/writing/builder-platforms-grow-by-owning-the-agent-loop/), and ship the same tested context into every agent developers reach for.
+![A routing scoreboard compares candidate capability profiles on the same held-out work before any lower-cost route is called a win.](/img/writing/model-tiers-devx.svg)
 
-Nobody knows where the tiers settle, including me. Treat each new model as another row in your test matrix, run it in your own harness, and let the evidence pick the tiers.
+## What the scoreboard has to retain
+
+Take one task family, such as a mechanical dependency edit, and freeze a held-out set. Run each task through the candidate profiles with the same repository fixture, tools, permissions, and acceptance checks. Keep the selected route, final repository state, retries, latency, token use, and cost for every attempt.
+
+Correctness stays the gate. A cheaper run that leaves the repository broken is not efficient, and a fast run that needs three rescue attempts may cost more than the stronger profile it replaced. Repetition matters because one lucky completion says very little about routing variance.
+
+Only then can the router learn something defensible: this task family clears the quality bar on Fast, that one still needs Balanced, and this security change belongs with Deep. The labels do not carry meaning across harnesses until the harness measures them.
+
+## The platform decision is another measurement problem
+
+I still think the model doing the planning can influence which platform, API, and authentication boundary a developer ends up with. The worker that writes the code may simply execute a decision made earlier in the session. But the original Note treated that split as observed fact without a trace showing it.
+
+To test it, retain the planning decision and every downstream handoff. Record where the platform was first selected, whether a worker changed it, and which verifier caught a bad choice. That evidence would turn the thesis into something a platform team can act on.
+
+For now, the router is a policy with a good question inside it. If you have a public routing benchmark that follows cost and quality back to individual attempts, I'd like to compare notes.

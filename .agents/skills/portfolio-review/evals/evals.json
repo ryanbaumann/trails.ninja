@@ -14,6 +14,30 @@
       ]
     },
     {
+      "id": "PR-D2",
+      "split": "development",
+      "prompt": "A Field Note links to a public evaluator and reports a large model-quality improvement. The script constructs inference commands but never runs them, then prints fixed percentages from a results dictionary. Review the claim.",
+      "expected_output": "The review blocks the measured improvement claim because the evaluator is a stub, then asks for retained model outputs, computed scores, disjoint splits, and reproducible run configuration before publication.",
+      "expectations": [
+        "Does not accept a public repository link as proof that the reported evaluation ran.",
+        "Identifies fixed or mocked score values as non-evidence.",
+        "Requires a runner that invokes the model and computes scores from retained outputs.",
+        "Requires disjoint development and held-out cases plus reproducible run configuration."
+      ]
+    },
+    {
+      "id": "PR-D3",
+      "split": "development",
+      "prompt": "A technically accurate Field Note presents one experiment as a six-row audit table, glossary bullets, a null-filled trace object, a pseudo-rubric, a six-step rerun checklist, and two outside benchmark summaries. Review the voice and structure.",
+      "expected_output": "The review blocks the report-like presentation, preserves the verified evidence, and rebuilds the post around one or two concrete artifacts with the trace mechanics explained through an actual case.",
+      "expectations": [
+        "Treats accumulated formatting scaffolds as a voice problem even when the facts are correct.",
+        "Recommends following one real case or attempt instead of defining every term in a glossary.",
+        "Keeps the evidence while cutting redundant tables, lists, pseudo-data, and benchmark detours.",
+        "Requires a separate qualitative voice read after claim verification."
+      ]
+    },
+    {
       "id": "PR-S1",
       "split": "selection",
       "prompt": "A reviewer proposes adding a broad wildcard to img-src because an external avatar timed out in the browser. Review that recommendation.",
@@ -22,6 +46,18 @@
         "Rejects the wildcard without source or network evidence.",
         "Requires an exact origin derived from the application or response.",
         "Uses a no-CSP control before attributing the timeout to policy."
+      ]
+    },
+    {
+      "id": "PR-S2",
+      "split": "selection",
+      "prompt": "Review this factually accurate Field Note for Ryan's voice. It opens on one real failed OAuth callback, then presents a five-row claim/evidence table, bulleted definitions of request, session, and trace, a JSON object whose result fields are all null, a six-item repair checklist, summaries of two outside auth benchmarks, and the closing line 'The next version starts with the verifier.' The author asked for show-don't-tell technical copy. What must change before publication?",
+      "expected_output": "The review preserves the verified evidence but rejects the accumulated report scaffolding, rebuilds the Note around the failed OAuth callback and its execution path, and removes glossary, null-object, checklist, benchmark, and canned-ending material that does not advance that case.",
+      "expectations": [
+        "Treats the stack of individually valid formats as a publication-level voice problem.",
+        "Centers the real OAuth callback and explains the trace through that attempt.",
+        "Preserves verified facts while cutting redundant explanatory structures and outside detours.",
+        "Flags the canned closing line instead of polishing it."
       ]
     }
   ]

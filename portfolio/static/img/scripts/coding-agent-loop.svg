@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Route each job to the least costly capable agent: orchestrator routes to Tools, Fast worker, Balanced agent, Deep reasoning, then integrated verification">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Route by capability, then verify the result: orchestrator routes to Tools, Fast, Balanced, Deep, then integrated verification">
   <style>
     :root { --bg: #faf9f6; --surface: #ffffff; --ink: #111827; --faint: #5f6875; --line: #d9dde5; --accent: #3b82f6; --accent-ink: #2563eb; }
     @media (prefers-color-scheme: dark) { :root { --bg: #030712; --surface: #111827; --ink: #f9fafb; --faint: #aeb7c4; --line: #334155; --accent: #60a5fa; --accent-ink: #93c5fd; } }
@@ -10,8 +10,8 @@
   <rect width="1200" height="675" fill="var(--bg)"/>
   <rect width="1200" height="675" fill="url(#grid)"/>
   <rect width="1200" height="8" fill="var(--accent)"/>
-  <text x="70" y="86" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">TOKEN-AWARE ORCHESTRATION</text>
-  <text x="70" y="155" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="42" font-weight="750" letter-spacing="-1" fill="var(--ink)">Route each job to the least costly capable agent</text>
+  <text x="70" y="86" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">OPERATING CONTRACT</text>
+  <text x="70" y="155" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="42" font-weight="750" letter-spacing="-1" fill="var(--ink)">Route by capability, then verify the result</text>
   <rect x="70" y="254" width="296" height="208" rx="22" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
   <text x="218" y="370" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="35" font-weight="750" fill="var(--ink)">Orchestrator</text>
   <g>
@@ -23,23 +23,23 @@
   <g>
       <path d="M 366 358 C 410 358, 410 335, 460 335" fill="none" stroke="var(--accent)" stroke-width="4" marker-end="url(#arrow)"/>
       <rect x="472" y="302" width="290" height="66" rx="16" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
-      <text x="617" y="345" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="29" font-weight="700" fill="var(--ink)">Fast worker</text>
+      <text x="617" y="345" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="29" font-weight="700" fill="var(--ink)">Fast</text>
       <path d="M 774 335 C 820 335, 820 358, 862 358" fill="none" stroke="var(--accent)" stroke-width="4" marker-end="url(#arrow)"/>
     </g>
   <g>
       <path d="M 366 358 C 410 358, 410 421, 460 421" fill="none" stroke="var(--accent)" stroke-width="4" marker-end="url(#arrow)"/>
       <rect x="472" y="388" width="290" height="66" rx="16" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
-      <text x="617" y="431" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="29" font-weight="700" fill="var(--ink)">Balanced agent</text>
+      <text x="617" y="431" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="29" font-weight="700" fill="var(--ink)">Balanced</text>
       <path d="M 774 421 C 820 421, 820 358, 862 358" fill="none" stroke="var(--accent)" stroke-width="4" marker-end="url(#arrow)"/>
     </g>
   <g>
       <path d="M 366 358 C 410 358, 410 507, 460 507" fill="none" stroke="var(--accent)" stroke-width="4" marker-end="url(#arrow)"/>
       <rect x="472" y="474" width="290" height="66" rx="16" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
-      <text x="617" y="517" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="29" font-weight="700" fill="var(--ink)">Deep reasoning</text>
+      <text x="617" y="517" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="29" font-weight="700" fill="var(--ink)">Deep</text>
       <path d="M 774 507 C 820 507, 820 358, 862 358" fill="none" stroke="var(--accent)" stroke-width="4" marker-end="url(#arrow)"/>
     </g>
   <rect x="874" y="288" width="256" height="140" rx="22" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
   <text x="1002" y="344" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="30" font-weight="750" fill="var(--ink)">Integrated</text>
   <text x="1002" y="383" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="30" font-weight="750" fill="var(--ink)">verification</text>
-  <text x="600" y="630" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" fill="var(--faint)">bounded context · one writer · integrated verification</text>
+  <text x="600" y="630" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" fill="var(--faint)">explicit scope · one writer · integrated verification</text>
 </svg>
