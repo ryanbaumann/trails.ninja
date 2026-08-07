@@ -118,7 +118,7 @@ const CARDS = [
     file: 'writing/code-assist-launch.svg',
     eyebrow: 'LAUNCH POST · GOOGLE MAPS PLATFORM',
     title: 'Announcing Code Assist',
-    lines: ['grounded platform expertise in any AI assistant'],
+    lines: ['official platform context for compatible coding agents'],
     footer: 'mapsplatform.google.com',
   },
 ];
@@ -127,17 +127,10 @@ const FLOWS = [
   {
     file: 'scripts/coding-agent-loop.svg',
     layout: 'routing',
-    eyebrow: 'TOKEN-AWARE ORCHESTRATION',
-    lead: 'Route each job to the least costly capable agent',
-    routes: ['Tools', 'Fast worker', 'Balanced agent', 'Deep reasoning'],
-    footer: 'bounded context · one writer · integrated verification',
-  },
-  {
-    file: 'writing/agent-session-header.svg',
-    eyebrow: 'PLATFORM INTERFACE',
-    lead: 'Developer intent becomes grounded action',
-    steps: ['Intent', 'Current context', 'Workflow', 'Working code'],
-    footer: 'inside the agent session',
+    eyebrow: 'OPERATING CONTRACT',
+    lead: 'Route by capability, then verify the result',
+    routes: ['Tools', 'Fast', 'Balanced', 'Deep'],
+    footer: 'explicit scope · one writer · integrated verification',
   },
   {
     file: 'writing/agent-session-diagnostic.svg',
@@ -175,6 +168,8 @@ const FLOWS = [
 const CUSTOM = [
   { file: 'writing/model-tiers-header.svg', render: 'asymmetry' },
   { file: 'writing/model-tiers-devx.svg', render: 'tierdrop' },
+  { file: 'writing/agent-session-header.svg', render: 'retrievalRanking' },
+  { file: 'writing/fine-tuning-distribution-pyramid.svg', render: 'distributionPyramid' },
 ];
 
 const requestedFiles = new Set(process.argv.slice(2));
@@ -374,13 +369,13 @@ function frame(inner, aria) {
   <rect width="1200" height="675" fill="url(#grid)"/>
   <rect width="1200" height="8" fill="var(--accent)"/>
   <rect x="1" y="1" width="1198" height="673" fill="none" stroke="var(--line)" stroke-width="2"/>
-  ${inner}
+  ${inner.trimStart()}
 </svg>
 `;
 }
 
-// One large decider node fanning out to a swarm of small worker nodes: the
-// asymmetry of one expensive decision routing many cheap builds.
+// One routing policy fanning out to candidate capability profiles. The image
+// describes the policy without claiming an unmeasured cost or quality result.
 function asymmetryDiagram() {
   const bigCx = 240;
   const bigCy = 385;
@@ -398,53 +393,99 @@ function asymmetryDiagram() {
     links.push(`<path d="M 410 ${bigCy} C 560 ${bigCy}, 590 ${midY}, ${x - 10} ${midY}" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity="0.55" marker-end="url(#tip)"/>`);
   }));
   const inner = `
-  <text x="70" y="86" font-family="${MONO}" font-size="28" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">TIERED CODING AGENTS</text>
-  <text x="70" y="152" font-family="${SANS}" font-size="52" font-weight="750" letter-spacing="-1.5" fill="var(--ink)">One decides. Many build.</text>
+  <text x="70" y="86" font-family="${MONO}" font-size="28" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">ROUTING IS A HYPOTHESIS</text>
+  <text x="70" y="152" font-family="${SANS}" font-size="46" font-weight="750" letter-spacing="-1.5" fill="var(--ink)">The policy assigns. The scoreboard decides.</text>
 
-  <text x="240" y="238" text-anchor="middle" font-family="${MONO}" font-size="22" font-weight="700" letter-spacing="1.5" fill="var(--accent-ink)">1 ORCHESTRATOR · $$$</text>
+  <text x="240" y="238" text-anchor="middle" font-family="${MONO}" font-size="28" font-weight="700" letter-spacing="1.5" fill="var(--accent-ink)">1 ROUTING POLICY</text>
   ${links.join('\n  ')}
   <rect x="110" y="288" width="260" height="194" rx="26" fill="var(--ink)"/>
-  <text x="${bigCx}" y="378" text-anchor="middle" font-family="${SANS}" font-size="46" font-weight="750" fill="var(--bg)">DECIDE</text>
-  <text x="${bigCx}" y="420" text-anchor="middle" font-family="${SANS}" font-size="23" fill="var(--bg)" opacity="0.82">the frontier tier</text>
+  <text x="${bigCx}" y="378" text-anchor="middle" font-family="${SANS}" font-size="46" font-weight="750" fill="var(--bg)">ASSIGN</text>
+  <text x="${bigCx}" y="420" text-anchor="middle" font-family="${SANS}" font-size="28" fill="var(--bg)" opacity="0.82">a capability profile</text>
 
-  <text x="865" y="238" text-anchor="middle" font-family="${MONO}" font-size="22" font-weight="700" letter-spacing="1.5" fill="var(--accent-ink)">MANY WORKERS · &#162;</text>
+  <text x="865" y="238" text-anchor="middle" font-family="${MONO}" font-size="28" font-weight="700" letter-spacing="1.5" fill="var(--accent-ink)">CANDIDATE RUNS</text>
   ${workers.join('\n  ')}
 
-  <text x="600" y="628" text-anchor="middle" font-family="${MONO}" font-size="27" fill="var(--faint)">one expensive decision routes many cheap builds</text>`;
-  return frame(inner, 'One orchestrator node decides the design and fans bounded tasks out to a swarm of cheaper worker models that write the code.');
+  <text x="600" y="628" text-anchor="middle" font-family="${MONO}" font-size="28" fill="var(--faint)">measure success · attempts · latency · tokens · cost</text>`;
+  return frame(inner, 'One routing policy assigns bounded tasks to candidate capability profiles before success, attempts, latency, tokens, and cost are measured.');
 }
 
-// A descending staircase of tiers: the same journey completing at a cheaper
-// tier, cost shrinking as it drops. Relative sizes only, no invented numbers.
+// Equal candidate lanes feed the same quality gate and scoreboard. No lane is
+// taller, shorter, or visually preferred because no benchmark exists yet.
 function tierdropDiagram() {
-  const baseline = 556;
-  const tiers = [
-    { x: 120, w: 250, top: 300, label: 'Frontier', cost: 44 },
-    { x: 452, w: 250, top: 372, label: 'Balanced', cost: 30 },
-    { x: 784, w: 250, top: 444, label: 'Open', cost: 18 },
-  ];
-  const bars = tiers.map((t) => `<rect x="${t.x}" y="${t.top}" width="${t.w}" height="${baseline - t.top}" rx="16" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
-    <circle cx="${t.x + t.w / 2}" cy="${t.top + 8}" r="${t.cost}" fill="var(--accent)" opacity="0.16"/>
-    <circle cx="${t.x + t.w / 2}" cy="${t.top + 8}" r="${t.cost}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
-    <text x="${t.x + t.w / 2}" y="${baseline - 30}" text-anchor="middle" font-family="${SANS}" font-size="30" font-weight="750" fill="var(--ink)">${t.label}</text>`).join('\n  ');
-  const hops = [];
-  for (let i = 0; i < tiers.length - 1; i += 1) {
-    const a = tiers[i];
-    const b = tiers[i + 1];
-    hops.push(`<path d="M ${a.x + a.w / 2 + a.cost + 10} ${a.top + 8} C ${b.x + b.w / 2 - 120} ${a.top}, ${b.x + b.w / 2 - 120} ${b.top}, ${b.x + b.w / 2 - b.cost - 12} ${b.top + 8}" fill="none" stroke="var(--accent)" stroke-width="3" marker-end="url(#tip)"/>`);
-  }
+  const lanes = ['Deep', 'Balanced', 'Fast'].map((label, index) => {
+    const y = 278 + index * 104;
+    return `<rect x="95" y="${y}" width="250" height="72" rx="16" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+    <text x="220" y="${y + 47}" text-anchor="middle" font-family="${SANS}" font-size="30" font-weight="750" fill="var(--ink)">${label}</text>
+    <path d="M 357 ${y + 36} H 476" fill="none" stroke="var(--accent)" stroke-width="3" marker-end="url(#tip)"/>`;
+  }).join('\n  ');
   const inner = `
-  <text x="70" y="86" font-family="${MONO}" font-size="28" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">THE EXECUTION SCOREBOARD</text>
-  <text x="70" y="152" font-family="${SANS}" font-size="46" font-weight="750" letter-spacing="-1" fill="var(--ink)">Win when the task drops a tier</text>
-  <text x="120" y="224" font-family="${SANS}" font-size="26" font-weight="700" fill="var(--faint)">same journey</text>
-  <text x="120" y="252" font-family="${SANS}" font-size="20" fill="var(--faint)">cost per run shrinks as it drops a tier</text>
-  ${bars}
-  ${hops.join('\n  ')}
-  <text x="600" y="628" text-anchor="middle" font-family="${MONO}" font-size="27" fill="var(--faint)">a journey that passes one tier lower is a real win</text>`;
-  return frame(inner, 'The same developer journey stepping down a staircase of tiers from Frontier to Balanced to Open, with the cost circle shrinking at each cheaper tier.');
+  <text x="70" y="86" font-family="${MONO}" font-size="28" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">THE ROUTING SCOREBOARD</text>
+  <text x="70" y="152" font-family="${SANS}" font-size="46" font-weight="750" letter-spacing="-1" fill="var(--ink)">Cheaper only counts when quality holds</text>
+  <text x="95" y="224" font-family="${SANS}" font-size="28" font-weight="700" fill="var(--faint)">same held-out task · same acceptance checks</text>
+  ${lanes}
+  <rect x="490" y="316" width="250" height="176" rx="22" fill="var(--surface)" stroke="var(--accent)" stroke-width="3"/>
+  <text x="615" y="388" text-anchor="middle" font-family="${MONO}" font-size="28" font-weight="700" fill="var(--accent-ink)">QUALITY</text>
+  <text x="615" y="430" text-anchor="middle" font-family="${SANS}" font-size="34" font-weight="750" fill="var(--ink)">Pass or stop</text>
+  <path d="M 752 404 H 820" fill="none" stroke="var(--accent)" stroke-width="3" marker-end="url(#tip)"/>
+  <rect x="834" y="300" width="280" height="208" rx="22" fill="var(--ink)"/>
+  <text x="974" y="358" text-anchor="middle" font-family="${MONO}" font-size="28" font-weight="700" fill="var(--bg)">MEASURE</text>
+  <text x="974" y="405" text-anchor="middle" font-family="${SANS}" font-size="29" fill="var(--bg)">retries · latency</text>
+  <text x="974" y="449" text-anchor="middle" font-family="${SANS}" font-size="29" fill="var(--bg)">tokens · cost</text>
+  <text x="600" y="628" text-anchor="middle" font-family="${MONO}" font-size="28" fill="var(--faint)">publish only after repeated runs clear the quality bar</text>`;
+  return frame(inner, 'The same held-out task runs across Deep, Balanced, and Fast profiles while success, retries, latency, tokens, and cost are measured.');
 }
 
-const CUSTOM_RENDER = { asymmetry: asymmetryDiagram, tierdrop: tierdropDiagram };
+function retrievalRankingDiagram() {
+  const results = [
+    { x: 95, rank: '1', source: 'ECL', score: '0.7244', accent: false },
+    { x: 460, rank: '2', source: 'ECL', score: '0.7125', accent: false },
+    { x: 825, rank: '3', source: 'REACT', score: '0.7090', accent: true },
+  ];
+  const cards = results.map(({ x, rank, source, score, accent }) => `<rect x="${x}" y="270" width="280" height="230" rx="22" fill="var(--surface)" stroke="${accent ? 'var(--accent)' : 'var(--line)'}" stroke-width="${accent ? 4 : 2}"/>
+  <circle cx="${x + 42}" cy="312" r="25" fill="var(--accent)" opacity="${accent ? 1 : 0.16}"/>
+  <text x="${x + 42}" y="322" text-anchor="middle" font-family="${MONO}" font-size="28" font-weight="700" fill="${accent ? 'var(--bg)' : 'var(--accent-ink)'}">${rank}</text>
+  <text x="${x + 140}" y="390" text-anchor="middle" font-family="${SANS}" font-size="42" font-weight="750" fill="var(--ink)">${source}</text>
+  <text x="${x + 140}" y="445" text-anchor="middle" font-family="${MONO}" font-size="30" fill="var(--faint)">${score}</text>`).join('\n  ');
+  const inner = `
+  <text x="70" y="86" font-family="${MONO}" font-size="28" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">ONE PUBLIC RETRIEVAL</text>
+  <text x="70" y="152" font-family="${SANS}" font-size="46" font-weight="750" letter-spacing="-1" fill="var(--ink)">The first React-library result ranked third</text>
+  <text x="95" y="224" font-family="${SANS}" font-size="28" fill="var(--faint)">official sources · current status · no code generated</text>
+  ${cards}
+  <text x="600" y="628" text-anchor="middle" font-family="${MONO}" font-size="28" fill="var(--faint)">retrieval supplied context · selection still required</text>`;
+  return frame(inner, 'One public retrieval ranked two Extended Component Library results first and second and the first React library result third; no code was generated.');
+}
+
+function distributionPyramidDiagram() {
+  const levels = [
+    { y: 210, left: 480, right: 720, label: 'CONTEXT + TOOLS', detail: 'current · controlled · opt-in' },
+    { y: 300, left: 385, right: 815, label: 'OWNED ADAPTER', detail: 'learned · model-specific' },
+    { y: 390, left: 290, right: 910, label: 'OPEN TRACES + DATA', detail: 'reusable · adoption required' },
+    { y: 480, left: 195, right: 1005, label: 'HELD-OUT BENCHMARK', detail: 'comparable · does not train alone' },
+  ];
+  const shapes = levels.map((level, index) => {
+    const next = levels[index + 1] || { left: 100, right: 1100 };
+    const fill = index === 0 ? 'var(--ink)' : 'var(--surface)';
+    const labelFill = index === 0 ? 'var(--bg)' : 'var(--ink)';
+    const detailFill = index === 0 ? 'var(--bg)' : 'var(--faint)';
+    return `<path d="M ${level.left} ${level.y} H ${level.right} L ${next.right} ${level.y + 82} H ${next.left} Z" fill="${fill}" stroke="var(--accent)" stroke-width="3"/>
+    <text x="600" y="${level.y + 35}" text-anchor="middle" font-family="${MONO}" font-size="28" font-weight="700" fill="${labelFill}">${level.label}</text>
+    <text x="600" y="${level.y + 68}" text-anchor="middle" font-family="${SANS}" font-size="28" fill="${detailFill}">${level.detail}</text>`;
+  }).join('\n  ');
+  const inner = `
+  <text x="70" y="76" font-family="${MONO}" font-size="28" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">DEVELOPER-PLATFORM DISTRIBUTION</text>
+  <text x="70" y="142" font-family="${SANS}" font-size="46" font-weight="750" letter-spacing="-1" fill="var(--ink)">One API lesson, four distribution paths</text>
+  ${shapes}
+  <text x="70" y="628" font-family="${MONO}" font-size="28" fill="var(--faint)">MORE DIRECT CONTROL ↑</text>
+  <text x="1130" y="628" text-anchor="end" font-family="${MONO}" font-size="28" fill="var(--faint)">MORE POTENTIAL REACH ↓</text>`;
+  return frame(inner, 'A four-level developer-platform distribution pyramid moves from context and tools through an owned adapter and open traces to a held-out benchmark, trading direct control for potential reach and dependence on adoption.');
+}
+
+const CUSTOM_RENDER = {
+  asymmetry: asymmetryDiagram,
+  tierdrop: tierdropDiagram,
+  retrievalRanking: retrievalRankingDiagram,
+  distributionPyramid: distributionPyramidDiagram,
+};
 
 for (const spec of CARDS.filter(selected)) {
   const path = join(OUT, spec.file);

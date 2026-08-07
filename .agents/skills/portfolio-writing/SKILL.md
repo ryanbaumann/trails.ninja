@@ -38,7 +38,7 @@ These recur across the strongest entries and are what the prohibitions above can
 - **Define by negative space.** Say what a thing answers, then what it does not. `work/agent-skills.md`: "Grounded retrieval tells an agent what's true. It doesn't teach an agent how to work."
 - **Use the colon as the pivot the em-dash used to be.** A claim, a colon, then its unpacking. `pages/about.md`: "The loop is simple: find a problem that repeats, build the smallest useful artifact, test whether it helps, and publish what others can reuse."
 - **Anchor evidence in a vantage point, not only an artifact.** `work/mapbox-boundaries-atlas.md`: "As Mapbox's first customer-facing engineer, I kept hitting the same two blockers."
-- **Close by connecting the present to an earlier era.** `writing/the-next-platform-interface-is-an-agent-session.md`: "Agent interfaces change the mechanics, but not the operating lesson."
+- **Connect the present to an earlier era.** `writing/the-next-platform-interface-is-an-agent-session.md`: "I've seen this distribution shift before."
 - **Refuse the flattering reading.** `work/mapbox-oss-datascience.md`: "real libraries that closed real workflow gaps, not conference demos."
 - **Use contractions where the register is conversational.** don't, doesn't, what's, I've. Prose with no contractions and every negation expanded reads generated.
 - **Preferred vocabulary:** friction, artifact, trace, surface, shipped, delta, bar, field, durable. Use "loop" deliberately and never as the only metaphor in a piece. **Avoid:** solution, enable, empower, and "journey" outside the compound "developer journey."

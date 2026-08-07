@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="A four-level developer-platform distribution pyramid moves from context and tools through an owned adapter and open traces to a held-out benchmark, trading direct control for potential reach and dependence on adoption.">
+  <style>
+    :root { --bg: #faf9f6; --surface: #ffffff; --ink: #111827; --faint: #5f6875; --line: #d9dde5; --accent: #3b82f6; --accent-ink: #2563eb; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #030712; --surface: #111827; --ink: #f9fafb; --faint: #aeb7c4; --line: #334155; --accent: #60a5fa; --accent-ink: #93c5fd; } }</style>
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.28"/></pattern>
+    <marker id="tip" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/></marker>
+  </defs>
+  <rect width="1200" height="675" fill="var(--bg)"/>
+  <rect width="1200" height="675" fill="url(#grid)"/>
+  <rect width="1200" height="8" fill="var(--accent)"/>
+  <rect x="1" y="1" width="1198" height="673" fill="none" stroke="var(--line)" stroke-width="2"/>
+  <text x="70" y="76" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">DEVELOPER-PLATFORM DISTRIBUTION</text>
+  <text x="70" y="142" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="46" font-weight="750" letter-spacing="-1" fill="var(--ink)">One API lesson, four distribution paths</text>
+  <path d="M 480 210 H 720 L 815 292 H 385 Z" fill="var(--ink)" stroke="var(--accent)" stroke-width="3"/>
+    <text x="600" y="245" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" fill="var(--bg)">CONTEXT + TOOLS</text>
+    <text x="600" y="278" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="28" fill="var(--bg)">current · controlled · opt-in</text>
+  <path d="M 385 300 H 815 L 910 382 H 290 Z" fill="var(--surface)" stroke="var(--accent)" stroke-width="3"/>
+    <text x="600" y="335" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" fill="var(--ink)">OWNED ADAPTER</text>
+    <text x="600" y="368" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="28" fill="var(--faint)">learned · model-specific</text>
+  <path d="M 290 390 H 910 L 1005 472 H 195 Z" fill="var(--surface)" stroke="var(--accent)" stroke-width="3"/>
+    <text x="600" y="425" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" fill="var(--ink)">OPEN TRACES + DATA</text>
+    <text x="600" y="458" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="28" fill="var(--faint)">reusable · adoption required</text>
+  <path d="M 195 480 H 1005 L 1100 562 H 100 Z" fill="var(--surface)" stroke="var(--accent)" stroke-width="3"/>
+    <text x="600" y="515" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" font-weight="700" fill="var(--ink)">HELD-OUT BENCHMARK</text>
+    <text x="600" y="548" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="28" fill="var(--faint)">comparable · does not train alone</text>
+  <text x="70" y="628" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" fill="var(--faint)">MORE DIRECT CONTROL ↑</text>
+  <text x="1130" y="628" text-anchor="end" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="28" fill="var(--faint)">MORE POTENTIAL REACH ↓</text>
+</svg>

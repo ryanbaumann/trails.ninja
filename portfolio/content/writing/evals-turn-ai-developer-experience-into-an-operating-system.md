@@ -1,59 +1,60 @@
 ---
 draft: true
 noindex: true
-title: Evals Are How You Know an AI Developer Tool Got Better
-summary: Task-based evals show whether a context, tool, or prompt improved the developer's actual job.
+title: An Eval Has to Lead Back to a Failed Run
+summary: One blind review scored the candidate 4/4 and the baseline 2/4. Missing full outputs, repeated runs, and a safety replay kept that result from becoming a release gate.
 date: 2026-07-13
-updated: 2026-07-15
+updated: 2026-08-07
 canonical: https://ryanbaumann.dev/writing/evals-turn-ai-developer-experience-into-an-operating-system/
 image: /img/writing/evals-header.svg
 imageAlt: A six-stage evaluation flow moves from field signal through a task, baseline, targeted change, measured delta, and launch decision.
 socialImage: /social/evals-turn-ai-developer-experience-into-an-operating-system.jpg
-shareTitle: Evals Are How You Know an AI Developer Tool Got Better
-shareSummary: Test whether a context, tool, or prompt improved the developer's actual job.
-shareImageAlt: Evals Are How You Know an AI Developer Tool Got Better beside a task-to-launch evaluation loop.
+shareTitle: An Eval Has to Lead Back to a Failed Run
+shareSummary: One paired review moved from 2/4 to 4/4. The missing outputs and reruns explain why that was useful direction, not a validated result.
+shareImageAlt: A six-stage evaluation path from field signal through task, baseline, change, measured delta, and decision.
 tags: ["developer experience", "ai", "evals"]
 ---
 
-A task-based evaluation proves an agent became better at a developer's job. A polished demo proves only that one path worked once. Without evals, a team can ship context, prompts, tools, and skills, but it can't tell whether the AI actually improved the developer experience.
+The facts were right. The Note still sounded generated.
 
-## Measure the developer task
+I had asked for an evidence correction. What came back stacked a claim table, glossary, diagnostic JSON, pseudo-rubric, numbered checklist, and benchmark survey into one essay. Every format had a reason to exist; together they hid the story.
 
-Our team built an [agentic eval suite](/work/agentic-evals/) for Google Maps Platform because we needed a shared quality bar for retrieval, skills, and agent integrations. I wrote the initial eval harness to prove the pattern, and we now compare context products against a no-context baseline to inform launch and roadmap decisions.
+That failure became a development case for the portfolio review skill. A separate selection prompt used a failed OAuth callback, but repeated almost the same table, glossary, null object, checklist, benchmark, and canned ending. One blind reviewer scored the baseline response 2/4 and the candidate 4/4.
 
-The unit of quality is the job the developer is trying to complete instead of an abstract benchmark. For a developer platform, that means adding a map, choosing the right API, configuring authentication, or fixing code that uses an outdated surface. We run that task through an agent and inspect the result. Depending on the job, useful measures include grounded code accuracy, tool-call behavior, token cost, and end-to-end completion. The important comparison is the delta between a baseline and the proposed change.
+The number looked clean until I followed it back to the record.
 
-## Connect failures back to field signal
+## What the reviewer preferred
 
-An eval set must represent the failures that matter to developers and the business instead of a collection of clever prompts. That evidence comes from support, GitHub issues, community questions, field engineering, documentation gaps, and traces from real workflows when privacy and access rules allow it. 
+The baseline noticed the voice problem and recommended one causal thread through the OAuth callback. Then it kept negotiating with the scaffolding. It allowed selected table rows and checklist items to survive, treated the outside benchmarks as useful context, and tried to move the canned closing line somewhere else.
 
-A repeated failure becomes a task. The task becomes a test. The scored result shows whether a context or product change addressed the problem. This creates a loop:
+The candidate cut harder. It made the callback the spine, replaced the claim table with prose, removed the glossary, kept the null JSON only if it changed the diagnosis, compressed the checklist, and rejected the closing line.
 
-1. Find repeated friction in the field.
-2. Encode the developer task and expected behavior.
-3. Run the baseline.
-4. Change one part of the context, tool, or workflow.
-5. Compare the result and inspect the failures.
-6. Ship only when the evidence supports the decision.
+A third agent received those responses as anonymous A and B. Against four fixed expectations, it gave the baseline two points and the candidate four. That judgment explains which editorial decisions improved.
 
-The loop tells the team which class of failure moved and which cases still need work, which is more useful than a single aggregate score.
+It doesn't validate the skill.
 
-## Keep the evaluator independent
+## What the run failed to keep
 
-The system proposing a change should not be the only system judging it because an optimizer that grades its own output can learn the shape of the rubric without improving the developer outcome.
+The [run record](https://github.com/ryanbaumann/fieldwork/blob/main/docs/skill-evals/2026-08-07-portfolio-voice-de-scaffolding.md) contains response summaries, excerpts, and the blind grader's verdict. It doesn't contain the full baseline and candidate outputs. The paired trial ran once, the runtime didn't expose the model identifier or sampling configuration, and the safety case wasn't replayed.
 
-Use deterministic checks where possible. Compile generated code. Validate required APIs and tool calls. Check that the result follows security constraints. Use a separate grader for behavior that needs judgment, then review failure traces directly.
+The selection prompt was also too close to the development case. Both asked the reviewer to remove the same stack of formats. That tests whether the rule transfers from one fictional article to another; it says little about whether the skill recognizes a different kind of voice failure.
 
-Trust deltas more than absolute scores. Model behavior, agent harnesses, and adaptive graders move. A stable baseline and a focused metric make the before-and-after comparison useful even when the surrounding system changes.
+Those omissions change the conclusion. A one-run 2/4 to 4/4 preference is a useful debugging signal. It isn't a held-out improvement, a variance estimate, or evidence of no safety regression.
 
 ![An agent output moves through deterministic checks and a separate grader before trace review informs a ship-or-hold decision.](/img/writing/evals-independent-checks.svg)
 
-## Make the eval the shared quality gate
+## The trace is the result
 
-A shared eval lets product, documentation, and engineering test changes against the same developer task. The same tasks can test a documentation update, a retrieval change, or a tool release. Everyone can inspect which failures moved and which did not.
+For this comparison, the eval case was the fixed editorial prompt and four expectations. An attempt should contain the exact skill revision, runtime configuration, full response, and grader result. The safety replay should show that the same candidate still rejects a request to weaken a content security policy without evidence.
 
-That shared mechanism reduces opinion-driven debate and keeps AI Developer Experience connected to product growth. If a change improves a task in evals, the team can ship it into a real distribution surface and then measure whether adoption changes. The eval is not the business outcome. It is the quality gate between field signal and scaled distribution.
+The deterministic checks answer a different question. They confirm that the local skills have valid frontmatter, the eval suites keep development and selection splits, and the validator tests pass. They can't tell whether the advice sounds like me or whether it would repair the Note.
 
-## Start with ten real tasks
+That's why the aggregate score has to lead back to the failed attempt. If the record keeps only a summary, a reader can't tell whether the reviewer made the claimed decision or whether the summary made it look better afterward.
 
-We're still mapping these patterns, but building a baseline is the necessary first step. Choose ten failures from issues, support, community questions, or traces. Run them with no added context. Inspect the failures, make one targeted change, and run the same tasks again. Let the delta decide what to fix next.
+## The next run
+
+The next selection case needs a materially different failure shape, not the same formatting stack with OAuth nouns. Baseline and candidate should run repeatedly under the same configuration. Every full response and blind judgment should be retained. The safety case should run again before the instruction change is treated as validated.
+
+My team and I use task-based comparisons against a no-context baseline for Google Maps Platform, but those private cases and traces don't belong in this repository. The public editorial example is smaller and less important. It can still model the right standard once the missing attempts are there.
+
+Start with one failure you can show. Keep the task, every attempt, the grader, and the safety replay. If a number can't take a reader back through those artifacts, it's a direction to investigate, not a result to ship.

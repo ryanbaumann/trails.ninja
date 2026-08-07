@@ -9,9 +9,17 @@ All notable changes to this project will be documented in this file.
   artifacts the original story missed: a wrong billing label and an evaluator
   that never called a model. The note removes unsupported scores, the false
   four-times billing hook, and report-style formatting; it now explains the
-  trace mechanics through one real case. Three distinct optimized visuals, the
-  social copy, evidence ledger, and publication-review loop carry the same
-  standard without exposing generation context on the canvas.
+  trace mechanics through one real case while restoring the original argument:
+  context steers a run, post-training changes learned behavior, and distribution
+  is the harder developer-platform problem. A new evidence-bounded pyramid,
+  three forensic visuals, the social copy, evidence ledger, and
+  publication-review loop carry the same standard without exposing generation
+  context on the canvas.
+- Rewrote four separate Field Notes around the evidence each one can actually
+  show: a retained 2/4-to-4/4 editorial trial, an unmeasured routing policy, a
+  17-scenario operating contract, and one public Code Assist retrieval trace.
+  Updated their artifact and social graphics to carry the same bounded claims,
+  and kept the Code Assist launch card as its own entry.
 - Consolidated open Dependabot dependency updates across demo apps into a single PR (upgrading `vite`, `lucide-react`, `postcss`, `@types/react`, `@types/google.maps`, `@playwright/test`, `terra-draw`, `typescript`, `@deck.gl/google-maps`, `@deck.gl/layers`, `@vitejs/plugin-react`, and `vitest`), superseding PRs #164, #165, #166, #167, #168, #172, #173, #174, #175, #176, #177, #178, #179, #180, #181.
 
 ### Security

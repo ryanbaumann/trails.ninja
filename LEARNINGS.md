@@ -2,6 +2,43 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-07 - Correcting the proof must not replace the article's thesis
+
+Context: The evidence pass on “Fine-Tuning Was the Easy Part” correctly removed
+fabricated scores, a wrong billing claim, and an evaluator that never ran. It
+also turned the entire essay into an eval audit and dropped Ryan's actual
+argument about runtime context, learned weights, and the distribution problem
+for developer platforms.
+Learning: Freeze the narrative contract before a forensic rewrite: one sentence
+for the thesis, the distinction the reader must retain, and the framework that
+makes it actionable. Unsupported proof can be removed without amputating the
+idea it was supposed to support.
+Evidence: Ryan's review explicitly restored the weight-versus-context thesis
+and the distribution pyramid. The revised Note keeps every evidence correction,
+uses Harvey's held-out result as the public example that post-training can work,
+and labels traces and benchmarks as possible distribution inputs rather than
+guaranteed training adoption.
+Use next time: Before replacing more than one section, compare the candidate to
+the original narrative contract. If the proof disappears, rebuild support; if
+the thesis or decision framework disappears, stop and restore it before the
+voice pass.
+
+## 2026-08-07 - Reader-facing counts must follow the executable source
+
+Context: The evidence ledger and an older learning still described the Loop
+Engineering package as a 16-case specification after the live case file and
+structural checker had moved to 17.
+Learning: Treat prior audits as leads, not current evidence. Reader-facing
+counts should be derived from the live source and its executable check in the
+same review pass that publishes the claim.
+Evidence: `agent-scripts/coding-agent-loop/evals/cases.md` defines C01–C17,
+split into C01–C13 for development and C14–C17 for selection, and
+`agent-scripts/coding-agent-loop/evals/check.sh` passes only when it finds all
+17 cases.
+Use next time: Recount mutable artifacts at publication time and run the check
+that enforces the count; do not carry a number forward from a ledger, audit, or
+older prose without following it back to source.
+
 ## 2026-08-07 - An evidence correction can still fail the voice review
 
 Context: The first rewrite of the fine-tuning Field Note corrected unsupported claims but presented the result as an audit table, glossary, diagnostic JSON, pseudo-rubric, numbered rerun plan, and two outside case studies. Ryan identified the copy and formatting as AI-generated rather than his voice.
@@ -565,7 +602,7 @@ Use next time: Do not let a review request silently publish, edit, or skip the r
 
 Context: The repository already used `scripts/` for executable build and maintenance programs, while a growing collection of copyable agent prompts also needed a memorable GitHub home.
 Learning: Store prompts, role contracts, and behavioral evals under `agent-scripts/`, with one self-contained folder per artifact. Keep the canonical prompt in that package and use `portfolio/content/scripts/` only for the reader-facing summary and source links. This makes the trust boundary visible and avoids maintaining two prompt copies.
-Evidence: `agent-scripts/coding-agent-loop/` contains the canonical prompt, role overlays, README, and 16-case specification; `portfolio/content/scripts/loop-engineering-coding-agent.md` links to those files and the build publishes `/scripts/`.
+Evidence: `agent-scripts/coding-agent-loop/` contains the canonical prompt, role overlays, README, and current 17-case specification; `portfolio/content/scripts/loop-engineering-coding-agent.md` links to those files and the build publishes `/scripts/`.
 Use next time: Copy `agent-scripts/_TEMPLATE/`, add eval cases before tuning behavior, then add one portfolio summary entry. Never put prompt text in the executable `scripts/` tree or duplicate the canonical prompt in CMS prose.
 
 

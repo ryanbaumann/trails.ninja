@@ -1,6 +1,6 @@
 ---
-title: I Fine-Tuned the Model Before I Built the Test
-summary: The LoRA run reached 0.028 validation loss. The repository behind it had ten cases, no holdout, one bad answer key, and an evaluator that never called a model.
+title: Fine-Tuning Was the Easy Part
+summary: Fine-tuning can change learned model behavior. The harder developer-platform problem is getting that improvement beyond one adapter, through context, traces, and public benchmarks.
 date: 2026-08-04
 updated: 2026-08-07
 canonical: https://ryanbaumann.dev/writing/fine-tuning-was-the-easy-part/
@@ -10,14 +10,16 @@ noindex: false
 image: /img/writing/the-eval-failed-before-the-model-did.jpg
 imageAlt: A completed training run with loss 0.028 is blocked at an evidence gate because raw outputs, a holdout set, and a real grader are missing
 socialImage: /img/writing/the-eval-failed-before-the-model-did-social.jpg
-shareTitle: The Training Run Worked. My Eval Didn't.
-shareSummary: I followed a fine-tuning result back to the code and found ten cases, zero retained outputs, one wrong label, and four scores typed by hand.
+shareTitle: Fine-Tuning Was the Easy Part
+shareSummary: Context changes what a model sees for one run. Post-training changes learned behavior. The platform problem is distributing that improvement beyond one model and one app.
 shareImageAlt: Loss down does not equal proof, above evidence chips showing ten cases, zero held-out cases, and four hard-coded scores
 ---
 
-The first eval case asks for three things about nearby nurseries: name, address, and coordinates. Its expected field mask includes `places.displayName`, then labels the request Essentials. The [current Places field table](https://developers.google.com/maps/documentation/places/web-service/data-fields?utm_campaign=gmp_git_agentskills_v1) puts `displayName` in Pro.
+I wanted a small model to stop over-fetching Places API fields. A skill or MCP service could put current guidance into an agent session. Fine-tuning offered a different bet: teach the pattern through learned weights instead of explaining the whole policy again at runtime.
 
-Even a working grader would have rewarded the wrong billing answer. This grader didn't run at all.
+The LoRA run completed. My proof that it worked did not.
+
+The first eval case asks for three things about nearby nurseries: name, address, and coordinates. Its expected field mask includes `places.displayName`, then labels the request Essentials. The [current Places field table](https://developers.google.com/maps/documentation/places/web-service/data-fields?utm_campaign=gmp_git_agentskills_v1) puts `displayName` in Pro. Even a working grader would have rewarded the wrong billing answer; this grader didn't run at all.
 
 I was preparing to publish a jump from 18% to 94% exact match after fine-tuning. The [evaluator underneath that claim](https://github.com/ryanbaumann/fieldwork/blob/main/evals/field-mask/test_mlx.py#L21-L60) builds commands for the base model and the tuned adapter, but it never executes them. The loop ends here, then four scores are assigned by hand:
 
@@ -43,9 +45,9 @@ That is as far as the public evidence goes. There is no run log, checkpoint, or 
 
 [Field masks](https://developers.google.com/maps/documentation/places/web-service/choose-fields?utm_campaign=gmp_git_agentskills_v1) tell the Places API which data to return. I chose them because the output can be syntactically perfect and still be expensive or wrong. A model can return valid JSON, the request can succeed, and one unnecessary field can move the call into another billing tier.
 
-The task was small on purpose. I wanted a behavior with a crisp output and a product consequence. But I hadn't pinned the endpoint, and the dataset mixed the `places.*` response-mask syntax used by search endpoints with a story about Place Details pricing. Then the answer key mislabeled its very first case.
+The task was small on purpose. I wanted a behavior with a crisp output and a product consequence. But I hadn't pinned the endpoint, and the dataset mixed the `places.*` response-mask syntax used by search endpoints with a story about Place Details pricing. Then the answer key mislabeled its first case.
 
-[LoRA](https://arxiv.org/abs/2106.09685) freezes the base model and trains small added matrices to make the supplied completions more likely. The optimizer sees tokens and loss. It can't tell that a field is current, necessary, or in the wrong billing tier. Feed it a bad answer key and a clean run can make the model better at repeating the mistake.
+[LoRA](https://arxiv.org/abs/2106.09685) freezes the original model parameters and trains small added matrices that alter the model's behavior when the adapter is loaded. The optimizer sees tokens and loss. It can't tell that a field is current, necessary, or in the wrong billing tier. Feed it a bad answer key and a clean run can make the model better at repeating the mistake.
 
 An [ICSE study](https://arxiv.org/abs/2406.09834) found the same failure shape in generated code. It tested seven models on 28,125 prompts covering 145 API migrations in eight Python libraries. Among plausible completions that used one of those APIs, 25% to 38% still chose the deprecated version.
 
@@ -59,18 +61,44 @@ Those answers matter separately. If the tuned model returns valid JSON with an e
 
 The current repository has the case, but no attempt. There is no model output to inspect and no grader result to reproduce. The aggregate score leads back to four constants.
 
-The clearest public counterexample I found came from [Harvey's Legal Agent Benchmark](https://www.harvey.ai/blog/introducing-harveys-legal-agent-benchmark). It started with more than 1,200 tasks across 24 practice areas and over 75,000 expert-written criteria. In a later [post-training experiment](https://www.harvey.ai/blog/post-training-open-legal-agents-with-baseten-research), 40 steps of GRPO on Qwen3.5-9B moved criterion pass rate from 42.5% to 63.0% on held-out test data.
+## Context and weights solve different jobs
 
-The traces moved with the score. Grep calls fell 67%, while characters read per rollout rose more than 20%. That doesn't isolate the cause of every behavior change, but it gives a reviewer something useful to inspect: the held-out result changed, and the way the agent worked changed alongside it.
+Context engineering changes what the model can see during this attempt. A skill or MCP service can supply current documentation, a workflow, and tools without retraining, and the platform team can update that material as the API changes. But the agent still has to discover, load, and follow it.
+
+A LoRA adapter changes a small set of added weights while leaving the original checkpoint frozen. It can make a stable, repeated behavior more likely without carrying the full policy in every prompt. But the improvement stops at the deployment boundary: it helps only the applications and requests that load that adapter. It doesn't update the base checkpoint another developer downloads or the hosted model another team calls.
+
+The two approaches belong together. Keep fast-changing API facts in retrievable context. Use post-training for stable behavior you can grade. Use the same eval to decide whether either intervention actually improved the job.
+
+## Weight-level intervention can work
+
+My field-mask run doesn't yet prove that it changed task behavior. [Harvey's public post-training experiment](https://www.harvey.ai/blog/post-training-open-legal-agents-with-baseten-research) shows what that proof can look like. Forty steps of GRPO on Qwen3.5-9B moved criterion pass rate from 42.5% to 63.0% on held-out test data. Grep calls fell 67%, while characters read per rollout rose more than 20%.
+
+That doesn't isolate the cause of every changed action, but it establishes the important part: held-out performance changed, and the reported tool-use measurements changed with it. Post-training can be effective. My experiment still needs the same evidence.
+
+## The hard part is distribution
+
+An adapter attached to my application only helps requests that load it. Context is easier to ship because docs, skills, and tools can change today, but it remains an opt-in dependency of each agent session.
+
+For a developer platform, the real problem is moving an API best practice from an instruction I control into evidence another team can test, learn from, and possibly train on. “Possibly” matters. Publishing traces or a benchmark doesn't force a model lab to use either one.
+
+![A developer-platform distribution pyramid moves from directly controlled context and tools through an owned adapter and open traces to a held-out public benchmark with broader potential reach and more dependence on adoption.](/img/writing/fine-tuning-distribution-pyramid.svg)
+
+At the top of the pyramid, **context and tools** carry current facts and workflows. They offer the most direct control, but the agent has to load them.
+
+An **owned adapter** puts stable, repeated behavior into learned weights for the surfaces you operate. It can work well and still reach only one deployment.
+
+**Open traces and training data** make the evidence reusable outside your product. Another team can inspect the attempts, run the grader, and choose to train against them. Adoption is possible, never automatic.
+
+At the base, a **held-out public benchmark** makes the behavior visible across models. A benchmark doesn't train anything by itself. It gives model builders a durable target and lets developers see whether the gap closed.
+
+The choice for a platform team is practical: keep fast-changing facts in context; fine-tune stable behavior you can grade; publish traces when you want the training signal to travel; publish a benchmark when you want the result to remain measurable.
 
 ## I built this backward
 
-I changed the weights before I had a test that could tell me whether the behavior changed.
+I trained adapter weights before I had a test that could tell me whether the behavior changed.
 
 The rerun starts by fixing the nursery case and pinning one Places endpoint and documentation revision. Then I need a holdout the optimizer never sees, with near-duplicate prompts kept on the same side of the split. Every base and tuned attempt should leave behind the prompt, model configuration, raw output, and each grader result. Only then does another LoRA run answer a useful question.
 
-Next time I don't want the aggregate score to be the first thing I see. I want to open one failed request and know which model ran, what it returned, which check failed, and whether the answer key was current.
+The rerun has to earn the local claim first. Then I want to publish the trace schema, grader, and held-out cases so the result can travel beyond one adapter without pretending that publication guarantees adoption.
 
-The fine-tuning run may still turn out to work. I haven't earned that sentence yet.
-
-If you have a public eval where a reader can follow the score back to a failed trace, send it my way. That is the bar for the rerun.
+If you're working on the same gap between runtime context and learned model behavior, I'd love to compare traces and benchmarks in the comments.
