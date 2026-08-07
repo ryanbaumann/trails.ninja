@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Changed
+- Rebuilt “I Fine-Tuned the Model Before I Built the Test” around the two
+  artifacts the original story missed: a wrong billing label and an evaluator
+  that never called a model. The note removes unsupported scores, the false
+  four-times billing hook, and report-style formatting; it now explains the
+  trace mechanics through one real case. Three distinct optimized visuals, the
+  social copy, evidence ledger, and publication-review loop carry the same
+  standard without exposing generation context on the canvas.
 - Consolidated open Dependabot dependency updates across demo apps into a single PR (upgrading `vite`, `lucide-react`, `postcss`, `@types/react`, `@types/google.maps`, `@playwright/test`, `terra-draw`, `typescript`, `@deck.gl/google-maps`, `@deck.gl/layers`, `@vitejs/plugin-react`, and `vitest`), superseding PRs #164, #165, #166, #167, #168, #172, #173, #174, #175, #176, #177, #178, #179, #180, #181.
 
 ### Security

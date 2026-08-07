@@ -2,6 +2,20 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-07 - An evidence correction can still fail the voice review
+
+Context: The first rewrite of the fine-tuning Field Note corrected unsupported claims but presented the result as an audit table, glossary, diagnostic JSON, pseudo-rubric, numbered rerun plan, and two outside case studies. Ryan identified the copy and formatting as AI-generated rather than his voice.
+Learning: Claim integrity and voice need separate review passes. Evidence should usually enter a Field Note through the one or two artifacts that changed the author's mind; stacking every available explanatory format turns a personal technical story into a report. Generated visuals have the same boundary: generation context belongs in the prompt record, not on the canvas.
+Evidence: Two independent copy reviews both identified the format stack as the dominant AI tell and converged on the same repair: follow the wrong nursery answer key and the evaluator's `pass` statement, explain the trace through that case, and cut the table, glossary, null object, rubric, checklist, and unrelated detours. Ryan's direct review independently identified the voice failure and visible prompt context.
+Use next time: Run claim verification first, then a separate de-scaffolding pass against a hand-written voice calibrator. Keep a table, list, or diagram only when it makes a real relationship easier to understand than the narrative; remove source labels, dates, and generation notes from graphics unless they are the evidence.
+
+## 2026-08-07 - A linked eval is not evidence until its execution path computes the claim
+
+Context: The fine-tuning Field Note reported four exact-match improvements and linked the public evaluator as proof. The evaluator never invoked its constructed model commands; it skipped the loop and printed four hard-coded values. The same audit found ten cases instead of the claimed 300 plus 100-case holdout, no dataset split, no executable output grader, and a billing-tier answer key contradicted by current Places API documentation.
+Learning: Review the execution path behind every eval claim. A credible result needs disjoint development and held-out cases, retained raw outputs, scores computed from those outputs, pinned model and harness configuration, and an answer key checked against the current contract. A repository link, falling training loss, rubric description, or polished chart cannot substitute for those artifacts.
+Evidence: `evals/field-mask/test_mlx.py` labels the loop “Mocking evaluation,” executes `pass`, and assigns the published values directly; `dataset.v1.json` contains ten cases; both `train_mlx.py` and `test_mlx.py` select the same eight eligible cases; and the official Places field table classifies `displayName` as Pro while the first case labels it Essentials. The rewritten Field Note removes the unsupported scores and states the gaps directly.
+Use next time: Before publishing a model or agent delta, run from the cited entry point, follow each value back to retained outputs, verify the split and ground truth, and block the claim if any score comes from a constant, fixture, stub, or unversioned off-repository run.
+
 ## 2026-08-04 - Fine-tuning a unified multimodal model in MLX requires stripping tower parameters and remapping language keys
 
 Context: Attempting to fine-tune `google/gemma-4-E4B-it` via `mlx-lm` failed repeatedly. The model weights declared 42 attention layers, but `mlx-lm` threw a parameter mismatch because the architecture (`gemma4_unified`) was unsupported, and the weights were deeply nested inside `language_model.model.*` alongside `vision_tower` and `audio_tower` parameters.

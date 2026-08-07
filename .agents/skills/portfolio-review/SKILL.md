@@ -20,6 +20,7 @@ Before making or reviewing a material change, define success across three dimens
 
 - Lead with the outcome and concrete work. Cut throat-clearing, generic summaries, repeated conclusions, and unsupported superlatives.
 - Check every number, date range, attribution, role, causal statement, and current product fact against a primary source, checked-in artifact, or Ryan-approved internal evidence.
+- When copy cites an eval or benchmark, inspect the execution path instead of accepting the repository link as evidence. Confirm that the runner invokes the model or system, train and held-out cases are disjoint, scores are computed from retained outputs, and the public configuration or logs support the claimed run. Constants, fixtures, commented-out trainers, and stubbed calls may document an intended result, but they never support a measured one.
 - Apply the metric taste rule: real numbers are fine for public/verifiable stats, prior-company results, and aged or long-public current-employer work; recent internal current-employer usage or growth figures (Google Maps Platform users, API engagement) must use qualitative, understated framing, never a precise percentage.
 - Distinguish observed correlation from causation. Put unrelated evidence in separately labeled groups.
 - Credit team work accurately. Default to "Our team built… I led the strategy," not solo credit, but do not dilute genuinely individual work. Remove or qualify anything the evidence does not support.
@@ -27,6 +28,7 @@ Before making or reviewing a material change, define success across three dimens
 - Verify that the opening states the thesis, pays off the title/social promise immediately, each section advances it, and the ending tells the reader what to do.
 - For technical posts, verify that prose introduces each code sample and explains the behavior or tradeoff after it. Flag ornamental samples, unexplained blocks, and long runs of code without a human narrative.
 - Search the changed prose for banned voice patterns such as passive self-credit, hype adjectives, resume bullets, and em dashes. Also flag three or more adjacent sentences that repeat the same subject-verb structure, especially glossary definitions and metric sequences. Read the copy aloud for varied rhythm and conversational flow because style cannot be proven by a regex, and compare the rhythm against the hand-written calibration reference linked in the writing skill.
+- Review formatting as part of voice. A sequence of report table, glossary bullets, diagnostic JSON, pseudo-rubric, numbered checklist, and survey of outside examples is a blocker when one lived artifact could carry the argument. After the claims pass, do a separate de-scaffolding read that keeps the evidence but restores a human narrative.
 
 ## 3. Audit links and URL ownership
 
@@ -44,6 +46,7 @@ Before making or reviewing a material change, define success across three dimens
 
 - Require every hosted essay to have three distinct assets: a 1200x675 thesis header, a 1200x627 social preview, and at least one 1200x675 inline mechanism or evidence image.
 - Prefer real screenshots and artifacts. Generated visuals must show a mechanism or evidence, never invent metrics, UI, logos, or product behavior.
+- Keep prompt scaffolding and generation context out of the rendered canvas. Source labels, review dates, tool metadata, and process instructions live in the generation record unless the article is specifically presenting them as evidence.
 - Iterate with the lower-cost image model; render the approved final prompt with the quality model. Save exact prompts, model IDs, aspect ratio, size, thinking setting, and post-processing in `docs/`.
 - Inspect file signatures with `file`; never trust an extension. Verify physical dimensions and generated HTML `width`/`height` attributes.
 - Ensure social preview images are optimized `.jpg` files, compressed (e.g., JPEG quality 70-80), and ideally under 200KB so preview bots and answer engines can ingest them instantly.
