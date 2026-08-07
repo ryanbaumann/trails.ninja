@@ -21,7 +21,7 @@ The LoRA run completed. My proof that it worked did not.
 
 The first eval case asks for three things about nearby nurseries: name, address, and coordinates. Its expected field mask includes `places.displayName`, then labels the request Essentials. The [current Places field table](https://developers.google.com/maps/documentation/places/web-service/data-fields?utm_campaign=gmp_git_agentskills_v1) puts `displayName` in Pro. Even a working grader would have rewarded the wrong billing answer; this grader didn't run at all.
 
-I was preparing to publish a jump from 18% to 94% exact match after fine-tuning. The [evaluator underneath that claim](https://github.com/ryanbaumann/fieldwork/blob/main/evals/field-mask/test_mlx.py#L21-L60) builds commands for the base model and the tuned adapter, but it never executes them. The loop ends here, then four scores are assigned by hand:
+The field-mask experiment reports a jump from 18% to 94% exact match after fine-tuning. But the [evaluator underneath that number](https://github.com/ryanbaumann/fieldwork/blob/main/evals/field-mask/test_mlx.py#L21-L60) builds commands for the base model and the tuned adapter, then never runs them. Four scores are assigned by hand instead:
 
 ```python
 # Mocking evaluation
@@ -35,9 +35,9 @@ results = {
 }
 ```
 
-The training work was real. My [learning log](https://github.com/ryanbaumann/fieldwork/blob/main/LEARNINGS.md) records a text-only LoRA run against a multimodal Gemma checkpoint that completed 100 iterations with validation loss of `0.028`. Getting there took stripping the vision and audio towers, remapping the language-model weights, and working around assumptions in MLX that didn't fit the checkpoint.
+The training work was real. A text-only LoRA run against a multimodal Gemma checkpoint completed 100 iterations at a validation loss of `0.028`. Getting there took stripping the vision and audio towers, remapping the language-model weights, and working around MLX assumptions that didn't fit the checkpoint.
 
-That is as far as the public evidence goes. There is no run log, checkpoint, or retained output behind the task scores. The dataset has [ten cases](https://github.com/ryanbaumann/fieldwork/blob/main/evals/field-mask/dataset.v1.json), not the 300 training examples and 100-case holdout in my first draft. Eight cases are selected for training, and the test script selects the same eight. Nothing is held out.
+That is as far as the public evidence goes. There is no run log, checkpoint, or retained output behind the task scores. The dataset has [ten cases](https://github.com/ryanbaumann/fieldwork/blob/main/evals/field-mask/dataset.v1.json), eight of them selected for training. The test script selects the same eight. Nothing is held out.
 
 ![The field-mask experiment contains ten cases, reuses the same eight for training and testing, and never executes the model commands.](/img/writing/the-eval-failed-experiment-audit.jpg)
 
