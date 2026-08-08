@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Fine-tuning was the easy part. The easy part: tune one adapter, where Gemma 4 E4B exact match rose from 2 of 10 to 9 of 10. The hard part: distribute that fix across hundreds of jobs and every model a developer might pick.">
+  <style>
+    :root { --bg: #faf9f6; --surface: #ffffff; --ink: #111827; --faint: #5f6875; --line: #d9dde5; --accent: #3b82f6; --accent-ink: #2563eb; --good: #16a34a; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #030712; --surface: #111827; --ink: #f9fafb; --faint: #aeb7c4; --line: #334155; --accent: #60a5fa; --accent-ink: #93c5fd; --good: #4ade80; } }
+  </style>
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.28"/></pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/></marker>
+  </defs>
+  <rect width="1200" height="675" fill="var(--bg)"/>
+  <rect width="1200" height="675" fill="url(#grid)"/>
+  <rect width="1200" height="8" fill="var(--accent)"/>
+  <rect x="1" y="1" width="1198" height="673" fill="none" stroke="var(--line)" stroke-width="2"/>
+
+  <text x="70" y="80" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="27" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">FIELD NOTES · FINE-TUNING</text>
+  <text x="70" y="150" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="58" font-weight="760" letter-spacing="-1.5" fill="var(--ink)">Fine-tuning was the easy part</text>
+
+  <!-- Easy part panel -->
+  <rect x="70" y="235" width="470" height="330" rx="20" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+  <text x="102" y="292" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="24" font-weight="700" letter-spacing="1.5" fill="var(--good)">THE EASY PART</text>
+  <text x="102" y="345" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="700" fill="var(--ink)">Tune one adapter</text>
+  <text x="102" y="384" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="24" fill="var(--faint)">Gemma 4 E4B · exact-match field masks</text>
+  <text x="102" y="470" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="72" font-weight="750" fill="var(--faint)">2<tspan font-size="34" fill="var(--faint)">/10</tspan></text>
+  <path d="M 250 448 H 320" fill="none" stroke="var(--good)" stroke-width="5" marker-end="url(#arrow)"/>
+  <text x="340" y="470" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="72" font-weight="750" fill="var(--good)">9<tspan font-size="34" fill="var(--faint)">/10</tspan></text>
+  <text x="102" y="520" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="23" fill="var(--faint)">base &#8594; tuned, one narrow job</text>
+
+  <!-- Arrow between panels -->
+  <path d="M 556 400 H 636" fill="none" stroke="var(--accent)" stroke-width="6" marker-end="url(#arrow)"/>
+
+  <!-- Hard part panel -->
+  <rect x="660" y="235" width="470" height="330" rx="20" fill="var(--ink)" stroke="var(--accent)" stroke-width="2"/>
+  <text x="692" y="292" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="24" font-weight="700" letter-spacing="1.5" fill="var(--accent)">THE HARD PART</text>
+  <text x="692" y="345" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="700" fill="var(--bg)">Distribute the fix</text>
+  <text x="692" y="384" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="24" fill="var(--line)">across hundreds of jobs and every model</text>
+  <text x="692" y="440" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="23" fill="var(--line)">context + tools</text>
+  <text x="692" y="474" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="23" fill="var(--line)">&#8595; owned adapter</text>
+  <text x="692" y="508" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="23" fill="var(--line)">&#8595; open traces</text>
+  <text x="692" y="542" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="23" fill="var(--accent)">&#8595; held-out benchmark</text>
+
+  <text x="70" y="622" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="24" fill="var(--faint)">CONTROL DROPS, REACH CLIMBS &#8594;</text>
+</svg>
