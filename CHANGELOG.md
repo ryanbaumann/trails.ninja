@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Fixed Giscus comment widget layout constraints on portfolio field notes by setting an explicit `100%` width and a `400px` `min-height` on the iframe, preventing height collapse or squished rendering on narrow viewports.
+
 ### Changed
 - Rebuilt “I Fine-Tuned the Model Before I Built the Test” around the two
   artifacts the original story missed: a wrong billing label and an evaluator

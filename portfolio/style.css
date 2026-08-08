@@ -443,6 +443,7 @@ main > section { margin-bottom: clamp(3rem, 6vw, 5.5rem); }
 
 .subscribe,
 .comments {
+  width: 100%;
   max-width: var(--prose);
   margin-top: 2.5rem;
   padding-top: 1.75rem;
@@ -463,6 +464,9 @@ main > section { margin-bottom: clamp(3rem, 6vw, 5.5rem); }
 }
 .subscribe .section-note,
 .comments .section-note { margin-bottom: 0; }
+.comments .giscus,
+.comments .giscus-frame { width: 100%; }
+.comments .giscus-frame { min-height: 400px; }
 .comments .giscus { margin-top: 1.25rem; }
 
 /* ---- states ---- */
