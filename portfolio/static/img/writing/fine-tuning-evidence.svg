@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-label="Exact-match field masks for Gemma 4 E4B. Across all ten cases the base model scores 2 and the tuned adapter 9. On the two held-out cases the base model scores 0 and the tuned adapter 1.">
+  <style>
+    :root { --bg: #faf9f6; --surface: #ffffff; --ink: #111827; --faint: #5f6875; --line: #d9dde5; --accent: #3b82f6; --accent-ink: #2563eb; --base: #94a3b8; --tuned: #2563eb; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #030712; --surface: #111827; --ink: #f9fafb; --faint: #aeb7c4; --line: #334155; --accent: #60a5fa; --accent-ink: #93c5fd; --base: #64748b; --tuned: #60a5fa; } }
+  </style>
+  <defs><pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.28"/></pattern></defs>
+  <rect width="1200" height="620" fill="var(--bg)"/>
+  <rect width="1200" height="620" fill="url(#grid)"/>
+  <rect width="1200" height="8" fill="var(--accent)"/>
+  <rect x="1" y="1" width="1198" height="618" fill="none" stroke="var(--line)" stroke-width="2"/>
+
+  <text x="70" y="72" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="25" font-weight="700" letter-spacing="1.8" fill="var(--accent-ink)">EXACT-MATCH FIELD MASKS · GEMMA 4 E4B</text>
+  <text x="70" y="120" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="720" letter-spacing="-0.5" fill="var(--ink)">A LoRA adapter, one narrow job</text>
+
+  <!-- Legend -->
+  <rect x="70" y="150" width="26" height="26" rx="5" fill="var(--base)"/>
+  <text x="106" y="171" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="var(--faint)">Base</text>
+  <rect x="210" y="150" width="26" height="26" rx="5" fill="var(--tuned)"/>
+  <text x="246" y="171" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="var(--faint)">Tuned (+LoRA)</text>
+
+  <!-- baseline grid: y for score 0..10, plot area y 250..560 (310px for 10) -->
+  <!-- axis -->
+  <line x1="150" y1="560" x2="1130" y2="560" stroke="var(--line)" stroke-width="2"/>
+  <text x="120" y="568" text-anchor="end" font-family="ui-monospace, monospace" font-size="20" fill="var(--faint)">0</text>
+  <line x1="150" y1="405" x2="1130" y2="405" stroke="var(--line)" stroke-width="1" opacity="0.6" stroke-dasharray="4 6"/>
+  <text x="120" y="413" text-anchor="end" font-family="ui-monospace, monospace" font-size="20" fill="var(--faint)">5</text>
+  <line x1="150" y1="250" x2="1130" y2="250" stroke="var(--line)" stroke-width="1" opacity="0.6" stroke-dasharray="4 6"/>
+  <text x="120" y="258" text-anchor="end" font-family="ui-monospace, monospace" font-size="20" fill="var(--faint)">10</text>
+
+  <!-- Group A: All 10 cases. Base=2 -> h=62 (top 498), Tuned=9 -> h=279 (top 281) -->
+  <rect x="300" y="498" width="130" height="62" rx="6" fill="var(--base)"/>
+  <text x="365" y="486" text-anchor="middle" font-family="ui-monospace, monospace" font-size="30" font-weight="700" fill="var(--faint)">2</text>
+  <rect x="450" y="281" width="130" height="279" rx="6" fill="var(--tuned)"/>
+  <text x="515" y="269" text-anchor="middle" font-family="ui-monospace, monospace" font-size="30" font-weight="700" fill="var(--tuned)">9</text>
+  <text x="440" y="598" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="25" font-weight="600" fill="var(--ink)">All 10 cases</text>
+
+  <!-- divider -->
+  <line x1="700" y1="250" x2="700" y2="560" stroke="var(--line)" stroke-width="1" opacity="0.5"/>
+
+  <!-- Group B: Held-out 2 cases. Scale each unit = 31px too (max 2 -> h=62). Base=0, Tuned=1 -> h=31 (top 529) -->
+  <rect x="800" y="560" width="130" height="0" rx="6" fill="var(--base)"/>
+  <text x="865" y="548" text-anchor="middle" font-family="ui-monospace, monospace" font-size="30" font-weight="700" fill="var(--faint)">0</text>
+  <rect x="950" y="529" width="130" height="31" rx="6" fill="var(--tuned)"/>
+  <text x="1015" y="517" text-anchor="middle" font-family="ui-monospace, monospace" font-size="30" font-weight="700" fill="var(--tuned)">1</text>
+  <text x="940" y="598" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="25" font-weight="600" fill="var(--ink)">Held-out 2 cases</text>
+</svg>

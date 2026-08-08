@@ -176,6 +176,14 @@ const CARDS = [
     layout: 'artifact',
   },
   {
+    file: 'fine-tuning-was-the-easy-part.png',
+    eyebrow: 'FIELD NOTES · FINE-TUNING',
+    title: 'Fine-Tuning Was the Easy Part',
+    summary: 'Tuning one adapter for one job worked. Distributing that fix across every job and model is the hard part.',
+    source: 'portfolio/static/img/writing/fine-tuning-header.svg',
+    layout: 'artifact',
+  },
+  {
     file: 'this-weeks-learnings.png',
     eyebrow: 'FIELD NOTES · LINKEDIN',
     title: 'Ryan Baumann on LinkedIn',
