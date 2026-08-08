@@ -20,7 +20,7 @@ def main():
     valid_cases = 0
     with open(TRAIN_JSONL_PATH, "w") as f_out:
         for case in dataset_json.get("cases", []):
-            if case["category"] in ["normal", "prompt_injection"]:
+            if case.get("split") == "train" and case["category"] in ["normal", "prompt_injection"]:
                 req = case["input"]["request"]
                 mask = case["expectation"]["required_fields"]
                 f_out.write(json.dumps({"text": format_prompt(req, mask)}) + "\n")

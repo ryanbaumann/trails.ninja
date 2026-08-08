@@ -18,7 +18,8 @@ REQUIRED_CATEGORIES = {
     "irrelevant",
     "prompt_injection",
 }
-CASE_FIELDS = {"id", "category", "input", "expectation", "rubric_ids"}
+REQUIRED_SPLITS = {"train", "test"}
+CASE_FIELDS = {"id", "category", "split", "input", "expectation", "rubric_ids"}
 INPUT_FIELDS = {"request"}
 EXPECTATION_FIELDS = {"required_fields", "max_sku"}
 
@@ -75,6 +76,10 @@ def validate() -> list[str]:
             errors.append(f"{label}: unknown category {category!r}")
         else:
             counts[category] += 1
+
+        split = case.get("split")
+        if split not in REQUIRED_SPLITS:
+            errors.append(f"{label}: unknown split {split!r}")
 
         case_input = case.get("input")
         if not isinstance(case_input, dict) or set(case_input) != INPUT_FIELDS:

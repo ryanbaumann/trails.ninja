@@ -28,29 +28,22 @@ def main():
     
     training_data = []
     for case in dataset_json.get("cases", []):
-        if case["category"] in ["normal", "prompt_injection"]:
+        if case.get("split") == "train" and case["category"] in ["normal", "prompt_injection"]:
             req = case["input"]["request"]
             mask = case["expectation"]["required_fields"]
             training_data.append({"text": format_prompt(req, mask)})
             
-    print(f"Loaded {len(training_data)} training examples.")
+    print(f"Loaded {len(training_data)} training split examples.")
     
-    # Mocking the huggingface dataset conversion and TRL process
-    # hf_dataset = Dataset.from_list(training_data)
-    #
-    # print("Loading model google/gemma-4-E4B-it-it...")
-    # model = AutoModelForCausalLM.from_pretrained(...)
-    # tokenizer = AutoTokenizer.from_pretrained(...)
-    # 
-    # trainer = SFTTrainer(
-    #     model=model,
-    #     train_dataset=hf_dataset,
-    #     dataset_text_field="text",
-    #     max_seq_length=512,
-    # )
-    # trainer.train()
-    
-    print("Fine-tuning completed successfully! Adapter weights saved to /model_output")
+    # Save training dataset file for TRL / SFTTrainer
+    train_out = ROOT / "train.jsonl"
+    with open(train_out, "w") as f_out:
+        for item in training_data:
+            f_out.write(json.dumps(item) + "\n")
+            
+    print(f"Prepared training dataset at {train_out.name}")
+    print("To execute fine-tuning using HuggingFace TRL / SFTTrainer:")
+    print("  python evals/field-mask/train.py --run")
 
 if __name__ == "__main__":
     main()

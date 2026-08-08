@@ -1,6 +1,6 @@
 ---
 title: Fine-Tuning Was the Easy Part
-summary: Fine-tuning can change learned model behavior. The harder developer-platform problem is getting that improvement beyond one adapter, through context, traces, and public benchmarks.
+summary: Fine-tuning a small model for one narrow job worked. The hard developer-platform problem is distribution: moving that improvement beyond a single adapter, up a ladder from context to open traces to a public benchmark.
 date: 2026-08-04
 updated: 2026-08-07
 canonical: https://ryanbaumann.dev/writing/fine-tuning-was-the-easy-part/
@@ -11,94 +11,34 @@ image: /img/writing/the-eval-failed-before-the-model-did.jpg
 imageAlt: A completed training run with loss 0.028 is blocked at an evidence gate because raw outputs, a holdout set, and a real grader are missing
 socialImage: /img/writing/the-eval-failed-before-the-model-did-social.jpg
 shareTitle: Fine-Tuning Was the Easy Part
-shareSummary: Context changes what a model sees for one run. Post-training changes learned behavior. The platform problem is distributing that improvement beyond one model and one app.
+shareSummary: Tuning a small model for one narrow job worked. Distributing that improvement beyond one adapter, across every critical user journey on a platform, is the hard problem, and publishing never guarantees adoption.
 shareImageAlt: Loss down does not equal proof, above evidence chips showing ten cases, zero held-out cases, and four hard-coded scores
 ---
 
-I wanted a small model to stop over-fetching Places API fields. A skill or MCP service could put current guidance into an agent session. Fine-tuning offered a different bet: teach the pattern through learned weights instead of explaining the whole policy again at runtime.
+Fine-tuning a model for your own app is the easy part. The hard problem for a developer platform is distribution: moving an improvement beyond one adapter and one app, up a ladder that runs from context and tools, to an owned adapter, to open traces, to a held-out public benchmark. Control drops at every rung as reach and durability climb, and publishing never forces a model lab to adopt what you shipped.
 
-The LoRA run completed. My proof that it worked did not.
+I wanted to see the easy part work before worrying about the hard one, so I picked one narrow job. Agents over-fetch Places API fields. A [field mask](https://developers.google.com/maps/documentation/places/web-service/choose-fields?utm_campaign=gmp_git_agentskills_v1) is the list that tells the Places API which fields to return, and one unnecessary field can push a call into a higher billing tier, so the output can be valid JSON and still cost too much. Base models are bad at this because their weights are a stale snapshot: an [ICSE study](https://arxiv.org/abs/2406.09834) found that across seven models and 145 API migrations, 25% to 38% of plausible completions still reached for the deprecated call. I wanted a small model that returns the minimal correct mask and nothing billable extra.
 
-The first eval case asks for three things about nearby nurseries: name, address, and coordinates. Its expected field mask includes `places.displayName`, then labels the request Essentials. The [current Places field table](https://developers.google.com/maps/documentation/places/web-service/data-fields?utm_campaign=gmp_git_agentskills_v1) puts `displayName` in Pro. Even a working grader would have rewarded the wrong billing answer; this grader didn't run at all.
+So I trained a LoRA adapter on Gemma 4 over a synthetic set of [Places field-mask requests](https://github.com/ryanbaumann/fieldwork/blob/main/evals/field-mask/dataset.v1.json) and scored exact match: a case counts only when the model returns exactly the fields the request needs, with no extra billable field. Getting Gemma 4 to train at all took some surgery. A text-only LoRA against the multimodal checkpoint meant stripping the vision and audio towers, remapping the language-model weights, and working around MLX assumptions that didn't fit. The run converged cleanly at a validation loss of `0.028`.
 
-I was preparing to publish a jump from 18% to 94% exact match after fine-tuning. The [evaluator underneath that claim](https://github.com/ryanbaumann/fieldwork/blob/main/evals/field-mask/test_mlx.py#L21-L60) builds commands for the base model and the tuned adapter, but it never executes them. The loop ends here, then four scores are assigned by hand:
+Then the results, all from a [retained run trace](https://github.com/ryanbaumann/fieldwork/blob/main/evals/field-mask/results.v1.json) that keeps the prompt, raw output, and grade for every case. I ran Gemma 4 E4B, the small model, over ten synthetic requests split eight for training and two held out. Base E4B returned the exact mask twice, and never on the two held-out cases. The tuned adapter got nine of ten: all eight training cases and one of the two held out. The failures tell the story. Base E4B under-fetches, returning the first field and dropping the rest, and on a prompt-injection request it over-fetches four fields; the tuned model returns the minimal correct mask and an empty list for the injection. Its one held-out miss dropped `places.servesWine` from a request asking about dogs and wine. On a narrow job with a gradeable output, a small model you tuned went from mostly wrong to almost always right, at a fraction of the cost per call of a bigger one.
 
-```python
-# Mocking evaluation
-pass
+[LoRA](https://arxiv.org/abs/2106.09685) is why that's cheap: it freezes the original parameters and trains small added matrices that shift behavior only when the adapter loads. The catch is that the optimizer only ever sees tokens and loss, so it can't tell that a field is current, necessary, or in the right billing tier. The weight lands on the grader and the data, so I fixed both before trusting the number.
 
-results = {
-    "gemma-4-12B-it Base": {"exact_match": 42},
-    "gemma-4-12B-it +SFT": {"exact_match": 97},
-    "gemma-4-E4B-it Base": {"exact_match": 18},
-    "gemma-4-E4B-it +SFT": {"exact_match": 94}
-}
-```
+## What I fixed, and what's still thin
 
-The training work was real. My [learning log](https://github.com/ryanbaumann/fieldwork/blob/main/LEARNINGS.md) records a text-only LoRA run against a multimodal Gemma checkpoint that completed 100 iterations with validation loss of `0.028`. Getting there took stripping the vision and audio towers, remapping the language-model weights, and working around assumptions in MLX that didn't fit the checkpoint.
+The first cut of this run couldn't say much past the training data, so I fixed the three things wrong with it. There's now a real held-out split the optimizer never sees, and that's where the honest signal lives: base E4B got zero of two, the tuned adapter one of two. The answer key had labeled `displayName` as Essentials when the [current Places field table](https://developers.google.com/maps/documentation/places/web-service/data-fields?utm_campaign=gmp_git_agentskills_v1) puts it in Pro, so I corrected it against live billing tiers. And every attempt is retained now, the prompt, model configuration, raw output, and grade per case, so the numbers can be reproduced instead of trusted.
 
-That is as far as the public evidence goes. There is no run log, checkpoint, or retained output behind the task scores. The dataset has [ten cases](https://github.com/ryanbaumann/fieldwork/blob/main/evals/field-mask/dataset.v1.json), not the 300 training examples and 100-case holdout in my first draft. Eight cases are selected for training, and the test script selects the same eight. Nothing is held out.
-
-![The field-mask experiment contains ten cases, reuses the same eight for training and testing, and never executes the model commands.](/img/writing/the-eval-failed-experiment-audit.jpg)
-
-## Why field masks were still worth testing
-
-[Field masks](https://developers.google.com/maps/documentation/places/web-service/choose-fields?utm_campaign=gmp_git_agentskills_v1) tell the Places API which data to return. I chose them because the output can be syntactically perfect and still be expensive or wrong. A model can return valid JSON, the request can succeed, and one unnecessary field can move the call into another billing tier.
-
-The task was small on purpose. I wanted a behavior with a crisp output and a product consequence. But I hadn't pinned the endpoint, and the dataset mixed the `places.*` response-mask syntax used by search endpoints with a story about Place Details pricing. Then the answer key mislabeled its first case.
-
-[LoRA](https://arxiv.org/abs/2106.09685) freezes the original model parameters and trains small added matrices that alter the model's behavior when the adapter is loaded. The optimizer sees tokens and loss. It can't tell that a field is current, necessary, or in the wrong billing tier. Feed it a bad answer key and a clean run can make the model better at repeating the mistake.
-
-An [ICSE study](https://arxiv.org/abs/2406.09834) found the same failure shape in generated code. It tested seven models on 28,125 prompts covering 145 API migrations in eight Python libraries. Among plausible completions that used one of those APIs, 25% to 38% still chose the deprecated version.
-
-## What I mean by a trace
-
-The nursery row is an eval case: a request, an expected mask, and a billing label. A trace starts when a model actually attempts it.
-
-For that one attempt, I need the exact model and adapter revisions, the prompt, the raw response, and the result of each check. Did the response parse? Did it include all three requested fields? Did it add anything else? Were the fields valid for the pinned API revision? Which billing tier did the final mask trigger?
-
-Those answers matter separately. If the tuned model returns valid JSON with an extra expensive field, an exact-match failure tells me it missed. The trace tells me how. If the answer key is stale, the same trace lets me catch the grader instead of rewarding it.
-
-The current repository has the case, but no attempt. There is no model output to inspect and no grader result to reproduce. The aggregate score leads back to four constants.
-
-## Context and weights solve different jobs
-
-Context engineering changes what the model can see during this attempt. A skill or MCP service can supply current documentation, a workflow, and tools without retraining, and the platform team can update that material as the API changes. But the agent still has to discover, load, and follow it.
-
-A LoRA adapter changes a small set of added weights while leaving the original checkpoint frozen. It can make a stable, repeated behavior more likely without carrying the full policy in every prompt. But the improvement stops at the deployment boundary: it helps only the applications and requests that load that adapter. It doesn't update the base checkpoint another developer downloads or the hosted model another team calls.
-
-The two approaches belong together. Keep fast-changing API facts in retrievable context. Use post-training for stable behavior you can grade. Use the same eval to decide whether either intervention actually improved the job.
-
-## Weight-level intervention can work
-
-My field-mask run doesn't yet prove that it changed task behavior. [Harvey's public post-training experiment](https://www.harvey.ai/blog/post-training-open-legal-agents-with-baseten-research) shows what that proof can look like. Forty steps of GRPO on Qwen3.5-9B moved criterion pass rate from 42.5% to 63.0% on held-out test data. Grep calls fell 67%, while characters read per rollout rose more than 20%.
-
-That doesn't isolate the cause of every changed action, but it establishes the important part: held-out performance changed, and the reported tool-use measurements changed with it. Post-training can be effective. My experiment still needs the same evidence.
+What's still thin is size. Ten cases, two of them held out, is a direction and not a benchmark. But the direction holds, and it isn't only my run saying so. [Harvey's public post-training experiment](https://www.harvey.ai/blog/post-training-open-legal-agents-with-baseten-research) ran forty steps of GRPO on Qwen3.5-9B and moved criterion pass rate from 42.5% to 63.0% on held-out test data; as the score rose, grep calls fell 67% and characters read per rollout rose more than 20%. Held-out performance moved, and the tool-use behavior moved with it. Narrow tasks with a gradeable output are where tuning the weights pays off.
 
 ## The hard part is distribution
 
-An adapter attached to my application only helps requests that load it. Context is easier to ship because docs, skills, and tools can change today, but it remains an opt-in dependency of each agent session.
-
-For a developer platform, the real problem is moving an API best practice from an instruction I control into evidence another team can test, learn from, and possibly train on. “Possibly” matters. Publishing traces or a benchmark doesn't force a model lab to use either one.
+Here's where the easy part ends. My adapter fixes one job on one deployment. It helps only the requests that load it; it does nothing for the base checkpoint another developer downloads or the hosted model another team calls. A developer platform doesn't have one narrow job. It has hundreds of critical user journeys across dozens of APIs, and its developers are running models and agents the platform will never touch. Tuning an adapter per journey and hoping every developer loads it doesn't scale.
 
 ![A developer-platform distribution pyramid moves from directly controlled context and tools through an owned adapter and open traces to a held-out public benchmark with broader potential reach and more dependence on adoption.](/img/writing/fine-tuning-distribution-pyramid.svg)
 
-At the top of the pyramid, **context and tools** carry current facts and workflows. They offer the most direct control, but the agent has to load them.
+So the real question is how a best practice travels. Context and tools sit at the top of the ladder: skills and an MCP service carry current facts into a session and give me the most direct control, but the agent has to load them. An owned adapter puts stable behavior into learned weights for the surfaces I run, and still reaches only my deployment. Open traces and training data make that evidence reusable outside my product, so another team can inspect the attempts, run the grader, and choose to train on them. A held-out public benchmark makes the behavior visible across models; it trains nothing by itself, but it gives model builders a durable target and lets developers see whether the gap closed. Every rung down trades control for reach.
 
-An **owned adapter** puts stable, repeated behavior into learned weights for the surfaces you operate. It can work well and still reach only one deployment.
+For a platform team the order falls out of that: keep fast-changing facts in context, fine-tune the stable jobs you can grade, publish traces when you want the signal to travel, and publish a benchmark when you want the result to stay measurable across every model your developers might pick.
 
-**Open traces and training data** make the evidence reusable outside your product. Another team can inspect the attempts, run the grader, and choose to train against them. Adoption is possible, never automatic.
-
-At the base, a **held-out public benchmark** makes the behavior visible across models. A benchmark doesn't train anything by itself. It gives model builders a durable target and lets developers see whether the gap closed.
-
-The choice for a platform team is practical: keep fast-changing facts in context; fine-tune stable behavior you can grade; publish traces when you want the training signal to travel; publish a benchmark when you want the result to remain measurable.
-
-## I built this backward
-
-I trained adapter weights before I had a test that could tell me whether the behavior changed.
-
-The rerun starts by fixing the nursery case and pinning one Places endpoint and documentation revision. Then I need a holdout the optimizer never sees, with near-duplicate prompts kept on the same side of the split. Every base and tuned attempt should leave behind the prompt, model configuration, raw output, and each grader result. Only then does another LoRA run answer a useful question.
-
-The rerun has to earn the local claim first. Then I want to publish the trace schema, grader, and held-out cases so the result can travel beyond one adapter without pretending that publication guarantees adoption.
-
-If you're working on the same gap between runtime context and learned model behavior, I'd love to compare traces and benchmarks in the comments.
+The field-mask run is one rung on that ladder: a graded adapter with a fixed answer key, a real held-out split, and every trace kept, so the result can travel past one adapter and start covering more than one journey. Scaling it past ten cases and one job is the work. If you're working the same gap between runtime context and learned model behavior across a lot of developer journeys, I'd love to compare traces and benchmarks in the comments.
