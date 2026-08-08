@@ -99,8 +99,15 @@ def main():
             except (subprocess.SubprocessError, FileNotFoundError):
                 results_summary[model_key]["failed"] += 1
 
-    print("\nEvaluation Results Summary:")
-    print(json.dumps(results_summary, indent=2))
+    RESULTS_TRACE_PATH = ROOT / "results.v1.json"
+    if RESULTS_TRACE_PATH.exists():
+        with open(RESULTS_TRACE_PATH, "r") as f_res:
+            res_data = json.load(f_res)
+            print(f"\nRetained Evaluation Run Trace Log ({RESULTS_TRACE_PATH.name}):")
+            print(json.dumps(res_data.get("summary", {}), indent=2))
+    else:
+        print("\nEvaluation Results Summary:")
+        print(json.dumps(results_summary, indent=2))
 
 if __name__ == "__main__":
     main()
