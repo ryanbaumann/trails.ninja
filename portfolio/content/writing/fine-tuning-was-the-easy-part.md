@@ -15,7 +15,7 @@ shareSummary: Tuning a small model for one narrow job worked. Distributing that 
 shareImageAlt: Fine-Tuning Was the Easy Part, beside a two-panel card contrasting one tuned adapter with distribution across many jobs and models.
 ---
 
-Fine-tuning a model for one narrow job is the easy part. The hard problem for a developer platform is distribution: getting that improvement to travel past a single adapter and a single app, across the hundreds of jobs your developers actually do, and into the models they reach for tomorrow. Control drops at every step of that path, and shipping something never forces a model to adopt it. I wanted to watch the easy part work before wrestling with the hard one, so I ran a small experiment.
+How do you make your developer platform discoverable and easy to use for agents - is runtime context engineering with skills, MCP, and llms.txt enough, or do you need to go further and influence the core LLM model weights yourself?
 
 ## The hypothesis
 
