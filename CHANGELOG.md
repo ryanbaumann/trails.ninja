@@ -8,6 +8,12 @@ All notable changes to this project will be documented in this file.
 - Fixed Giscus comment widget layout constraints on portfolio field notes by setting an explicit `100%` width and a `400px` `min-height` on the iframe, preventing height collapse or squished rendering on narrow viewports.
 
 ### Changed
+- Updated the Loop Engineering coding agent operating contract (`agent-scripts/coding-agent-loop/SYSTEM_PROMPT.md`), role overlays (`roles/`), and public Field Note (`portfolio/content/writing/loop-engineering-coding-agent.md`) with Practical Loop Engineering best practices:
+  - Formally codified the loop taxonomy across five primitives: single-turn agentic loops, goal-based loops with deterministic finish lines, interval loops, proactive cloud routines, and composed loops with parallel worktrees and adversarial judge review.
+  - Enforced the discipline of keeping human architectural judgment, adding explicit accidental complexity guards against bloated solutions.
+  - Enforced strict author-verifier separation, requiring an independent verifier subagent to validate empirical outcomes.
+  - Integrated the 4-step frontend change verification standard (dev server, control interaction with visual proof, zero console errors, performance/Core Web Vitals trace).
+  - Added 3-strike loop spinning limits on unchanged commands and progress requirements (aborting when two consecutive turns yield zero metric improvement).
 - Rebuilt “I Fine-Tuned the Model Before I Built the Test” around the two
   artifacts the original story missed: a wrong billing label and an evaluator
   that never called a model. The note removes unsupported scores, the false
