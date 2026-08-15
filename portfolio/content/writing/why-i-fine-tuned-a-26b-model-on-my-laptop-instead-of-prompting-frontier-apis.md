@@ -5,9 +5,8 @@ date: 2026-08-15
 updated: 2026-08-15
 canonical: https://ryanbaumann.dev/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-instead-of-prompting-frontier-apis/
 tags: ["ai", "evals", "field notes"]
-draft: true
-noindex: true
-stageSocial: false
+draft: false
+noindex: false
 image: /img/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-header.svg
 imageAlt: "Two iterations on Apple Silicon Metal: Round 1 with unmasked full sequence loss and 36.8 GB RAM that replicated prompt templates, versus Round 4 with completion-only loss masking and 218 micro-pairs running at 24.5 GB RAM with zero hallucinations."
 socialImage: /social/why-i-fine-tuned-a-26b-model-on-my-laptop-instead-of-prompting-frontier-apis.jpg
