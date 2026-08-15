@@ -1,0 +1,21 @@
+# MLX LoRA Fine-Tuning Configuration (Round 2)
+model: "models/gemma-4-26b-a4b-it-4bit"
+train: true
+data: "./experiment/voice-ft/training"
+iters: 250
+batch_size: 1
+grad_accumulation_steps: 4
+learning_rate: 0.00015
+mask_prompt: true
+max_seq_length: 2048
+
+lora_parameters:
+  rank: 16
+  scale: 32.0
+  dropout: 0.0
+
+adapter_path: "./adapters/gemma-4-26b-ryan-voice-v2"
+save_every: 50
+steps_per_eval: 25
+steps_per_report: 10
+val_batches: 12

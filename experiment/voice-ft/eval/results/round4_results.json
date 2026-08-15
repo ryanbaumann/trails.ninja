@@ -1,0 +1,104 @@
+[
+  {
+    "id": "eval_01",
+    "task": "Edit",
+    "prompt": "Rewrite this corporate draft in Ryan's voice: We are pleased to announce our platform.",
+    "output": "We are still working on it, but the team and I just shipped the platform. It works as described, and I'd love to see what you think.",
+    "metrics": {
+      "word_count": 27,
+      "sentence_count": 2,
+      "avg_sentence_length": 13.5,
+      "sentence_length_stdev": 2.12,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 1,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_02",
+    "task": "Edit",
+    "prompt": "Rewrite this announcement: Our engineering team has deployed an innovative solution to enhance system availability.",
+    "output": "## The result\n\nWe just shipped an innovative solution to enhance system availability.",
+    "metrics": {
+      "word_count": 13,
+      "sentence_count": 1,
+      "avg_sentence_length": 13,
+      "sentence_length_stdev": 0,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_03",
+    "task": "Critique",
+    "prompt": "Critique this draft opening: In today's fast-paced digital world, developers face numerous challenges with API integrations.",
+    "output": "This draft falls into performativeAI and generic corporate speak:\n\n1. **AI tropes:** 'Fast-paced digital world' and 'an array of challenges' read like an LLM generated them.\n2. **Missing contractions:** Spelled-out forms ('do not', 'cannot') make the prose stiff rather than conversational.\n3. **Missing growth-backwards progression:** It leads with the process rather than the immediate result or developer friction.\n\nHere is how I would rewrite it in Ryan's voice:\n\nIn today's fast-paced digital world, developers face numerous challenges with API integrations.",
+    "metrics": {
+      "word_count": 80,
+      "sentence_count": 7,
+      "avg_sentence_length": 11.43,
+      "sentence_length_stdev": 7.96,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_04",
+    "task": "Headline",
+    "prompt": "Generate 8 headline variants for an article on why prompt engineering hits an RLHF ceiling.",
+    "output": "1. why prompt engineering hits an RLHF ceiling: lessons from live traces\n2. what happens when prompt engineering hits an RLHF ceiling breaks\n3. the architecture behind why prompt engineering hits an RLHF ceiling\n4. stop guessing: why prompt engineering hits an RLHF ceiling requires ground truth\n5. what shipped: how we solved prompt engineering hits an RLHF ceiling\n6. what I learned deploying prompt engineering hits an RLHF ceiling\n7. beyond prompting: the real architectural tradeoff in prompt engineering hits an RLHF ceiling\n8. prompt engineering hits an RLHF ceiling: why most developer teams miss the mark",
+    "metrics": {
+      "word_count": 98,
+      "sentence_count": 9,
+      "avg_sentence_length": 10.89,
+      "sentence_length_stdev": 3.86,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_05",
+    "task": "Draft",
+    "prompt": "Write a short Field Note on why local fine-tuning on Apple Silicon changes personal developer workflows.",
+    "output": "This is the model that the prompt asks for. It's a local, current model. It's not even an older version. The model I just shipped still has the same architecture, with a smaller vocabulary and a more recent training set. A model with a smaller vocabulary and a more recent training set should be cheaper to train. It also has a lower latency because it doesn's need to call a remote model over the internet. The local model is cheaper to train. It still has better performance than many bigger models, especially on some tasks and on smaller datasets. The local model can be fine-tuned on your own device. That is what makes it so powerful.\n\nThe model I just shipped still has the same architecture, with a smaller vocabulary and a more recent training set. The model I still have to maintain, even when I am teaching a model something new, is the one I trained on the original dataset. That dataset is still useful because it provides the model with a broad base of knowledge that many newer, smaller models lack.\n\nA local model can be fine-tuned on your own device. The model I just shipped is still useful because it has a broad base of knowledge that many newer models lack. A local model can be fine-tuned on your own device. The model I still have to maintain is the one I trained on the original dataset. That dataset is still useful because it provides a model with a broad base of knowledge that many newer models lack.",
+    "metrics": {
+      "word_count": 261,
+      "sentence_count": 18,
+      "avg_sentence_length": 14.5,
+      "sentence_length_stdev": 6.44,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 2,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_06",
+    "task": "Present",
+    "prompt": "Draft a talk outline for GeoMob SF on live-coding agentic map applications.",
+    "output": "This presentation is live-coding an agentic map application using [agent-evaluated examples](https://arxiv.org/abs/24606.24282) and [the [agent-based evaluation framework](https://github.com/ryanbaumann/fieldwork/blob/main/agent-eval-framework-and-examples-script/agent-eval-summary.md)).\n\n## The prompt that works\n\nThe prompt that works for this task uses an [agent-evaluated example](https://arxiv.org/abs/24606.24282) and an [agent-based evaluation framework](https://github.com/ryanbaumann/fieldwork/blob/main/agent-eval-summary.md).\n\nThe system prompt should use [agentic [instructions](https://developers.google.com/maps/ai/agent-skills-fieldwork/)](https://developers.google.com/maps/ai/agent-skills-fieldwork/) that make the agent an author that makes a decision. The evaluation checks whether that decision resulted in a better outcome, even when the grader is not looking at the map.\n\nThe agent should write the code, test the code, and verify the result. The grader then has to inspect the generated map and decide whether that result is follows the instructions and constraints.\n\n## The code that makes it work\n\nThe [agent-eval-framework](https://github.com/ryanbaumann/fieldwork/blob/main/agent-eval-summary.md) packages [agentic [instructions](https://developers.google.com/ryanbaumann/fieldwork/blob/main/agent-skills-fieldwork/)](https://github.com/ryanbaumann/fieldwork/agent-skills-fieldwork/) so they can be used across different models and environments. A [test-based [evaluation](https://github.com/ryanbaumann/fieldwork/agent-eval-summary.md)) compares a [generated map](https://github.com/ryanbaumann/fieldwork/blob/main/agent-eval-framework-analysis/agent-eval-analysis.md) with a [baseline] and a [grading rule](https://github.com/ryanbaumann/fieldwork/agent-eval-summary.md)) and returns a boolean for success. A [verification step](https://github.com/ryanbaumann/fieldwork/agent-eval-summary.md)) runs the generated code and checks the generated map, then the grader inspects the generated map, decides if that result follows the instructions, and returns a boolean.\n\nThe code that makes it work is a [test suite](https://github.com/ryanbaumann/fieldwork/agent-eval-summary.md) that runs the [agent](https://github.com/ryanbaumann/fieldwork/agent-eval-agent-skills-fieldwork/agent-eval-agent-skills-fieldwork-v1.md)). The grader makes an [evidence-based decision](https://github.com/ryanbaumann/fieldwork/agent-eval-summary.md)) and then an [inspection check](https://github.com/ryanbaumann/field_evaluation/agent-fieldwork-agent-eval-summary.md)) returns a boolean. The grader then makes a decision based on the evidence, then an inspection check returns a boolean.\n\n## The task that makes it better\n\nThe task can be one task with several steps, or it can be a single step. The worker that writes the code can be2 a separate person from the worker that grades the result. The grader can also be a separate person. The grading can happen at the same time as the code writing and evaluation. The result of the task can be the output of the task and the grader, or it can be a decision that one person or an agent makes. The grader can inspect the result and make a decision that stays within the bounds of the task.\n\nThe task can be a single step, where the worker writes code and the grader evaluates the result. The grading can happen at the same time as the code writing and evaluation. The result can be between the prompt and the grader, or it can be a decision that one person or an agent makes. The grader can inspect the result and then make a decision. The final result is the decision that the grader makes, and then the task is finished.\n\nThe grader can also be grader that is not a worker. The grader is just another view of the task. The grader can be the same person as the worker. The worker can write the code, and the grader can check the result. The grader can make a decision, and the worker can be another person. The grader can be the same person as the worker.\n\nThe task is a decision, and the grader is a person,",
+    "metrics": {
+      "word_count": 493,
+      "sentence_count": 63,
+      "avg_sentence_length": 8.35,
+      "sentence_length_stdev": 7.43,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  }
+]

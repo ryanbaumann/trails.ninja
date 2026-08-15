@@ -15,6 +15,8 @@ demos/strava-explorer/dist
 demos/isochrones/dist/
 demos/isochrones/node_modules
 demos/aqi-map/dist/
+demos/voice-studio/dist/
+demos/voice-studio/node_modules
 portfolio/dist/
 portfolio/node_modules
 gateway/node_modules
@@ -34,7 +36,12 @@ demos/strava-explorer/strava-explorer.png
 .playwright-mcp/
 .gemini/
 models/
+adapters/
 .venv/
 *.gguf
 .cache/
 hf_cache/
+__pycache__/
+*.pyc
+scratch/
+

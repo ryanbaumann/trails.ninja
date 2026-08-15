@@ -1,0 +1,104 @@
+[
+  {
+    "id": "eval_01",
+    "task": "Edit",
+    "prompt": "Rewrite this corporate draft in Ryan's voice: We are pleased to announce our platform.",
+    "output": "::[Ryan's voice]\nWe just shipped the platform.",
+    "metrics": {
+      "word_count": 7,
+      "sentence_count": 1,
+      "avg_sentence_length": 7,
+      "sentence_length_stdev": 0,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_02",
+    "task": "Edit",
+    "prompt": "Rewrite this announcement: Our engineering team has deployed an innovative solution to enhance system availability.",
+    "output": "[Voice]\nE-nop-1. The engineering team has deployed an innovative solution to enhance system availability.",
+    "metrics": {
+      "word_count": 14,
+      "sentence_count": 2,
+      "avg_sentence_length": 7,
+      "sentence_length_stdev": 7.07,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_03",
+    "task": "Critique",
+    "prompt": "Critique this draft opening: In today's fast-paced digital world, developers face numerous challenges with API integrations.",
+    "output": "[ ]Crittique this draft opening: In today's fast-paced digital world, developers face numerous challenges with API integrations.",
+    "metrics": {
+      "word_count": 17,
+      "sentence_count": 1,
+      "avg_sentence_length": 17,
+      "sentence_length_stdev": 0,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_04",
+    "task": "Headline",
+    "prompt": "Generate 8 headline variants for an article on why prompt engineering hits an RLHF ceiling.",
+    "output": "? Headline 4: Why prompt engineering hits an RLHF ceiling.\n? How to resolve prompt engineering hits an RLHF ceiling.\n? Why prompt: prompt engineering hits an RLHF ceiling.\n? How to: prompt engineering hits an RL HF ceiling.\n? Why: prompt engineering hits an RL HF ceiling.\n? How to: prompt engineering hits an RL HF ceiling.",
+    "metrics": {
+      "word_count": 58,
+      "sentence_count": 6,
+      "avg_sentence_length": 8.67,
+      "sentence_length_stdev": 0.52,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_05",
+    "task": "Draft",
+    "prompt": "Write a short Field Note on why local fine-tuning on Apple Silicon changes personal developer workflows.",
+    "output": "## The Mis-Tuning: Why Local Fine-Tuning on Apple Silicon Changes Personal Developer Workflows\n\nTo local fine-tuning on Apple Silicon changes personal developer workflows.",
+    "metrics": {
+      "word_count": 23,
+      "sentence_count": 1,
+      "avg_sentence_length": 23,
+      "sentence_length_stdev": 0,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_06",
+    "task": "Present",
+    "prompt": "Draft a talk outline for GeoMob SF on live-coding agentic map applications.",
+    "output": "## The goal: Live-coding agentic map boxes\n## The context: Choose between Live-coding agentic map boxes\n\n```code/live-coding-agentic-map-boxes:\n[ ] Let live-coding agentic map boxes choose between [ ] Live-coding-agentic-map-box [Choose] [ ] Live-coding-agentic-map-box [Choose] [ ] Live-coding-agentic-map box [Choose] [ ] Live-CMA-box [Choose] [ ] Live-CMA-box [Choose] [The-end-is-a-live-coding-agentic-map-box-choice-between-live-coding-agentic-map-box-and-the-end-is-a live-coding-agentic map box choice between []. [ ] Live-CMA-box [Choose] []. [ ] Live-CMA-box [Choose] [The-end-is-live-coding-agentic-map-box-choice-between-[] []. [ ] Live-CMA-box [Choose] [. End is live-coding-agentic-map-box-choice-between-[] []. [ ] Live-CMA-box [Choose] [. End is []. [] Live-CMA-box [Choose] [. End is []. [] Live-CMA-box [choice-between-[] [. End is []. [] Live-Cifying-box-choice-between-[] [. End is []. [0x] Live-CMA-box [Choose] [. End is []. [0x] Live-CMA-box [Choose] [. End is [.0x] Live-CMA-box [Choose] [.end-is-live-cifying-box-choice-between-[] [. End is [.0x] Live-Cifying-box-choice-between-[] [. End is [1.0x] Live-Cifying-box-choice-between-[] [. End is [1.0x]\n\n```\n\n[ ] Let live-coding-agentic-map-box-choice-between-[] [. End is 1.0x]\n\n```[ ] Let live-coding-agentic map box choice-between-[] [1.0x]\n\n```[ ] Let live-cifying-box-choice-between-[] [1.0x]\n\n```[box-choice-between-[] [1.0x]\n\n```[box-choice-between-[] [1.0x]\n\n```[box-choice-between-sifying-box-choice-between-[] [1.0x]\n\n```[box-choice-between-[] [1.0x]\n\n```[box-choice-between-[] [1.0x]\n\n```[box-choice-between-[] [1..0X]\n\n```[box-choice-between-[] [1.0X]\n\n```[box-choice-between-[] [1.0X]\n\n```[box-choice-ing-between-[] [1.0X]\n\n```[box-choice-between-[] [1..0X]\n\n```box-choice-between-[] [1.0X]\n\n```box-choice-between-[] [1.0X]\n\n```[box-choice-between-[] [1.0X]\n\n```[box-choice-between-[] [1.0X]\n\n```[box-choice-between-[] [1.0X] [End is 1.0X]\n\n```[box-choice-between-[] [1.0X]\n\n```[box-choice-between-] [1.0X]\n\n```[box-choice-between-[] [1.0X]\n\n```box-choice-between-[] [1.0X]\n\n```box-choice-between---0x-1.0X\n\n```box-choice-between-[] [1.0X]\n\n```box-choice-between-[] [1.0X]\n\n```box-choice-between-[] [1.0X]\n\n```box-choice--between-[] [1.0X]\n\n```box-choice-between-[] [1.0X]\n\n```box--choice-between-[] [1.0X]\n\n```box-choice-between--[] [1.0X]\n\n```box-choice-between-[] [1.X]\n\n```box-choice-between-[] [1.0X]\n\n```box-choice-between--[] [1.0X",
+    "metrics": {
+      "word_count": 217,
+      "sentence_count": 60,
+      "avg_sentence_length": 4.27,
+      "sentence_length_stdev": 6.64,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  }
+]
