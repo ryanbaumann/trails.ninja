@@ -9,11 +9,11 @@ draft: true
 noindex: true
 stageSocial: false
 image: /img/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-header.svg
-imageAlt: "Two paths side by side: a rented cloud GPU that produced invented percentages across held-out outputs, and an Apple Silicon laptop running a 218-pair fine-tuned local Gemma 4 model with zero metric hallucinations."
+imageAlt: "Two iterations on Apple Silicon Metal: Round 1 with unmasked full sequence loss and 36.8 GB RAM that replicated prompt templates, versus Round 4 with completion-only loss masking and 218 micro-pairs running at 24.5 GB RAM with zero hallucinations."
 socialImage: /social/why-i-fine-tuned-a-26b-model-on-my-laptop-instead-of-prompting-frontier-apis.jpg
 shareTitle: Why I Fine-Tuned a 26B Model on My Laptop Instead of Prompting Frontier APIs
 shareSummary: Prompt engineering hits a wall when default RLHF flattens prose toward corporate mush. Across 4 iterative fine-tuning rounds on Apple Silicon Metal, here is how completion-only loss masking and micro-pair slicing built an authentic local writing partner.
-shareImageAlt: A social card setting a rented cloud GPU that produced invented percentages against a laptop running a local fine-tuned Gemma 4 model with verified metrics.
+shareImageAlt: A social card setting early unmasked prompt replication against a 218-pair fine-tuned local Gemma 4 model with verified metrics.
 ---
 
 Here is how my writing process usually falls apart:
@@ -44,64 +44,54 @@ A landmark study from the University of Michigan (*Dhillon et al., 2026*, co-aut
 - **In-Context Prompting:** When models were prompted with author guidelines and in-context examples, MFA judges easily identified the AI-generated prose. The expert judges preferred authentic human writing **82.7% of the time**. Prompting produced superficial mimicry rather than authentic authorial voice.
 - **Fine-Tuning on Full Corpora:** When models were fine-tuned directly on an author's complete body of work, the preference completely flipped. The expert judges favored the fine-tuned AI output **62% of the time** for stylistic fidelity, narrative pacing, and sentence cadence.
 
-Prompting gives the model instructions; fine-tuning changes the underlying token probabilities. If expert readers cannot reliably distinguish fine-tuned outputs from human prose, personal fine-tuning is the viable technical path for deep voice preservation.
+Prompting gives the model instructions; fine-tuning changes the underlying token probabilities. If expert readers cannot reliably distinguish fine-tuned outputs from human prose, personal fine-tuning on your own corpus is the viable technical path for deep voice preservation.
 
-## The experiment: fine-tuning on Vertex AI and Apple Silicon
+## Running the fine-tuning loop locally on Apple Silicon
 
 Motivated by those findings, I set out to fine-tune an open-weight model directly on my own writing.
 
-I had an added motivation: I wanted to test what I could run locally on my MacBook using Apple Silicon and MLX. Running on-device eliminates GPU rental bills and keeps raw, unvarnished drafts completely private. You should own your intelligence, especially when it comes to personal taste and unreleased ideas.
+I wanted to run everything locally on my MacBook Pro using Apple Silicon and MLX. Running on-device eliminates external infrastructure dependencies, gives sub-second generation feedback, and keeps raw, unvarnished drafts completely private on local storage. You should own your intelligence, especially when it comes to personal taste and unreleased ideas.
 
-I built a dataset generation script to extract gold-standard training examples directly from my published writing and case studies. The initial dataset spanned five core tasks: Draft, Edit, Critique, Headline, and Present.
+I built a dataset generation script (`scripts/generate-ft-dataset.py`) to extract gold-standard training examples directly from my published writing and case studies. The dataset spanned five core tasks: Draft, Edit, Critique, Headline, and Present.
 
 ```
 [ Markdown Corpus ] -> generate-ft-dataset.py -> Dataset JSONL (Train / Validation)
                                                         │
-                        ┌───────────────────────────────┴───────────────────────────────┐
-                        ▼                                                               ▼
-            Cloud SFT (Vertex AI)                                           Local MLX (Apple Silicon)
-            Gemma 4 26B-A4B (LoRA r=4)                                       Gemma 4 26B-A4B (4-bit Metal)
-            1x A100 80GB GPU                                                 Sub-second, zero cloud cost
+                                                        ▼
+                                            Local MLX on Apple Silicon Metal
+                                            Gemma 4 26B-A4B (4-bit QLoRA)
+                                            Sub-second, 100% on-device
 ```
 
-I launched parameter-efficient fine-tuning on Google Cloud Vertex AI with a cloud training harness, while also standing up a local Apple Silicon runner.
+I used `mlx_lm.lora` on an Apple M4 Pro (48GB unified memory) to train LoRA adapters on the 4-bit quantized Gemma 4 26B-A4B checkpoint.
 
-## The initial failure mode: metric hallucinations and template replication
+## The 4 iterative rounds on Apple Silicon Metal
 
-When the initial cloud training run finished, I deployed the model to an ephemeral GPU endpoint and evaluated it against 20 held-out prompts across all five task categories (archived in the evaluation summary).
-
-The stylistic cadence was immediately noticeable: the fine-tuned model naturally stripped corporate fluff, adopted first-person active verbs, used contractions, and opened on real engineering friction rather than generic announcements.
-
-![A single bar of 117 training examples split by where each target came from: 47 real prose, 27 copies of one identical critique response, 27 synthetic round-trips, 11 from one headline template, 5 hand-written, and a zero-width slice for the Present task with none.](/img/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-dataset.svg)
-
-However, evaluation against unseen prompts exposed two fundamental traps:
-
-1. **The model learned the shape of evidence without having the evidence itself:** In four out of twenty held-out outputs, the fine-tuned model invented quantitative metrics out of thin air: 40%, 20%, 15%, and 40%. When given a short 13-word prompt with no numbers, it fabricated a 40% query latency improvement. Because my published case studies cite real platform metrics, the model learned that sounding authentic required citing numbers, so it invented them to satisfy the learned pattern.
-2. **Template replication from unmasked prompt loss:** When computing loss across the full sequence, the model spent gradient capacity memorizing the system prompt and input prompt tags (like `[Task: Edit]...`), regurgitating them into output completions.
-
-## The breakthrough: 4 iterative rounds on Apple Silicon Metal
-
-To fix these failure modes, I moved the entire training loop onto my MacBook using Apple Silicon Metal and `mlx_lm.lora`. Over four iterative rounds, we systematically tuned loss masking, dataset chunking, and learning rates:
+Getting voice fine-tuning right required four iterative rounds of dataset engineering, loss masking, and hyperparameter tuning:
 
 | Iteration | Dataset Shape | Masking & LoRA Config | Memory (Metal) | Convergence | Key Learning & Outcome |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Round 1** | 159 examples (section-level) | Full Sequence Loss<br>$r=8, \alpha=20$<br>468 iters, $lr=1\text{e-}4$ | 36.8 GB (Warnings on $>2048$ tok) | 11.905 $\rightarrow$ 0.437 | 0 metric hallucinations & 0 em-dashes. Discovered prompt repetition bug on edit tasks caused by unmasked prompt loss. |
+| **Round 1** | 159 examples (section-level) | Full Sequence Loss<br>$r=8, \alpha=20$<br>468 iters, $lr=1\text{e-}4$ | 36.8 GB (Warnings on $>2048$ tok) | 11.905 $\rightarrow$ 0.437 | 0 metric hallucinations. Unmasked loss caused the model to memorize prompt scaffolding and replicate input tags on edit tasks. |
 | **Round 2** | 159 examples (pre-chunked $\le 850\text{w}$) | `--mask-prompt`<br>$r=16, \alpha=32$<br>250 iters, $lr=1.5\text{e-}4$, accum=4 | 23.8 GB (Zero sequence warnings) | 10.099 $\rightarrow$ 1.829 | Masked loss eliminated prompt replication. Memory dropped by 13 GB. Discovered over-training (sim 7 epochs) caused repetition loops. |
 | **Round 3** | 159 examples (pre-chunked) | `--mask-prompt`<br>$r=16, \alpha=32$<br>100 iters, $lr=5\text{e-}5$, accum=2 | 29.8 GB | 10.099 $\rightarrow$ 1.751 | Goldilocks 2.5 epoch window. Gentler learning rate preserved stylistic flexibility across all task categories. |
 | **Round 4** | 218 examples (111 Edits, 54 Drafts, 30 Critiques, 19 Headlines) | `--mask-prompt`<br>Native chat template<br>150 iters, $lr=8\text{e-}5$, accum=2 | 24.5 GB | 9.205 $\rightarrow$ 1.361 | Highest-fidelity prose. Rich micro-pairs, dynamic diagnostic critiques, natural sentence length variance (6.4–7.9 stdev), and 0 metric hallucinations. |
 
+![Local Fine-Tuning Evolution on Apple Silicon Metal: Round 1 unmasked loss at 36.8 GB RAM versus Round 4 masked micro-pairs at 24.5 GB RAM.](/img/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-header.svg)
+
 ## Four core architectural learnings
 
-From these four iterations, four fundamental rules emerged for training personal voice models:
+From these four iterations, four fundamental rules emerged for training personal voice models on local hardware:
 
 ### 1. Factual preservation prevents metric hallucination
-The root cause of hallucinated percentages was pairing generic, metric-free input prompts with metric-dense targets extracted from published case studies. In voice fine-tuning, edit and rewrite targets must strictly preserve the numerical spine and factual content of the prompt while shifting cadence, active voice, and register.
+Early unconstrained runs can learn that sounding authentic requires citing quantitative improvements (like 40% latency cuts). If edit pairs pair generic input prompts with metric-dense targets, the model invents numbers. In voice fine-tuning, edit and rewrite targets must strictly preserve the numerical spine and factual content of the prompt while shifting cadence, active voice, and register.
 
 ### 2. Completion-only loss masking (`--mask-prompt`)
 Standard sequence-level cross-entropy wastes gradient capacity memorizing system prompts and user prompt scaffolding. Passing `--mask-prompt` into `mlx_lm.lora` forces 100% of the adapter weights to learn authorial style and completion tokens, eliminating prompt replication.
 
 ### 3. Micro-pair slicing vs. macro slices
 Instead of training on entire multi-page essays, slicing sections into paragraph-level micro-pairs (100 to 250 words) expanded our dataset to 218 rich samples, eliminated sequence length truncation warnings, and reduced peak Metal RAM to 24.5 GB (leaving over 23 GB of free memory on a 48GB M4 Pro).
+
+![Dataset evolution breakdown: 218 paragraph-level micro-pairs across 111 Edits, 54 Drafts, 30 Critiques, and 19 Headlines.](/img/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-dataset.svg)
 
 ### 4. Optimal voice adaptation budget
 On small personal writing corpora (150 to 250 pairs), 1.5 to 2.5 epochs (roughly 100 to 150 iterations with gradient accumulation) is the empirical sweet spot. Exceeding 3 epochs leads to mode collapse and repetitive rhetoric on open-ended tasks.
@@ -139,15 +129,15 @@ The studio provides three integrated capabilities:
 
 ## Comparative breakdown: prompting vs. fine-tuned local models
 
-When you compare raw human dictation, frontier cloud prompting, and our Round 4 fine-tuned local model side by side, the tradeoffs are clear:
+When you compare raw human dictation, frontier prompting, and our Round 4 fine-tuned local model side by side, the tradeoffs are clear:
 
 | Attribute | Raw Dictation | Frontier Prompting | Local Fine-Tuned Model (Round 4) |
 | :--- | :--- | :--- | :--- |
 | **Voice & Tone** | Authentic, raw, idiosyncratic | Homogenized, polite, corporate | Authentic cadence, preserved idioms |
 | **Syntax & Pacing** | Run-on clauses, speech stumbles | Rigid, uniform sentence lengths | Dynamic sentence length variance (6.4–7.9 stdev) |
 | **Cliché Frequency** | Low (natural speech) | High (AI filler, buzzwords, false flips) | Zero buzzwords (suppressed via learned weights) |
-| **Round-Trip Latency** | Instant (source thought) | 2.5 to 5.0 seconds (network + cloud) | Sub-second (local Metal GPU) |
-| **Data Privacy** | Local device only | Transmitted over third-party API | 100% on-device |
+| **Round-Trip Latency** | Instant (source thought) | 2.5 to 5.0 seconds (network round-trip) | Sub-second (local Metal GPU) |
+| **Data Privacy** | Local device only | Transmitted over network | 100% on-device |
 | **Factual Stability** | Grounded in lived experience | Plausible filler if unguided | Deterministic factual preservation |
 
 Frontier prompted models tend to cluster around 14 to 18 words per sentence with low standard deviation. Authentic human prose swings between punchy 4-word declarations and complex 35-word clauses. A fine-tuned local model preserves that variance instead of averaging it out.
@@ -206,6 +196,6 @@ Verify every metric against live traces, check attribution, and make the final e
 
 1. **The human provides 100% of the narrative direction and factual spine:** The model acts as a low-latency copyeditor and sounding board.
 2. **Separate deterministic gates from model weights:** Model weights suppress tokens probabilistically; regex linters eliminate em-dashes and hype words deterministically.
-3. **Use the right model for the job:** Use frontier cloud models for deep research synthesis and wide-context tool reasoning. Use fast, fine-tuned models on Apple Silicon for sub-second copyediting, privacy, and voice preservation.
+3. **Use the right model for the job:** Use frontier models for deep research synthesis and wide-context tool reasoning. Use fast, fine-tuned models on Apple Silicon for sub-second copyediting, privacy, and voice preservation.
 
 If you are experimenting with personal fine-tuning or building your own local editorial loops, I would love to hear what your evaluation checks catch. Let me know in the comments!
