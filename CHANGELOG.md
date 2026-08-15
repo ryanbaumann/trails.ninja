@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Fixed Giscus comment widget layout constraints on portfolio field notes by setting an explicit `100%` width and a `400px` `min-height` on the iframe, preventing height collapse or squished rendering on narrow viewports.
 
+### Added
+- Committed reproducible training data, dataset generator (`scripts/generate-ft-dataset.py`), held-out evaluation suite (`experiment/voice-ft/eval/prompts.jsonl`), ephemeral evaluation runner (`scripts/run_ephemeral_eval.py`), and on-demand assistant/subagent CLI (`scripts/ryan_voice.py`) for the Gemma 4 26B-A4B voice fine-tuning experiment.
+
 ### Changed
 - Refined writing and voice across all public and draft Field Notes using local Gemma 4 26B-A4B editorial review, stripping academic rhetorical question openings, aligning narrative flow to growth-backwards framing (Result $\rightarrow$ Shipped $\rightarrow$ Lesson), enforcing 0 em-dashes, and varying closing CTAs to achieve 0 stock phrase collisions.
 - Added 1-command local Gemma 4 runner (`scripts/gemma-local.sh` and `scripts/local_gemma.py`) powered by Apple Silicon MLX and Metal acceleration with gitignored local weight caching in `models/`.

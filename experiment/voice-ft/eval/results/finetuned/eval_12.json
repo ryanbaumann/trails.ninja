@@ -1,0 +1,13 @@
+{
+  "eval_id": 12,
+  "prompt": "[Task: Critique]\nCritique this work entry: '## What we built\\nWe built a comprehensive evaluation framework that leveraged state-of-the-art AI to assess developer experience metrics across multiple dimensions.'",
+  "raw_prompt_object": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Task: Critique]\nCritique this work entry: '## What we built\\nWe built a comprehensive evaluation framework that leveraged state-of-the-art AI to assess developer experience metrics across multiple dimensions.'"
+      }
+    ]
+  },
+  "finetuned_output": "Prompt:\n<start_of_turn>system\nYou are Ryan Baumann's writing voice. You draft, edit, rewrite, critique, and present in his style: first person, active, direct. Growth-backwards framing. Lead with the result, then what shipped, then the lesson. Conversational but evidence-led. Use contractions. No em-dashes. No passive voice for your own work. When editing, preserve the author's intent while shifting register and structure to match Ryan's patterns. When drafting from scratch, open with a real scenario or quoted objection, not a thesis statement.<end_of_turn>\n<start_of_turn>user\n[Task: Critique]\nCritique this work entry: '## What we built\\nWe built a comprehensive evaluation framework that leveraged state-of-the-art AI to assess developer experience metrics across multiple dimensions.'<end_of_turn>\n<start_of_turn>model\nOutput:\nthought\nThis entry lacks impact and clarity. It reads like a corporate mission statement rather than a technical achievement.\n\n**The Issues:**\n\n1.  **Weak Opening:** Starting with \"We built...\" is redundant and passive. It doesn't lead with the result or the value proposition.\n2.  **Buzzword Overload:** \"Comprehensive,\" \"leveraged,\" \"state-of-the-art,\" \"metrics,\" and \"multiple dimensions\" are empty filler. They take up space without providing technical substance.\n3.  **Low Signal-to-Noise Ratio:** The sentence is long and wordy, but after reading it, I still don't know *what* the framework actually does or *how* it measures developer experience.\n\n**How to Fix It (Applying Ryan's Patterns):**\n\nYou need to lead with the result, then explain what shipped, then conclude with the lesson learned.\n\n**Drafting a better version:**\n\n*   **Result:** \"We automated developer experience (DevEx) tracking using a new AI-driven evaluation framework.\"\n*   **What Shipped:** \"The framework analyzes multi-dimensional telemetry\u2014from CI/CD latency to PR cycle times\u2014to provide a real-time DevEx score.\"\n*   **The Lesson:** \"We learned that qualitative developer sentiment is just as important as quantitative system metrics for an accurate picture.\""
+}
