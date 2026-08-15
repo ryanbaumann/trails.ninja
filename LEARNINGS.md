@@ -2,6 +2,20 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-15 - Completion-only loss masking and micro-pair slicing optimize local MLX voice tuning
+
+Context: Iterating through 4 rounds of local QLoRA fine-tuning for Gemma 4 26B-A4B (4-bit OptiQ, Apple M4 Pro 48GB). In Round 1, full-sequence loss caused the model to memorize and regurgitate system prompts and input prompt tags (`[Task: Edit]...`) on zero-shot tasks, while full-length essay drafts (>2048 tokens) pushed peak memory to 36.8 GB. In Round 2, over-training (7 epochs) caused token repetition loops on open-ended headline/presentation tasks.
+Learning: Local voice fine-tuning requires three architectural optimizations: (1) `--mask-prompt` must be enabled so cross-entropy loss gradients are computed exclusively on the assistant's voice tokens, preventing prompt template memorization; (2) bounding drafts at section boundaries and slicing full sections into paragraph-level micro-pairs (100–250 words) avoids sequence truncation and cuts peak memory from 36.8 GB to 23.8 GB while expanding the dataset from 159 to 218 rich pairs; (3) the optimal training budget for personal voice adaptation is 1.5 to 2.5 epochs (~100–150 iterations with grad accumulation), preserving lyrical fluidity without mode collapse.
+Evidence: `scripts/generate-ft-dataset.py` was updated with paragraph-level micro-pairs (218 total samples). Round 4 fine-tuning (`task-434`) converged smoothly with masked prompt loss, zero sequence truncation, and peak memory of 24.5 GB on Apple Silicon Metal. The newly built `/voice-studio/` app verifies blind evaluation, real-time stylistic rhythm analysis, and 1-click dataset export with 20/20 passing smoke tests.
+Use next time: Always enable `--mask-prompt` in `mlx_lm.lora` for instruction/voice tuning. Slice training corpora into focused paragraph-level transform pairs ($\le 850$ words) to keep memory <25GB and train for $\le 2.5$ epochs.
+
+## 2026-08-15 - Factual preservation in voice fine-tuning prevents metric hallucination
+
+Context: Fine-tuning Gemma 4 26B-A4B locally on Apple Silicon Metal via MLX for personal writing voice. The previous Vertex AI run (117 examples) resulted in the model repeatedly hallucinating specific numbers (40%, 20%, 15%) when prompted on generic editing tasks with zero numbers, because target training pairs extracted from published case studies contained real metrics while their synthetic corporatized prompts lacked them. Additionally, 27 copies of an identical 3-bullet critique response caused rigid mode collapse on diagnostic tasks.
+Learning: Voice fine-tuning must maintain strict factual alignment between input prompts and target outputs: an edit task must only transform register, tone, active voice, and cadence while strictly preserving the numbers and facts of the source text. When synthesizing input/output pairs, diversify input styles (passive corporate, messy voice memo dictation, academic thesis structures, hype announcements) and make critique responses dynamically diagnose specific failure modes rather than repeating static templates.
+Evidence: `scripts/generate-ft-dataset.py` was refactored with clean prose extraction, 5 distinct input corruption modes, context-tailored critiques, and demo-first presentation outlines, expanding the dataset to 159 examples (144 train, 15 val). QLoRA fine-tuning on Apple Silicon (`mlx_lm.lora`) with Gemma 4 26B-A4B (4-bit, r=16, 16 layers) converged from an initial validation loss of 11.905 down to ~1.2-1.3 train loss on Metal GPU.
+Use next time: When building voice-tuning datasets from an author's corpus, test that unprompted metrics in input prompts do not produce invented numbers in edit targets. Use varied corruption strategies and filter out non-prose elements (tables, code blocks) before creating edit pairs.
+
 ## 2026-08-14 - Local Gemma 4 MLX reviews catch abstract rhetorical openings
  
 Context: Reviewing portfolio writing with the base Gemma 4 26B-A4B model steered by a

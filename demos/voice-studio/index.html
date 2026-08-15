@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice &amp; Editorial Studio | Gemma 4 26B Local Fine-Tuning</title>
+  <meta name="description" content="Interactive blind evaluation arena, voice memo scrubber, and paired dataset curator for local Gemma 4 voice fine-tuning on Apple Silicon.">
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+  <main class="app-container">
+    <header class="app-header">
+      <a href="/" class="back-link" id="nav-back-home">← Back to Fieldwork</a>
+      <div class="title-row">
+        <div>
+          <h1 class="app-title">Voice &amp; Editorial Studio</h1>
+          <p class="app-subtitle">Interactive blind review, real-time stylistic rhythm auditing, and paired dataset curation for local Gemma 4 26B-A4B fine-tuning.</p>
+        </div>
+        <div class="header-badges">
+          <span class="badge active" id="badge-model">Gemma 4 26B-A4B</span>
+          <span class="badge emerald" id="badge-hw">Apple M4 Pro (48GB)</span>
+          <span class="badge" id="badge-optiq">Metal QLoRA 4-bit</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Nav Tabs -->
+    <nav class="nav-tabs" aria-label="Studio navigation">
+      <button class="tab-btn active" data-tab="arena" id="tab-btn-arena">Blind Arena</button>
+      <button class="tab-btn" data-tab="scrubber" id="tab-btn-scrubber">Dictation &amp; Pair Scrubber</button>
+      <button class="tab-btn" data-tab="analytics" id="tab-btn-analytics">Loss &amp; Memory Analytics</button>
+    </nav>
+
+    <!-- Tab 1: Blind Arena -->
+    <section class="tab-panel active" id="arena-panel">
+      <div class="arena-header">
+        <div class="prompt-selector-row">
+          <div class="select-group">
+            <label for="prompt-select">Select Held-Out Prompt:</label>
+            <select class="custom-select" id="prompt-select"></select>
+          </div>
+          <button class="btn-secondary" id="btn-next-prompt">Next Prompt →</button>
+        </div>
+        <div class="prompt-box">
+          <span class="task-tag" id="current-task-tag">Task</span>
+          <span id="current-prompt-text">Loading prompt...</span>
+        </div>
+      </div>
+
+      <div class="arena-grid">
+        <!-- Model Alpha Card -->
+        <div class="model-card" id="card-a">
+          <div>
+            <div class="card-top">
+              <span class="blind-label">Model Alpha</span>
+              <span class="revealed-name" id="revealed-name-a">Blind Evaluation</span>
+            </div>
+            <div class="model-output-text" id="output-a">Generating output...</div>
+          </div>
+          <div>
+            <div class="metrics-strip">
+              <div class="metric-item">
+                <div class="metric-val" id="stdev-a">0</div>
+                <div class="metric-label">Rhythm StDev</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-val" id="emdash-a">0</div>
+                <div class="metric-label">Em-Dashes</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-val" id="buzzwords-a">0</div>
+                <div class="metric-label">Buzzwords</div>
+              </div>
+            </div>
+            <div class="vote-section">
+              <button class="btn-vote" id="vote-a">Vote Model Alpha</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model Beta Card -->
+        <div class="model-card" id="card-b">
+          <div>
+            <div class="card-top">
+              <span class="blind-label">Model Beta</span>
+              <span class="revealed-name" id="revealed-name-b">Blind Evaluation</span>
+            </div>
+            <div class="model-output-text" id="output-b">Generating output...</div>
+          </div>
+          <div>
+            <div class="metrics-strip">
+              <div class="metric-item">
+                <div class="metric-val" id="stdev-b">0</div>
+                <div class="metric-label">Rhythm StDev</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-val" id="emdash-b">0</div>
+                <div class="metric-label">Em-Dashes</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-val" id="buzzwords-b">0</div>
+                <div class="metric-label">Buzzwords</div>
+              </div>
+            </div>
+            <div class="vote-section">
+              <button class="btn-vote" id="vote-b">Vote Model Beta</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prompt-box" id="arena-verdict-box" style="display: none; margin-bottom: 1.5rem; background: var(--bg-surface);"></div>
+
+      <div class="arena-actions">
+        <button class="btn-primary" id="btn-reveal">Reveal Model Identities</button>
+      </div>
+    </section>
+
+    <!-- Tab 2: Dictation & Pair Scrubber -->
+    <section class="tab-panel" id="scrubber-panel">
+      <div class="quick-templates">
+        <span style="font-size: 0.75rem; color: var(--text-muted); align-self: center; margin-right: 0.5rem;">Sample Templates:</span>
+        <button class="template-chip" data-sample="so basically we saw traces blow up because someone added an extra field mask on place details and it quadrupled our bills.">Voice Memo Dictation</button>
+        <button class="template-chip" data-sample="We are pleased to announce our cutting-edge platform, designed to revolutionize developer workflows and leverage synergy across teams.">Corporate PR Announcement</button>
+        <button class="template-chip" data-sample="It is hypothesized that developer experience enhancements yield statistically significant retention gains — which represents a mission-critical paradigm shift.">Academic / Em-Dash Jargon</button>
+      </div>
+
+      <div class="scrubber-grid">
+        <!-- Input Pane -->
+        <div class="editor-pane">
+          <div class="pane-header">
+            <span class="pane-title">Raw Input Draft (Dictation / Corporate)</span>
+          </div>
+          <textarea class="editor-textarea" id="scrubber-input" placeholder="Type or paste rough dictation, corporate announcements, or messy bullet points..."></textarea>
+          <button class="btn-secondary" id="btn-scrub">Run Local Voice Scrubber →</button>
+        </div>
+
+        <!-- Output & Edit Pane -->
+        <div class="editor-pane">
+          <div class="pane-header">
+            <span class="pane-title">Tuned Output &amp; Curator (Ryan's Voice)</span>
+          </div>
+          <textarea class="editor-textarea" id="scrubber-output" placeholder="Edited output will appear here. You can refine and polish before exporting..."></textarea>
+          
+          <div class="metrics-strip">
+            <div class="metric-item">
+              <div class="metric-val" id="scrub-words">0</div>
+              <div class="metric-label">Words</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val" id="scrub-stdev">0</div>
+              <div class="metric-label">Rhythm StDev</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val" id="scrub-emdashes">0</div>
+              <div class="metric-label">Em-Dashes</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val" id="scrub-buzzwords">0</div>
+              <div class="metric-label">Buzzwords</div>
+            </div>
+          </div>
+
+          <div class="rhythm-chart">
+            <div class="rhythm-title">Sentence Length Rhythm Spectrum</div>
+            <div class="sentence-bars" id="rhythm-bars"></div>
+          </div>
+
+          <div style="margin-top: 1rem; display: flex; gap: 0.75rem;">
+            <button class="btn-primary" id="btn-export-pair" style="width: 100%;">Export Verified Pair to JSONL</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Loss & Memory Analytics -->
+    <section class="tab-panel" id="analytics-panel">
+      <div class="analytics-card">
+        <h2 class="card-heading">Fine-Tuning Iteration Progression (Apple Silicon MLX)</h2>
+        <table class="loss-table">
+          <thead>
+            <tr>
+              <th>Iteration Round</th>
+              <th>Base Architecture</th>
+              <th>Loss Convergence</th>
+              <th>Peak Unified Memory</th>
+              <th>Key Implementation Learning</th>
+            </tr>
+          </thead>
+          <tbody id="training-runs-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="analytics-card">
+        <h2 class="card-heading">Hardware &amp; Architecture Profile</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+          <div style="background: var(--bg-primary); padding: 1rem; border-radius: 0.5rem;">
+            <strong style="color: var(--text-primary);">Apple M4 Pro (48GB)</strong><br>
+            273 GB/s Memory Bandwidth<br>
+            Safe Metal allocation: ~36 GB
+          </div>
+          <div style="background: var(--bg-primary); padding: 1rem; border-radius: 0.5rem;">
+            <strong style="color: var(--text-primary);">Gemma 4 26B-A4B MoE</strong><br>
+            25.2B total / 3.8B active per token<br>
+            Inference: ~45–55 tok/s in 4-bit
+          </div>
+          <div style="background: var(--bg-primary); padding: 1rem; border-radius: 0.5rem;">
+            <strong style="color: var(--text-primary);">QLoRA Strategy</strong><br>
+            Rank 16, Scale 32.0, 16 Layers<br>
+            `--mask-prompt` completion-only loss
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

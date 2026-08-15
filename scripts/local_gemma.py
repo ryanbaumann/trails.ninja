@@ -44,11 +44,22 @@ def ensure_model_downloaded(repo_id: str = DEFAULT_MODEL_REPO, local_dir: Path =
     print(f"[✓] Download complete: {local_dir}")
     return str(local_dir)
 
-def load_model(model_path: str):
-    """Load MLX model and tokenizer."""
+DEFAULT_ADAPTER_DIR = ROOT_DIR / "adapters" / "gemma-4-26b-ryan-voice"
+
+
+def load_model(model_path: str, adapter_path: str = None):
+    """Load MLX model and tokenizer with optional LoRA adapter."""
     import mlx_lm
-    print(f"[*] Loading model from {model_path} into Apple Silicon Metal memory...")
-    model, tokenizer = mlx_lm.load(model_path)
+    resolved_adapter = adapter_path
+    if resolved_adapter is None and DEFAULT_ADAPTER_DIR.exists() and (DEFAULT_ADAPTER_DIR / "adapters.safetensors").exists():
+        resolved_adapter = str(DEFAULT_ADAPTER_DIR)
+
+    if resolved_adapter and Path(resolved_adapter).exists():
+        print(f"[*] Loading model from {model_path} with adapter {resolved_adapter} into Apple Silicon Metal memory...")
+        model, tokenizer = mlx_lm.load(model_path, adapter_path=str(resolved_adapter))
+    else:
+        print(f"[*] Loading base model from {model_path} into Apple Silicon Metal memory...")
+        model, tokenizer = mlx_lm.load(model_path)
     print("[✓] Model loaded successfully.")
     return model, tokenizer
 
@@ -70,7 +81,10 @@ def generate_text(model, tokenizer, prompt: str, max_tokens: int = 4096, temp: f
     else:
         sampler_fn = None
 
-    generate_kwargs = {"max_tokens": max_tokens, "verbose": False}
+    generate_kwargs = {
+        "max_tokens": max_tokens,
+        "verbose": False
+    }
     if sampler_fn is not None:
         generate_kwargs["sampler"] = sampler_fn
 
@@ -121,18 +135,21 @@ def main():
     rev_parser.add_argument("target", help="File path or string to review")
     rev_parser.add_argument("--max-tokens", type=int, default=4096, help="Max response tokens")
     rev_parser.add_argument("--repo", default=DEFAULT_MODEL_REPO, help="Hugging Face repo ID")
+    rev_parser.add_argument("--adapter-path", default=None, help="Path to fine-tuned LoRA adapter")
 
     # Edit command
     edit_parser = subparsers.add_parser("edit", help="Rewrite text in Ryan's voice")
     edit_parser.add_argument("target", help="File path or string to rewrite")
     edit_parser.add_argument("--max-tokens", type=int, default=4096, help="Max response tokens")
     edit_parser.add_argument("--repo", default=DEFAULT_MODEL_REPO, help="Hugging Face repo ID")
+    edit_parser.add_argument("--adapter-path", default=None, help="Path to fine-tuned LoRA adapter")
 
     # Generate / ask command
     gen_parser = subparsers.add_parser("generate", help="Generate response to an arbitrary prompt")
     gen_parser.add_argument("prompt", help="Prompt text")
     gen_parser.add_argument("--max-tokens", type=int, default=4096, help="Max response tokens")
     gen_parser.add_argument("--repo", default=DEFAULT_MODEL_REPO, help="Hugging Face repo ID")
+    gen_parser.add_argument("--adapter-path", default=None, help="Path to fine-tuned LoRA adapter")
 
     args = parser.parse_args()
 
@@ -141,7 +158,8 @@ def main():
         return
 
     model_dir = ensure_model_downloaded(repo_id=getattr(args, "repo", DEFAULT_MODEL_REPO))
-    model, tokenizer = load_model(model_dir)
+    adapter_path = getattr(args, "adapter_path", None)
+    model, tokenizer = load_model(model_dir, adapter_path=adapter_path)
 
     if args.command == "review":
         res = review_copy(model, tokenizer, args.target)

@@ -272,11 +272,11 @@ const CARDS = [
     layout: 'screenshot',
   },
   {
-    file: 'i-use-the-untuned-one.png',
-    eyebrow: 'FIELD NOTES · FINE-TUNING',
-    title: 'My Voice Model Invented a 40%, Four Times',
-    summary: 'Register transferred. Judgment did not.',
-    source: 'portfolio/static/img/writing/i-use-the-untuned-one-header.svg',
+    file: 'why-i-fine-tuned-a-26b-model-on-my-laptop-instead-of-prompting-frontier-apis.png',
+    eyebrow: 'FIELD NOTES · LOCAL FINE-TUNING',
+    title: 'Why I Fine-Tuned a 26B Model on My Laptop Instead of Prompting Frontier APIs',
+    summary: 'From unmasked prompt replication to 218 micro-pairs on Apple Silicon Metal.',
+    source: 'portfolio/static/img/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-header.svg',
     layout: 'artifact',
   },
 ];

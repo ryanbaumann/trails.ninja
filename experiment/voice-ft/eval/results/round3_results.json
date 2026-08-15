@@ -1,0 +1,106 @@
+[
+  {
+    "id": "eval_01",
+    "task": "Edit",
+    "prompt": "Rewrite this corporate draft in Ryan's voice: We are pleased to announce our platform.",
+    "output": "We are pleased to announce our platform.",
+    "metrics": {
+      "word_count": 7,
+      "sentence_count": 1,
+      "avg_sentence_length": 7,
+      "sentence_length_stdev": 0,
+      "em_dash_count": 0,
+      "buzzwords_found": [
+        "\\bpleased to announce\\b"
+      ],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_02",
+    "task": "Edit",
+    "prompt": "Rewrite this announcement: Our engineering team has deployed an innovative solution to enhance system availability.",
+    "output": "Our engineering team has deployed an innovative solution to enhance system availability.\n```\nKeep the original: Our engineering team has deployed an innovative solution to enhance system availability.\n```\nThis version is almost the original: Our engineering team has deployed an innovative solution to enhance system availability.\n```\nThis version is almost the original: Our engineering team has deployed an innovative solution to enhance system availability.\n```\nThis version is almost the original: Our engineering team has deployed an innovative solution to enhance system availability.\n```\nThis version is almost the1\n```\nThis version is almost the1\n```\nThis version is almost the1\n```\nThis version is almost the1\n```\nThis version is almost the1\n```\nThis version is almost the1\n```\nThis version is almost the1\n```\nThis version is1\n```\nThis version is1\n```\nThis version is1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis versionis1\n```\nThis",
+    "metrics": {
+      "word_count": 498,
+      "sentence_count": 6,
+      "avg_sentence_length": 83,
+      "sentence_length_stdev": 161.69,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_03",
+    "task": "Critique",
+    "prompt": "Critique this draft opening: In today's fast-paced digital world, developers face numerous challenges with API integrations.",
+    "output": "This draft opening falls into passive corporate speak:\n\n1. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n2. **Missing contractions:** 'do not' should be 'do not'.\n3. **Missing contractions:** 'do not' should be 'do not'.\n4. **Missing contractions:** 'do not' should be not.\n\nWait, I am repeating myself. Let me give a clean critique:\n\n1. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n2. **Missing contractions:** 'do not' should be 'do not'.\n3. **Missing contractions:** 'do not' should be 'do not'.\n4. **Missing contractions:** 'do not' should be 'do not'.\n\nI am still repeating myself. Let me give a clean critique:\n\n1. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n2. **Missing contractions:** 'do not' should be 'do not'.\n3. **Missing contractions:** 'do not' should be 'do not'.\n4. **Missing contractions:** 'do not' should be 'do not'.\n\nI am still repeating myself. Let me give a clean critique:\n\n1. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n2. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n3. **Missing contractions:** 'do not' should be 'do not'.\n4. **Missing contractions:** 'do not' should be 'do not'.\n\nI am still repeating myself. Let me give a clean critique:\n\n1. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n2. **Missing contractions:** 'do not' should be 'do not'.\n3. **Missing contractions:** 'do not' should be 'do not'.\n4. **Missing contractions:** 'do not' should be 'do not'.\n\nI am still repeating myself. Let me give a clean critique:\n\n1. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n2. **Missing contractions:** 'do not' should be 'do not'.\n3. **Missing contractions:** 'do not' should be 'do not'.\n4. **Missing contractions:** 'do not' should be 'do not'.\n\nI am still repeating myself. Let me give a clean critique:\n\n1. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n2. **Missing contractions:** 'do not' should be 'do not'.\n3. **Missing contractions:** 'do not' should be 'do not'.\n4. **Missing contractions:** 'do not' should be 'do not'.\n\nI am still repeating myself. Let me give a clean critique:\n\n1. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n2. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n3. **Missing contractions:** 'do not' should be 'do not'.\n4. **Missing contractions:** 'do not' should be 'do not'.\n\nI am still repeating myself. Let me give a clean critique:\n\n1. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n2. **Missing contractions:** 'do not' should be 'do not'.\n3. **Missing contractions:** 'do not' should be 'do not'.\n4. **Missing contractions:** 'do not' should be 'do not'.\n\nI am still repeating myself. Let me give a clean critique:\n\n1. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n2. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n3. **Missing contractions:** 'do not' should be 'do not'.\n4. **Missing contractions:** 'do not' should be 'do not'.\n\nI am still repeating myself. Let me give a clean critique:\n\n1. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n2. **Missing contractions:** 'do not' should be 'do not'.\n3.0 **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.\n4. **Missing contractions:** 'do not' should be 'do not'.\n\nI am still repeating myself. Let me give a clean critique:\n\n1. **Passive voice hides agency:** 'was deployed by the developer' should be 'the developer deployed'.",
+    "metrics": {
+      "word_count": 629,
+      "sentence_count": 101,
+      "avg_sentence_length": 6.24,
+      "sentence_length_stdev": 4.48,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_04",
+    "task": "Headline",
+    "prompt": "Generate 8 headline variants for an article on why prompt engineering hits an RLHF ceiling.",
+    "output": "1. Prompt Engineering Hits an RLHF Ceiling: Why Most Developer Teams Miss It\n2. What Prompt Engineering Hits an RLHF Ceiling Really Means\n3. Prompt Engineering Hits an RLHF Ceiling: Lessons From Live Developer Teams\n4. Prompt Engineering Hits an RLHF Ceiling: Why Most Developer Teams Miss It\n5. Prompt Engineering Hits an RLHF Ceiling: What Prompt Engineering Hits an RLHF Ceiling Really Means\n6. Prompting Hits an RLHF Ceiling: Why Most Developer Teams Miss It\n7. Prompt Engineering Hits an RLHF Ceiling: What Prompting Hits an RLHF Ceiling Really Means\n8. Prompt Engineering Hits an RLHF Ceiling: Why Most Developer Teams Miss It",
+    "metrics": {
+      "word_count": 104,
+      "sentence_count": 9,
+      "avg_sentence_length": 11.56,
+      "sentence_length_stdev": 4.33,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_05",
+    "task": "Draft",
+    "prompt": "Write a short Field Note on why local fine-tuning on Apple Silicon changes personal developer workflows.",
+    "output": "## Why local fine-tuning on Apple Silicon changes personal developer workflows\n\n## What I learned\n\n## What I've tried\n\n## What I'0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101",
+    "metrics": {
+      "word_count": 22,
+      "sentence_count": 1,
+      "avg_sentence_length": 22,
+      "sentence_length_stdev": 0,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 1,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  },
+  {
+    "id": "eval_06",
+    "task": "Present",
+    "prompt": "Draft a talk outline for GeoMob SF on live-coding agentic map applications.",
+    "output": "Keep a real scenario or quoted objection, not a thesis statement.\n\n## [Task: Present]\nDraft a talk outline for GeoMBS SF on live-coding agentic map applications\n\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task: Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present]\n## [Task:Present",
+    "metrics": {
+      "word_count": 350,
+      "sentence_count": 2,
+      "avg_sentence_length": 175,
+      "sentence_length_stdev": 231.93,
+      "em_dash_count": 0,
+      "buzzwords_found": [],
+      "contractions_count": 0,
+      "hallucinated_percents": [],
+      "has_hallucinated_metrics": false
+    }
+  }
+]

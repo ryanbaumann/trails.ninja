@@ -185,5 +185,25 @@
     ],
     "preview": "/previews/isochrones.webp",
     "hideOnHome": true
+  },
+  {
+    "name": "voice-studio",
+    "title": "Voice & Editorial Studio",
+    "description": "Interactive blind review, grading, and paired dataset curator for local Gemma 4 voice fine-tuning.",
+    "path": "/voice-studio/",
+    "dev_build_dir": "demos/voice-studio/dist",
+    "source": {
+      "type": "workspace",
+      "package": "demos/voice-studio",
+      "output": "dist"
+    },
+    "api": {
+      "type": "none"
+    },
+    "visibility": "unlisted",
+    "tags": [
+      "interactive-demo"
+    ],
+    "preview": null
   }
 ]

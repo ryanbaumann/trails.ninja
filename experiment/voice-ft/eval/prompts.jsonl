@@ -1,20 +1,6 @@
-{"messages": [{"role": "user", "content": "[Task: Draft]\nWrite a Field Note about why most developer platforms measure the wrong thing."}]}
-{"messages": [{"role": "user", "content": "[Task: Draft]\nWrite a post about what you learned when a feature launched to silence."}]}
-{"messages": [{"role": "user", "content": "[Task: Draft]\nExplain why shipping fast without evals is slower than shipping slowly with them."}]}
-{"messages": [{"role": "user", "content": "[Task: Draft]\nWrite a work entry about building a developer onboarding flow that reduced time-to-first-API-call."}]}
-{"messages": [{"role": "user", "content": "[Task: Draft]\nWrite an email to a conference organizer proposing a talk about how evals changed your team's launch bar."}]}
-{"messages": [{"role": "user", "content": "[Task: Draft]\nWrite about your approach to training for a gravel race, in the same style you'd write a Field Note."}]}
-{"messages": [{"role": "user", "content": "[Task: Edit]\nRewrite this paragraph in Ryan's voice: 'We are excited to announce that our team has developed a solution that enables developers to leverage the full power of our platform's geospatial information layers.'"}]}
-{"messages": [{"role": "user", "content": "[Task: Edit]\nRewrite this cold outreach email in Ryan's voice: 'Dear Sir/Madam, I am reaching out to explore potential synergies between our respective organizations in the geospatial technology space.'"}]}
-{"messages": [{"role": "user", "content": "[Task: Edit]\nRewrite this work entry in Ryan's voice: 'Led cross-functional team of 12 engineers to deliver API migration project, resulting in 40% reduction in latency and improved developer satisfaction scores.'"}]}
-{"messages": [{"role": "user", "content": "[Task: Edit]\nRewrite this LinkedIn post in Ryan's voice: 'Thrilled to share that our latest AI-powered developer tool has been recognized as a game-changer in the industry! \ud83d\ude80 #Innovation #AI #DevTools'"}]}
-{"messages": [{"role": "user", "content": "[Task: Critique]\nCritique this opening: 'In today's rapidly evolving landscape of artificial intelligence, developer platforms face unprecedented challenges. This blog post will explore how evals can help.'"}]}
-{"messages": [{"role": "user", "content": "[Task: Critique]\nCritique this work entry: '## What we built\\nWe built a comprehensive evaluation framework that leveraged state-of-the-art AI to assess developer experience metrics across multiple dimensions.'"}]}
-{"messages": [{"role": "user", "content": "[Task: Critique]\nCritique this conference talk proposal: 'Title: Leveraging AI for Enhanced Developer Experiences\\nAbstract: This session will explore how artificial intelligence can be utilized to improve developer tooling.'"}]}
-{"messages": [{"role": "user", "content": "[Task: Headline]\nGenerate 8 title variants for a blog post about why most developer advocacy programs measure content output instead of developer behavior change."}]}
-{"messages": [{"role": "user", "content": "[Task: Headline]\nGenerate 6 title variants for a conference talk about live-coding a mapping app with an AI agent while the audience watches it fail and recover."}]}
-{"messages": [{"role": "user", "content": "[Task: Present]\nWrite a 150-word talk abstract for a conference session about agents and developer platforms."}]}
-{"messages": [{"role": "user", "content": "[Task: Present]\nWrite speaker notes for a 5-minute segment where you demo a coding agent building a store locator and it picks the wrong API."}]}
-{"messages": [{"role": "user", "content": "[Task: Present]\nOutline a 20-minute talk about why fine-tuning was the easy part and distribution is the hard problem."}]}
-{"messages": [{"role": "user", "content": "[Task: Draft]\nWrite a short post about why you stopped using dashboards and started reading traces."}]}
-{"messages": [{"role": "user", "content": "[Task: Draft]\nWrite about teaching your daughter to ride a bike and what it taught you about developer onboarding."}]}
+{"id": "eval_01", "task": "Edit", "prompt": "Rewrite this corporate draft in Ryan's voice: We are pleased to announce our platform."}
+{"id": "eval_02", "task": "Edit", "prompt": "Rewrite this announcement: Our engineering team has deployed an innovative solution to enhance system availability."}
+{"id": "eval_03", "task": "Critique", "prompt": "Critique this draft opening: In today's fast-paced digital world, developers face numerous challenges with API integrations."}
+{"id": "eval_04", "task": "Headline", "prompt": "Generate 8 headline variants for an article on why prompt engineering hits an RLHF ceiling."}
+{"id": "eval_05", "task": "Draft", "prompt": "Write a short Field Note on why local fine-tuning on Apple Silicon changes personal developer workflows."}
+{"id": "eval_06", "task": "Present", "prompt": "Draft a talk outline for GeoMob SF on live-coding agentic map applications."}

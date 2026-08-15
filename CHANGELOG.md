@@ -8,21 +8,26 @@ All notable changes to this project will be documented in this file.
 - Fixed Giscus comment widget layout constraints on portfolio field notes by setting an explicit `100%` width and a `400px` `min-height` on the iframe, preventing height collapse or squished rendering on narrow viewports.
 
 ### Added
+- Added interactive **Voice & Editorial Studio** web app (`/voice-studio/`, `demos/voice-studio`) providing a blind evaluation arena (Model Alpha vs Model Beta), real-time stylistic rhythm and buzzword analysis, a voice memo scrubber, and 1-click JSONL pair export for local fine-tuning datasets.
+- Created automated local evaluation harness (`scripts/eval_local.py`) testing base models and LoRA adapters on Apple Silicon Metal across held-out task prompts, measuring sentence length variance, zero em-dash compliance, corporate buzzword suppression, and unprompted metric hallucination.
+- Implemented 4-round QLoRA fine-tuning progression on Apple Silicon Metal via MLX for Gemma 4 26B-A4B:
+  - **Round 1:** 159 examples, full-sequence loss ($r=8, \alpha=20$, 468 iters, 36.8 GB RAM), converging loss from 11.905 down to 0.437. Identified prompt template replication caused by unmasked prompt loss.
+  - **Round 2:** 159 pre-chunked examples ($\le 850$ words) with `--mask-prompt` (completion-only loss, $r=16, \alpha=32$, 250 iters, accum=4), dropping peak memory by 13 GB to 23.8 GB and eliminating prompt replication.
+  - **Round 3:** 159 pre-chunked examples, 100 iters (2.5 epochs, $lr=5\text{e-}5$, accum=2, 29.8 GB RAM), identifying the goldilocks adaptation window preserving stylistic flexibility without mode collapse.
+  - **Round 4:** 218 paragraph-level micro-pairs (111 Edits, 54 Drafts, 30 Critiques, 19 Headlines) with native chat template (150 iters, $lr=8\text{e-}5$, accum=2, 24.5 GB RAM), achieving 0 metric hallucinations, 0 em-dashes, and natural sentence length standard deviation (6.4–7.9 stdev).
 - Committed reproducible training data, dataset generator (`scripts/generate-ft-dataset.py`), held-out evaluation suite (`experiment/voice-ft/eval/prompts.jsonl`), ephemeral evaluation runner (`scripts/run_ephemeral_eval.py`), and on-demand assistant/subagent CLI (`scripts/ryan_voice.py`) for the Gemma 4 26B-A4B voice fine-tuning experiment.
 
 ### Changed
-- Drafted "I Fine-Tuned a Model on My Own Writing. I Use the Untuned One."
-  (`portfolio/content/writing/i-use-the-untuned-one.md`, draft and noindex), a
-  grounded post-mortem of the unpublished Gemma 4 26B-A4B voice tune measured
-  directly against its own artifacts rather than its README. Integrated empirical
+- Drafted "Why I Fine-Tuned a 26B Model on My Laptop Instead of Prompting Frontier APIs"
+  (`portfolio/content/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-instead-of-prompting-frontier-apis.md`, draft and noindex), a
+  grounded post-mortem and technical breakdown of personal voice fine-tuning on Apple Silicon Metal. Integrated empirical
   validation from the University of Michigan author-voice study (*Dhillon et al., 2026*),
   demonstrating the prompting-versus-tuning gap (82.7% MFA judge preference for human writing
-  over prompted models vs. 62% preference for fine-tuned models). Detailed the three-step
-  workflow (Human Dictation $\rightarrow$ Local Low-Latency Copyeditor $\rightarrow$ Human Review),
+  over prompted models vs. 62% preference for fine-tuned models). Detailed the 4-round local tuning progression,
+  four core architectural learnings (factual preservation, completion-only loss masking, micro-pair slicing, and optimal voice adaptation budget),
+  the three-step workflow (Human Dictation $\rightarrow$ Local Low-Latency Copyeditor $\rightarrow$ Human Review),
   comparative metrics breakdown (sentence length variance, cliché token frequency, latency),
-  and training guardrails against metric hallucination. Includes three inline SVGs (header,
-  dataset provenance, grader gates), a `scripts/social-cards.mjs` entry, and the generated
-  1200x627 share card.
+  and interactive Voice & Editorial Studio app. Includes three inline SVGs (header, dataset provenance, grader gates), a `scripts/social-cards.mjs` entry, and the generated share card.
 - Integrated the local Gemma 4 runner (`scripts/gemma-local.sh` and `scripts/local_gemma.py`)
   into `.agents/skills/portfolio-review/SKILL.md` as an automated voice and cadence critique
   step in the maker/checker loop, with full 4096-token generation support.
