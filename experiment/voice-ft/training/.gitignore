@@ -1,0 +1,4 @@
+*.jsonl
+*.json
+sources/
+*.env
