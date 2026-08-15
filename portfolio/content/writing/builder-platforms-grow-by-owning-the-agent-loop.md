@@ -16,9 +16,11 @@ draft: false
 noindex: false
 ---
 
-The best model will change. So will the agent wrapped around it. A builder platform cannot anchor its strategy to either one. It needs to own the feedback loop that keeps its critical developer journeys working as models and agents change.
+When a developer asks a coding agent to build with your platform, that session becomes part of your activation funnel.
 
-This is a growth problem, not just an AI quality problem. When a developer asks an agent to build with your platform, that session becomes part of your activation funnel. I see it in the traces our team reviews: when the agent chooses the wrong API, misses an authentication step, or produces code that does not compile, the developer experiences that failure as your platform.
+If the agent chooses the wrong API, misses an authentication step, or writes code that fails to compile, the developer doesn't blame the model: they experience that failure as your platform, and they leave.
+
+The best model will change, and so will the agent harness wrapped around it. A builder platform cannot anchor its developer experience to either one. It needs to own the feedback loop that keeps its critical developer journeys working as models and agents move around it.
 
 ## The model is not the strategy
 
@@ -74,7 +76,7 @@ Don't collect raw source code or private conversations by default. Keep only the
 
 ## Distribution makes the learning compound
 
-Our team is running a version of this loop for Google Maps Platform through [portable agent skills](/work/agent-skills/) and a [task-based eval suite](/work/agentic-evals/). I work with product and engineering to guide our launch decisions by reviewing the traces. We're finding new ways it breaks every week.
+Our team runs this loop across Google Maps Platform using [portable agent skills](/work/agent-skills/) and a [task-based eval suite](/work/agentic-evals/). When a new model ships, we run the evals, review the failure traces with product and engineering, and update the context.
 
 Ship versioned context in a portable form, and run the same tasks in the tools, prompts, and execution boundaries developers receive. Treat every new model or harness as another row in the test matrix, not a reason to restart the strategy.
 
@@ -90,4 +92,4 @@ Start with ten critical developer journeys. For each one:
 4. Test it across representative model and harness versions.
 5. Measure outcomes and review failures. Reuse traces only when they're authorized and cleared through privacy and security review.
 
-Run it again. Models and harnesses will move, and nobody has this figured out yet, including us. Keep learning, keep experimenting, keep shipping, and let the loop get better every time they do.
+Start small and let the loop compound. If you are building developer platforms for an agent-first world, join the conversation below and share how you structure your evaluation and distribution loops.

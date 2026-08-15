@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 - Fixed Giscus comment widget layout constraints on portfolio field notes by setting an explicit `100%` width and a `400px` `min-height` on the iframe, preventing height collapse or squished rendering on narrow viewports.
 
 ### Changed
+- Refined writing and voice across all public and draft Field Notes using local Gemma 4 26B-A4B editorial review, stripping academic rhetorical question openings, aligning narrative flow to growth-backwards framing (Result $\rightarrow$ Shipped $\rightarrow$ Lesson), enforcing 0 em-dashes, and varying closing CTAs to achieve 0 stock phrase collisions.
+- Added 1-command local Gemma 4 runner (`scripts/gemma-local.sh` and `scripts/local_gemma.py`) powered by Apple Silicon MLX and Metal acceleration with gitignored local weight caching in `models/`.
 - Updated the Loop Engineering coding agent operating contract (`agent-scripts/coding-agent-loop/SYSTEM_PROMPT.md`), role overlays (`roles/`), and public Field Note (`portfolio/content/writing/loop-engineering-coding-agent.md`) with Practical Loop Engineering best practices:
   - Formally codified the loop taxonomy across five primitives: single-turn agentic loops, goal-based loops with deterministic finish lines, interval loops, proactive cloud routines, and composed loops with parallel worktrees and adversarial judge review.
   - Enforced the discipline of keeping human architectural judgment, adding explicit accidental complexity guards against bloated solutions.

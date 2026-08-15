@@ -15,9 +15,9 @@ draft: false
 noindex: false
 ---
 
-The public [Loop Engineering prompt](https://github.com/ryanbaumann/fieldwork/blob/main/agent-scripts/coding-agent-loop/SYSTEM_PROMPT.md#capability-and-model-routing) contains a routing policy. It does not contain a routing result.
+A model routing policy is just a hypothesis until you record what happens across actual attempts.
 
-The policy says to use the least costly capability profile with demonstrated quality for the task family:
+The public [Loop Engineering prompt](https://github.com/ryanbaumann/fieldwork/blob/main/agent-scripts/coding-agent-loop/SYSTEM_PROMPT.md#capability-and-model-routing) contains a routing policy, but it doesn't contain a routing result. The policy maps bounded task families to capability tiers:
 
 ```text
 Tools      deterministic discovery, transformation, verification
@@ -26,7 +26,7 @@ Balanced   implementation, debugging, test repair, scoped review
 Deep       architecture, security, data consistency, difficult synthesis
 ```
 
-That mapping is plausible. I haven't measured whether it saves tokens, lowers latency, or completes the same work as reliably as a stronger default. The first version of this Note wrote those outcomes as if the prompt had already earned them.
+That mapping is plausible, but I haven't measured whether it saves tokens, lowers latency, or completes the same work as reliably as a stronger default. The first version of this Note claimed those efficiency gains as if the prompt had already earned them.
 
 ## What the package actually proves
 

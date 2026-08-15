@@ -15,16 +15,16 @@ shareImageAlt: A social card reading I Asked Code Assist for a React Store Locat
 tags: ["developer experience", "ai", "distribution"]
 ---
 
-For this review, I wanted one Code Assist trace a reader could inspect. On August 7, the coding agent called the public MCP service with this query:
+The query was straightforward:
 
 > Build a React store locator using Places API (New),
 > AdvancedMarkerElement, and production API key restrictions.
 
-The top two results came from the Google Maps Platform Extended Component Library and described its `<gmpx-store-locator>` Web Component. The first result from the React library appeared third, 0.0154 behind the top result.
+When the coding agent called the public Code Assist MCP service, the top two results came from the Google Maps Platform Extended Component Library, pointing to its `<gmpx-store-locator>` Web Component. The first result from the React library ranked third, trailing the top result by 0.0154.
 
-That is a useful agent-session trace because the retrieval worked. It returned current official code, marked the sources `CURRENT`, and included a React Places UI Kit example. It still left the next decision to the agent: which context actually fits the requested framework and architecture?
+That is a revealing agent-session trace because the retrieval worked: it returned current official code, marked the sources `CURRENT`, and included a React Places UI Kit example. But retrieval only surfaced the material. It still left the critical architecture decision to the agent: which context actually fits the requested framework and project constraints?
 
-The [public trace record](https://github.com/ryanbaumann/fieldwork/blob/main/docs/code-assist-retrieval-trace-2026-08-07.md) keeps the MCP preflight, tool call, query, first three sources, ranking scores, and limits. No code was generated, so this is not an end-to-end quality result.
+The [public trace record](https://github.com/ryanbaumann/fieldwork/blob/main/docs/code-assist-retrieval-trace-2026-08-07.md) preserves the MCP preflight, tool call, query, first three sources, ranking scores, and limits. No code was generated, so this is not an end-to-end quality result.
 
 ## Retrieval gives the agent material, not judgment
 

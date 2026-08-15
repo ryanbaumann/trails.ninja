@@ -2,6 +2,22 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-14 - Local Gemma 4 MLX reviews catch abstract rhetorical openings
+ 
+Context: Reviewing portfolio writing with the fine-tuned Gemma 4 26B-A4B voice model
+locally via MLX on Apple Silicon.
+Learning: Automated voice review reliably catches the subtle shift where a post slips
+from authentic builder narrative into essay-style rhetorical questions and academic
+headers (like "## The hypothesis", "## The test"). Replacing these with immediate
+friction and result-led framing keeps the tone direct and grounded.
+Evidence: Gemma 4 identified that `fine-tuning-was-the-easy-part.md` opened on a
+hypothetical platform question rather than the Place Details billing shock, and that
+`builder-platforms-grow-by-owning-the-agent-loop.md` opened on a prediction rather than
+developer friction in an agent session. Both rewrites passed `npm run check:content` with
+0 errors and 0 warnings.
+Use next time: Run `./scripts/gemma-local.sh review <file>` during maker/checker review
+passes on new Field Notes before publication.
+ 
 ## 2026-08-07 - Correcting the proof must not replace the article's thesis
 
 Context: The evidence pass on “Fine-Tuning Was the Easy Part” correctly removed
