@@ -1,0 +1,45 @@
+name: Dependabot Auto-Merge
+
+# Turns routine dependency bumps into no-touch merges. This only *enables*
+# GitHub's auto-merge on the PR; branch protection on main still gates the
+# actual merge behind every required check in ci.yml. If CI goes red the PR
+# stays open, exactly as it does today.
+on: pull_request
+
+# Workflows triggered by Dependabot get a read-only token by default, so the
+# write scopes needed to enable auto-merge have to be requested explicitly.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: Enable auto-merge for Dependabot
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Majors are held back on purpose. jsdom 30 (2026-08) built and typechecked
+      # fine but required Node >= 22.22 while CI and every package engine target
+      # Node 20 -- the kind of break a green-tests gate alone does not catch.
+      - name: Enable auto-merge for patch and minor updates
+        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Flag major updates for manual review
+        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        run: |
+          gh pr comment "$PR_URL" --body \
+            "Major version bump — auto-merge intentionally skipped. Review the changelog and merge by hand."
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
