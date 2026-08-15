@@ -142,23 +142,43 @@ When you compare raw human dictation, frontier prompting, and our Round 4 fine-t
 
 Frontier prompted models tend to cluster around 14 to 18 words per sentence with low standard deviation. Authentic human prose swings between punchy 4-word declarations and complex 35-word clauses. A fine-tuned local model preserves that variance instead of averaging it out.
 
-## Before and after: putting the loop to work
+## Before and after fine-tuning
 
-To see the difference in practice, look at how the fine-tuned model handles a typical corporate draft versus the refined output:
+To see the difference in practice, look at how the base model compares to the fine-tuned model across drafting and review tasks:
 
-### Input: Corporate Announcement Draft
+### 1. Raw Dictation to First-Person Prose
+
+**Input (Messy Voice Memo):**
 ```text
-We are pleased to announce that our team has developed a solution that enables developers to leverage the full power of our platform's geospatial information layers.
+So, basically, developers were hitting rate limits whenever they queried the map layers at scale, and it broke their builds. We fixed it by putting connection pooling in the gateway.
 ```
 
-### Output: Refined First-Person Prose
+**Untuned Base Model Output:**
 ```text
-Developers can now tap into our full suite of map data layers. We just shipped the integration that unlocks these datasets across the entire platform. 
-
-Previously, teams had to jump through hoops to access high-fidelity map data; now it's a native part of the workflow. When you build a platform, don't just give users tools; give them the data that makes those tools indispensable.
+In today's fast-paced digital landscape, reliability is paramount. We are thrilled to announce that our cutting-edge gateway solution empowers organizations to seamlessly leverage spatial data without disruption.
 ```
 
-The refined version drops the announcement hype, uses active voice, opens with developer capability, and follows a clear growth-backwards progression.
+**Fine-Tuned Local Model Output (Round 4):**
+```text
+Developers hit hard rate limits whenever they queried map layers at scale. It broke builds and slowed down pipelines. We just shipped connection pooling directly in the gateway, cutting handshake overhead and keeping queries well under upstream limits.
+```
+
+### 2. Editorial Review and Critique
+
+**Input Draft Under Review:**
+```text
+Our platform harnesses transformative AI to deliver unprecedented productivity across your entire development lifecycle.
+```
+
+**Untuned Base Model Review:**
+```text
+Great draft! The tone is very professional, engaging, and well-structured. You might want to expand slightly on specific features.
+```
+
+**Fine-Tuned Local Model Review:**
+```text
+This copy leans on empty corporate adjectives: "transformative AI," "unprecedented productivity," and "development lifecycle." It hides the actual tool behind marketing filler. Cut all three buzzwords, state the exact task the tool solves, and open with developer outcome first.
+```
 
 ## The workflow: how to run it yourself
 
