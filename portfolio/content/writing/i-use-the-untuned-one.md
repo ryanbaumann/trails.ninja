@@ -20,11 +20,11 @@ shareImageAlt: A social card setting a rented A100 that produced invented percen
 
 Thirty-five seconds later the laptop told me that post opened on a hypothetical platform question instead of the Place Details billing shock that made me write it. It was right. I rewrote the opening and logged the win in `LEARNINGS.md` as a review by "the fine-tuned Gemma 4 26B-A4B voice model." There is no fine-tuned model on that laptop. `local_gemma.py` calls `mlx_lm.load()` with no `adapter_path`: a 4-bit base checkout and nine sentences of system prompt. The adapter I actually trained was somewhere else entirely, on an A100 in us-central1, inventing percentages.
 
-I can tell you what it invented, because I kept the twenty held-out outputs. I can't tell you what the tune bought, because `eval/results/base/` does not exist. I never generated the baseline, so there is no delta claim anywhere in this post. What I wanted from either path was the same thing: a drafting and critique partner that is stylistically useful and never an author.
+I can tell you what it invented, because I kept the twenty held-out outputs. I can't tell you what the tune bought, because `eval/results/base-model/` does not exist. I never generated the baseline, so there is no delta claim anywhere in this post. What I wanted from either path was the same thing: a drafting and critique partner that is stylistically useful and never an author.
 
 ## What the laptop actually caught
 
-The thing on disk is `mlx-community/gemma-4-26b-a4b-it-4bit`, about 14.3 GB sitting in a gitignored `models/` folder, running on Metal at roughly 35 seconds per review pass. The fans come up near the end of one.
+I keep the 14.3 GB model (`mlx-community/gemma-4-26b-a4b-it-4bit`) in a gitignored `models/` folder. It runs locally on Apple Silicon Metal, taking roughly 35 seconds per review pass. The fans spin up just as a review finishes.
 
 In that same sweep, `builder-platforms-grow-by-owning-the-agent-loop.md` opened on:
 
@@ -48,6 +48,32 @@ Smoother, and it deleted the only sentence in the paragraph that said what I did
 
 Both rewrites passed `check:content` at 0 errors and 0 warnings, and shipped in PR #212.
 
+## The three drafts: base, subagents, and local voice
+
+Seeing the layers fail independently made the real workflow obvious. Writing this site is not a single prompt or an autonomous loop: it is a three-stage editorial pipeline where each stage catches what the others cannot.
+
+Here is the progression on a single passage:
+
+1. **The raw base draft:**
+   > A builder platform needs to consider how AI agents interact with its APIs and SDKs to maintain adoption metrics. Fine-tuning models on developer documentation enables deeper platform alignment and consistency.
+
+   *What failed:* Stagnant passive framing, corporate jargon ("deeper platform alignment"), and an ungrounded claim about fine-tuning docs without an eval or artifact.
+
+2. **Model + skills and subagents review:**
+   The multi-agent checker runs three parallel lanes:
+   - *Lane 1 (Copy & Claims):* Flags the vague assertion about docs tuning and asks for the real trace or billing consequence.
+   - *Lane 2 (Links & Metadata):* Confirms canonical slugs and checks external API references.
+   - *Lane 3 (Visuals & Gates):* Runs `check:content` regex rules, catching em-dashes and banned hype adjectives (`W-HYPE`).
+
+   The passage reframes around concrete developer friction:
+   > Our team treated developer journeys and AI agent sessions as one activation path. When agents hit undocumented rate limits on Place Details, adoption stalled.
+
+3. **Local Gemma 4 copy edit (Ryan's voice):**
+   `./scripts/gemma-local.sh review` runs locally on Metal with nine sentences of voice guidance. It strips the remaining passive attribution ("Our team treated..."), replaces observational `The [Noun] is [Adjective]` phrasing with direct action verbs, and lands on the lived lesson:
+   > When an agent hits an undocumented rate limit on Place Details, that friction shows up in your activation funnel before a human ever files a ticket.
+
+The base model produces options. The subagent lanes enforce truth, links, and CI gates. The local Gemma model tightens the rhythm without inventing the facts.
+
 ## Then there was the 117-example dataset
 
 The cloud side is real work: `google/gemma-4-26b-a4b-it`, 26B total with 4B active, LoRA through PEFT, four epochs, rank r=4, LR multiplier 1.0, context 4,096, run on Vertex Managed Tuning, returning `JOB_STATE_SUCCEEDED`. The job succeeded. The file it was fed is where the story is.
@@ -56,7 +82,7 @@ The training data comes out of `scripts/generate-ft-dataset.py`, which I ran aga
 
 ![A single bar of 117 training examples split by where each target came from: 47 real prose, 27 copies of one identical critique response, 27 synthetic round-trips, 11 from one headline template, 5 hand-written, and a zero-width slice for the Present task with none.](/img/writing/i-use-the-untuned-one-dataset.svg)
 
-The 47 Draft examples are real prose lifted out of the corpus, and they are the good half. Everything after them is manufactured. All 27 Critique examples share one identical hard-coded target, so 23% of the dataset is a single string repeated. The 11 Headline examples come from one six-variant template with the title slotted in. Five out-of-domain examples are pastiche I wrote by hand, and one of them paraphrases my own published `ai-saves-the-hour.md` closely enough that recalling it is memorization, not generalization. And 27 targets end mid-sentence in an ellipsis, because the Critique target truncates its quoted rewrite at 300 characters. I trained the model to trail off. Present is 0 because of one character: the loader sets `content_type` to `"talks"` and the Present branch filters on `"talk"`.
+The 47 Draft examples are real prose lifted out of the corpus, and they are the good half. Everything after them is manufactured. All 27 Critique examples share an identical three-bullet diagnostic critique preamble before quoting the source text, so 23% of the dataset is that feedback repeated. The 11 Headline examples come from one six-variant template with the title slotted in. Five out-of-domain examples are pastiche I wrote by hand, and one of them paraphrases my own published `ai-saves-the-hour.md` closely enough that recalling it is memorization, not generalization. And 27 targets end mid-sentence in an ellipsis, because the Critique target truncates its quoted rewrite at 300 characters. I trained the model to trail off. Present is 0 because of one character: the loader sets `content_type` to `"talks"` and the Present branch filters on `"talk"`.
 
 The Edit examples needed bad writing, and I didn't have any, so the generator manufactures it. `corporatize()` takes a real paragraph of mine and damages it on the way in:
 
@@ -72,7 +98,7 @@ Then the split: `random.seed(42)`, shuffle, slice 90/10 over derived examples ra
 
 ## It learned the shape of evidence without any way to have evidence
 
-From prompts that supplied no numbers at all, it produced 40%, 40%, 20%, 15%, and 40% across four of the twenty outputs. It has a favorite fake number. `eval_04` is a thirteen-word prompt with nothing quantitative in it, and what came back was "We reduced the time-to-first-API-call by 40%," three invented artifacts, and a line beginning "The lesson:". `eval_10` invented industry recognition for a tool and manufactured a senior developer's objection to open on, which stings: opening on a quoted objection is a move I make.
+From prompts that supplied no numbers at all, it produced 40%, 20%, 15%, and 40% across three of the twenty outputs, and a literal `[X]%` placeholder in a fourth. It has a favorite fake number. `eval_04` is a thirteen-word prompt with nothing quantitative in it, and what came back was "We reduced the time-to-first-API-call by 40%," three invented artifacts, and a line beginning "The lesson:". `eval_10` invented industry recognition for a tool and manufactured a senior developer's objection to open on, which stings: opening on a quoted objection is a move I make.
 
 There is no mystery in the mechanism, and it starts with what I handed it. My corpus is full of sentences like "2 of 10 to 9 of 10," so what transferred is that a paragraph of mine contains a hard number. It didn't learn to have evidence. It learned the shape a sentence makes when it has some, and then filled the shape.
 
@@ -88,7 +114,7 @@ I owe the prior Field Note a scale correction. It cited the [UMich author-voice 
 
 No preference optimization ran. No DPO, no GRPO, no KTO, no ORPO: supervised fine-tuning only, and anything suggesting otherwise, including from me, is wrong. Which means the dataset was the reward function, and I built it last and checked it least.
 
-The cleanest case is the em-dash. Training inputs carried 204 of them and training targets carried 0, about as clean a signal as you can hand a model. The README then claims the model "consistently uses colons, periods, and semicolons instead of em-dashes." Against its own retained outputs there are 7, across 5 of 20. That claim was false for as long as it took to run one grep, and running the grep was nobody's job.
+The cleanest case is the em-dash. Training inputs carried 204 of them and training targets carried 0, about as clean a signal as you can hand a model. The README then claims the model "consistently uses colons, periods, and semicolons instead of em-dashes." Against its own retained outputs there are 6, across 5 of 20. That claim was false for as long as it took to run one grep, and running the grep was nobody's job.
 
 What does exist ships on every commit: `content-rules.mjs` and `check-content.mjs`, with `W-EMDASH`, `W-ANNOUNCE`, and `W-HYPE` as errors and `W-STOCK-PHRASE`, a six-word shingle repeated across three or more Field Notes, as a warning. Live run this morning: 33 entries, 0 errors, 0 warnings. The header comment carries the whole design opinion. Taste stays with the review skill; the file catches only what a reviewer should never have to spend attention on.
 
@@ -120,6 +146,6 @@ Wouldn't at this corpus size either. If your whole body of work fits in a contex
 
 Where the tune still earns its keep is behind a person: generating drafting and critique options, most of which I throw away. Mechanical rules belong in CI, not in the loss function. And fine-tunes rot, because every base-model deprecation invalidates a checkpoint while the dataset generator and the grader survive it.
 
-The adapter is still sitting in us-central1 with nothing deployed in front of it, and I'll retrain it when there's a `base/` directory to compare against and a split that holds source documents apart instead of shuffling their leftovers. Until then the honest setup is a laptop, nine sentences, and me reading every line it hands back.
+The adapter is still sitting in us-central1 with nothing deployed in front of it, and I'll retrain it when there's a `base-model/` directory to compare against and a split that holds source documents apart instead of shuffling their leftovers. Until then the honest setup is a laptop, nine sentences, and me reading every line it hands back.
 
 If you've tuned a model on your own writing and found a way to stop it inventing the numbers, show me what your grader checks. Mine catches four things, and not one of them is "is this number real."
