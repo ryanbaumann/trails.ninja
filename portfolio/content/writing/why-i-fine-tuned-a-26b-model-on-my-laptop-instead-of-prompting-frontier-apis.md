@@ -135,6 +135,8 @@ The studio provides three integrated capabilities:
 - **Voice Memo Scrubber:** Direct text cleaner with an interactive Sentence Length Rhythm Spectrum and a 1-click Export Verified Pair to JSONL button.
 - **Loss Analytics:** Tracks convergence curves, training loss, and Metal memory metrics across all four fine-tuning runs.
 
+![Voice and Editorial Studio showing real-time sentence-length rhythm spectrum, side-by-side dictation-to-prose scrubber, and loss convergence analytics.](/img/writing/voice-studio-ui.jpg)
+
 ## Comparative breakdown: prompting vs. fine-tuned local models
 
 When you compare raw human dictation, frontier cloud prompting, and our Round 4 fine-tuned local model side by side, the tradeoffs are clear:
