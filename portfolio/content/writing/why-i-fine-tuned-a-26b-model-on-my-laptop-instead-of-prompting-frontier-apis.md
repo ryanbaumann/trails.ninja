@@ -1,5 +1,5 @@
 ---
-title: Why I Fine-Tuned a 26B Model on My Laptop Instead of Prompting Frontier APIs
+title: Why I Fine-Tuned a Model on My Laptop Instead of Prompting Frontier APIs
 summary: I set out to build an AI writing partner with real taste. Prompt engineering hits an RLHF ceiling where models flatten prose into corporate mush, while unconstrained fine-tuning risks hallucinating facts. Across four iterative tuning rounds on Apple Silicon Metal, here is how we solved prompt replication, eliminated metric hallucinations, and built a local editorial studio that keeps prose authentically human.
 date: 2026-08-15
 updated: 2026-08-15
@@ -15,24 +15,24 @@ shareSummary: Prompt engineering hits a wall when default RLHF flattens prose to
 shareImageAlt: A social card setting early unmasked prompt replication against a 218-pair fine-tuned local Gemma 4 model with verified metrics.
 ---
 
-Here is how my writing process usually falls apart:
+Here is how my AI assisted writing process usually falls apart:
 
 I dictate a messy voice memo on a trail run or dump four hundred words of raw notes into a text editor. I hand that rough draft to a frontier model to polish and structure. Thirty seconds later, the model returns a spotless draft that opens with "In today's fast-paced technological landscape" and leans on three false dichotomies before the second paragraph.
 
-I open the file, take a digital red pen to the text, delete half the adjectives, restore my syntax, and basically rewrite the entire piece from scratch.
+I open the file, take a digital red pen to the text, delete half the adjectives, restore my syntax, and basically rewrite the entire piece from scratch.  I try the same thing with skills and context engineering; and it gets a little bit better, but still falls into lots of tropes of overfitting to rules and style guidelines.
 
 When you spend more time stripping out generic AI filler than you would have spent drafting by hand, the tool isn't productive.
 
 I wanted to see if I could make an AI copywriter and brainstormer actually have taste I like and would write with. I want to own the thinking, the technical friction, and the argument. I wanted a real writing partner I can trust to speak in my voice for drafting, reviewing, and tightening prose without stripping away the rhythm.
 
-## Four ways to steer a model, and where each hits a wall
+## Four ways to steer a model
 
-Before jumping into local fine-tuning, I systematically tested four levels of model steering to find where each approach breaks down:
+Before jumping into local fine-tuning, I tested four levels of model steering to find where each approach breaks down:
 
 1. **Context Engineering:** I loaded frontier models with my writing style guidelines. I specified sentence length variance targets, provided few-shot examples from published case studies, and added negative rules against em-dashes and hype adjectives.
 2. **Agentic Workflows:** When single prompts plateaued, I built multi-agent loops. I fanned out candidate drafts across three parallel subagents (analytical, scene-led, and staccato), then used an independent judge subagent to evaluate and synthesize the results against structured voice rubrics.
 3. **Model Exploration:** I tested different frontier architectures across multiple model families. Each model brought distinct traits; some were sharp on technical architecture, while others maintained tight narrative coherence. But every frontier model shared the same underlying friction: heavy RLHF tuning that pulls prose toward a polite, sanitized corporate mean. No matter how much context engineering or agent orchestration I wrapped around them, the outputs defaulted to generic transitions, uniform paragraph lengths, and predictable rhetoric.
-4. **Base Model Fine-Tuning:** When prompting and agentic loops hit their ceiling, the next step was fine-tuning an open-weight base model directly on my own writing corpus to reshape its underlying token probabilities.
+4. **Base Model Fine-Tuning:** When prompting and agentic loops hit their ceiling, the next step was fine-tuning an open-weight base model directly on my own writing corpus to reshape its training to suit me. This is the ultimate dream of a star trek personalized assistant for every human on earth. We're just not (even close) to there yet. So fine tuning it is ;)
 
 ## The empirical evidence: University of Michigan research
 
@@ -64,7 +64,7 @@ I built a dataset generation script (`scripts/generate-ft-dataset.py`) to extrac
 
 I used `mlx_lm.lora` on an Apple M4 Pro (48GB unified memory) to train LoRA adapters on the 4-bit quantized Gemma 4 26B-A4B checkpoint.
 
-## The 4 iterative rounds on Apple Silicon Metal
+## 4 training rounds
 
 Getting voice fine-tuning right required four iterative rounds of dataset engineering, loss masking, and hyperparameter tuning:
 
@@ -77,23 +77,23 @@ Getting voice fine-tuning right required four iterative rounds of dataset engine
 
 ![Local Fine-Tuning Evolution on Apple Silicon Metal: Round 1 unmasked loss at 36.8 GB RAM versus Round 4 masked micro-pairs at 24.5 GB RAM.](/img/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-header.svg)
 
-## Four core architectural learnings
+## Core learnings
 
-From these four iterations, four fundamental rules emerged for training personal voice models on local hardware:
+From these four iterations, four rules emerged for training personal voice models on local hardware:
 
-### 1. Factual preservation prevents metric hallucination
+### 1. Watch out for bias leading to hallucinations
 Early unconstrained runs can learn that sounding authentic requires citing quantitative improvements (like 40% latency cuts). If edit pairs pair generic input prompts with metric-dense targets, the model invents numbers. In voice fine-tuning, edit and rewrite targets must strictly preserve the numerical spine and factual content of the prompt while shifting cadence, active voice, and register.
 
 ### 2. Completion-only loss masking (`--mask-prompt`)
-Standard sequence-level cross-entropy wastes gradient capacity memorizing system prompts and user prompt scaffolding. Passing `--mask-prompt` into `mlx_lm.lora` forces 100% of the adapter weights to learn authorial style and completion tokens, eliminating prompt replication.
+Standard parameters for training waste gradient capacity memorizing system prompts and generic prompts. Passing `--mask-prompt` into `mlx_lm.lora` forces 100% of the adapter weights to learn authorial style and completion tokens, eliminating prompt replication.
 
-### 3. Micro-pair slicing vs. macro slices
+### 3. Micro vs. macro slices
 Instead of training on entire multi-page essays, slicing sections into paragraph-level micro-pairs (100 to 250 words) expanded our dataset to 218 rich samples, eliminated sequence length truncation warnings, and reduced peak Metal RAM to 24.5 GB (leaving over 23 GB of free memory on a 48GB M4 Pro).
 
 ![Dataset evolution breakdown: 218 paragraph-level micro-pairs across 111 Edits, 54 Drafts, 30 Critiques, and 19 Headlines.](/img/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-dataset.svg)
 
-### 4. Optimal voice adaptation budget
-On small personal writing corpora (150 to 250 pairs), 1.5 to 2.5 epochs (roughly 100 to 150 iterations with gradient accumulation) is the empirical sweet spot. Exceeding 3 epochs leads to mode collapse and repetitive rhetoric on open-ended tasks.
+### 4. Voice adaptation budget
+On small personal writing corpora (150 to 250 pairs), 1.5 to 2.5 epochs (roughly 100 to 150 iterations with gradient accumulation) is the sweet spot. Exceeding 3 epochs leads to mode collapse and repetitive rhetoric on open-ended tasks.
 
 ## Interactive Web App: Voice & Editorial Studio
 
@@ -123,6 +123,8 @@ The studio provides three integrated capabilities:
 - **Blind Arena:** Randomized pairwise comparisons between the fine-tuned adapter and base model with real-time rhythm and buzzword checkers.
 - **Voice Memo Scrubber:** Direct text cleaner with an interactive Sentence Length Rhythm Spectrum and a 1-click Export Verified Pair to JSONL button.
 - **Loss Analytics:** Tracks convergence curves, training loss, and Metal memory metrics across all four fine-tuning runs.
+
+ I can use this sample dashboard to analyze the eval results, as well as generate my own synthetic human review feedback.  AKA this is my way of human reviewing the model outputs and tuning it to my voice for the next training run.
 
 ![Voice and Editorial Studio showing real-time sentence-length rhythm spectrum, side-by-side dictation-to-prose scrubber, and loss convergence analytics.](/img/writing/voice-studio-ui.jpg)
 
