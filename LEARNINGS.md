@@ -4,8 +4,11 @@ This log captures durable lessons discovered while building and maintaining the 
 
 ## 2026-08-14 - Local Gemma 4 MLX reviews catch abstract rhetorical openings
  
-Context: Reviewing portfolio writing with the fine-tuned Gemma 4 26B-A4B voice model
-locally via MLX on Apple Silicon.
+Context: Reviewing portfolio writing with the base Gemma 4 26B-A4B model steered by a
+system prompt, running locally via MLX on Apple Silicon. This is not the fine-tuned
+adapter: `scripts/local_gemma.py` calls `mlx_lm.load()` with no `adapter_path`, so the
+voice comes entirely from `SYSTEM_PROMPT`. The tuned `ryan-voice-gemma-4-26b-v1` adapter
+lives on Vertex AI and has never run on this laptop.
 Learning: Automated voice review reliably catches the subtle shift where a post slips
 from authentic builder narrative into essay-style rhetorical questions and academic
 headers (like "## The hypothesis", "## The test"). Replacing these with immediate

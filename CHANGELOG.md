@@ -11,6 +11,26 @@ All notable changes to this project will be documented in this file.
 - Committed reproducible training data, dataset generator (`scripts/generate-ft-dataset.py`), held-out evaluation suite (`experiment/voice-ft/eval/prompts.jsonl`), ephemeral evaluation runner (`scripts/run_ephemeral_eval.py`), and on-demand assistant/subagent CLI (`scripts/ryan_voice.py`) for the Gemma 4 26B-A4B voice fine-tuning experiment.
 
 ### Changed
+- Drafted "I Fine-Tuned a Model on My Own Writing. I Use the Untuned One."
+  (`portfolio/content/writing/i-use-the-untuned-one.md`, draft and noindex), a
+  grounded post-mortem of the unpublished Gemma 4 26B-A4B voice tune measured
+  directly against its own artifacts rather than its README. Every claim was
+  re-derived from the repository: 117 regenerated examples (not the 129 the
+  README reports), 27 Critique examples sharing one identical target, the
+  `"talks"`/`"talk"` filter bug that left the Present task with zero training
+  data, a validation split contaminated at the derived-example level (6 of 9
+  validation sources also in training), 7 em-dashes across 5 of 20 held-out
+  outputs against a "zero em-dashes" claim, and 5 fabricated percentages across
+  4 outputs from prompts containing no numbers. No baseline run exists in
+  `experiment/voice-ft/eval/results/`, so the post makes no tuned-versus-base
+  delta claim. Adds three inline SVGs (header, dataset provenance, grader
+  gates) following the existing light/dark custom-property house style, plus a
+  `scripts/social-cards.mjs` entry and the generated 1200x627 share card.
+- Corrected the local-runner attribution in `LEARNINGS.md`: the review pass that
+  produced the PR #212 edits ran the base model steered by `SYSTEM_PROMPT`, not
+  the tuned adapter. `scripts/local_gemma.py` calls `mlx_lm.load()` with no
+  `adapter_path`, and the `ryan-voice-gemma-4-26b-v1` adapter has never run
+  locally.
 - Refined writing and voice across all public and draft Field Notes using local Gemma 4 26B-A4B editorial review, stripping academic rhetorical question openings, aligning narrative flow to growth-backwards framing (Result $\rightarrow$ Shipped $\rightarrow$ Lesson), enforcing 0 em-dashes, and varying closing CTAs to achieve 0 stock phrase collisions.
 - Added 1-command local Gemma 4 runner (`scripts/gemma-local.sh` and `scripts/local_gemma.py`) powered by Apple Silicon MLX and Metal acceleration with gitignored local weight caching in `models/`.
 - Updated the Loop Engineering coding agent operating contract (`agent-scripts/coding-agent-loop/SYSTEM_PROMPT.md`), role overlays (`roles/`), and public Field Note (`portfolio/content/writing/loop-engineering-coding-agent.md`) with Practical Loop Engineering best practices:
