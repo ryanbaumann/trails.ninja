@@ -36,6 +36,6 @@
 
   <!-- Footer note -->
   <rect x="70" y="546" width="6" height="66" rx="3" fill="var(--accent)"/>
-  <text x="102" y="576" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="var(--faint)">No baseline run exists for the tuned model, so this is not a measured comparison.</text>
-  <text x="102" y="606" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="var(--faint)">It is a record of which one I open.</text>
+  <text x="102" y="576" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="var(--faint)">Register transferred. Judgment did not.</text>
+  <text x="102" y="606" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="var(--faint)">The local prompted runner caught structural errors without hallucinating numbers.</text>
 </svg>
