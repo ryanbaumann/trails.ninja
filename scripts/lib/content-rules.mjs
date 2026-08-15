@@ -141,8 +141,14 @@ export function checkDocument({ path, collection, raw }) {
 const SHINGLE = 6;
 const STOCK_PHRASE_FILES = 3;
 
+// A URL is an address, not phrasing. Three posts linking the same repo is
+// evidence, not boilerplate, so link targets never count toward a stock phrase.
+function withoutUrls(text) {
+  return text.replace(/\]\([^)]*\)/g, '] ').replace(/https?:\/\/\S+/g, ' ');
+}
+
 function shingles(text) {
-  const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+  const words = withoutUrls(text).toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
   const out = new Set();
   for (let i = 0; i + SHINGLE <= words.length; i += 1) out.add(words.slice(i, i + SHINGLE).join(' '));
   return out;

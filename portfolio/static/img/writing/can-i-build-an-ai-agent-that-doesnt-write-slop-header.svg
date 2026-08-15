@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Code passes through a compiler, a type checker, tests, and a runtime, so machines grade it in seconds. Prose passes through none of them and goes straight to a person, so the only grader is taste.">
+  <style>
+    :root { --bg: #faf9f6; --surface: #ffffff; --ink: #111827; --faint: #5f6875; --line: #d9dde5; --accent: #3b82f6; --accent-ink: #2563eb; --pass: #047857; --none: #7c8698; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #030712; --surface: #111827; --ink: #f9fafb; --faint: #aeb7c4; --line: #334155; --accent: #60a5fa; --accent-ink: #93c5fd; --pass: #34d399; --none: #94a3b8; } }
+    .eyebrow { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 28px; font-weight: 700; letter-spacing: 1.6px; }
+    .deck { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 40px; font-weight: 720; letter-spacing: -0.6px; fill: var(--ink); }
+    .lane { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 28px; font-weight: 700; letter-spacing: 1.5px; }
+    .step { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 30px; font-weight: 620; fill: var(--ink); }
+    .verdict { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 28px; font-weight: 700; }
+    .note { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 26px; fill: var(--faint); }
+  </style>
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.28"/></pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--faint)"/></marker>
+  </defs>
+  <rect width="1200" height="675" fill="var(--bg)"/>
+  <rect width="1200" height="675" fill="url(#grid)"/>
+  <rect width="1200" height="8" fill="var(--accent)"/>
+  <rect x="1" y="1" width="1198" height="673" fill="none" stroke="var(--line)" stroke-width="2"/>
+
+  <text x="70" y="84" class="eyebrow" fill="var(--accent-ink)">WRITING IS THE HARDER CASE</text>
+  <text x="70" y="140" class="deck">Code has graders. Prose has only a reader.</text>
+
+  <!-- Code lane -->
+  <text x="70" y="214" class="lane" fill="var(--faint)">CODE</text>
+  <rect x="70" y="234" width="164" height="84" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+  <text x="152" y="286" class="step" text-anchor="middle">compiler</text>
+  <line x1="244" y1="276" x2="272" y2="276" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="282" y="234" width="164" height="84" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+  <text x="364" y="286" class="step" text-anchor="middle">types</text>
+  <line x1="456" y1="276" x2="484" y2="276" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="494" y="234" width="164" height="84" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+  <text x="576" y="286" class="step" text-anchor="middle">tests</text>
+  <line x1="668" y1="276" x2="696" y2="276" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="706" y="234" width="164" height="84" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+  <text x="788" y="286" class="step" text-anchor="middle">runtime</text>
+  <line x1="880" y1="276" x2="908" y2="276" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="920" y="286" class="verdict" fill="var(--pass)">graded fast</text>
+
+  <line x1="70" y1="378" x2="1130" y2="378" stroke="var(--line)" stroke-width="1" stroke-dasharray="5 7"/>
+
+  <!-- Prose lane -->
+  <text x="70" y="438" class="lane" fill="var(--accent-ink)">PROSE</text>
+  <rect x="70" y="458" width="800" height="84" rx="10" fill="none" stroke="var(--none)" stroke-width="2" stroke-dasharray="9 8"/>
+  <text x="470" y="510" class="step" text-anchor="middle" style="fill: var(--faint)">nothing compiles, nothing runs</text>
+  <line x1="880" y1="500" x2="908" y2="500" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="920" y="510" class="verdict" fill="var(--accent-ink)">a person</text>
+
+  <!-- Payoff -->
+  <rect x="70" y="586" width="6" height="62" rx="3" fill="var(--accent)"/>
+  <text x="104" y="612" class="note" fill="var(--ink)" font-weight="650">The only grader for copy is taste.</text>
+  <text x="104" y="646" class="note">So a human stays in the loop by construction.</text>
+</svg>

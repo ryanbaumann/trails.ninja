@@ -272,11 +272,11 @@ const CARDS = [
     layout: 'screenshot',
   },
   {
-    file: 'why-i-fine-tuned-a-26b-model-on-my-laptop-instead-of-prompting-frontier-apis.png',
-    eyebrow: 'FIELD NOTES · LOCAL FINE-TUNING',
-    title: 'Why I Fine-Tuned a 26B Model on My Laptop Instead of Prompting Frontier APIs',
-    summary: 'From unmasked prompt replication to 218 micro-pairs on Apple Silicon Metal.',
-    source: 'portfolio/static/img/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-header.svg',
+    file: 'can-i-build-an-ai-agent-that-doesnt-write-slop.png',
+    eyebrow: 'FIELD NOTES · WRITING WITH AI',
+    title: "Can I Build an AI Agent That Doesn't Write Slop?",
+    summary: 'I tuned a 26B model on my own writing. Register transferred. Judgment did not.',
+    source: 'portfolio/static/img/writing/can-i-build-an-ai-agent-that-doesnt-write-slop-header.svg',
     layout: 'artifact',
   },
 ];

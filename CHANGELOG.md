@@ -18,16 +18,32 @@ All notable changes to this project will be documented in this file.
 - Committed reproducible training data, dataset generator (`scripts/generate-ft-dataset.py`), held-out evaluation suite (`experiment/voice-ft/eval/prompts.jsonl`), ephemeral evaluation runner (`scripts/run_ephemeral_eval.py`), and on-demand assistant/subagent CLI (`scripts/ryan_voice.py`) for the Gemma 4 26B-A4B voice fine-tuning experiment.
 
 ### Changed
-- Drafted "Why I Fine-Tuned a 26B Model on My Laptop Instead of Prompting Frontier APIs"
-  (`portfolio/content/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-instead-of-prompting-frontier-apis.md`, draft and noindex), a
-  grounded post-mortem and technical breakdown of personal voice fine-tuning on Apple Silicon Metal. Integrated empirical
-  validation from the University of Michigan author-voice study (*Dhillon et al., 2026*),
-  demonstrating the prompting-versus-tuning gap (82.7% MFA judge preference for human writing
-  over prompted models vs. 62% preference for fine-tuned models). Detailed the 4-round local tuning progression,
-  four core architectural learnings (factual preservation, completion-only loss masking, micro-pair slicing, and optimal voice adaptation budget),
-  the three-step workflow (Human Dictation $\rightarrow$ Local Low-Latency Copyeditor $\rightarrow$ Human Review),
-  comparative metrics breakdown (sentence length variance, cliché token frequency, latency),
-  and interactive Voice & Editorial Studio app. Includes three inline SVGs (header, dataset provenance, grader gates), a `scripts/social-cards.mjs` entry, and the generated share card.
+- Rewrote the voice fine-tuning Field Note as "Can I Build an AI Agent That
+  Doesn't Write Slop?"
+  (`portfolio/content/writing/can-i-build-an-ai-agent-that-doesnt-write-slop.md`, renamed from
+  `why-i-fine-tuned-a-26b-model-on-my-laptop-instead-of-prompting-frontier-apis.md`
+  with an alias redirect). The note now answers its own question against the six
+  retained held-out results: register transferred on all six, judgment failed on
+  five, including an invented arXiv ID. It opens on why prose is the harder case
+  (code ships into compilers, type checkers, tests, and a runtime; a paragraph
+  ships into a person), lands on the two jobs that survived (rough first drafts
+  from dictation, and editing copy I already wrote), and stays in first person
+  throughout. Replaced the fabricated University of Michigan statistics
+  (*Dhillon et al., 2026*, "82.7%", "62%") with the real preregistered study,
+  [arXiv:2510.13939](https://arxiv.org/abs/2510.13939), and its reported odds
+  ratios of 0.16 prompted and 8.16 fine-tuned. Cut the Voice & Editorial Studio
+  section and deleted `portfolio/static/img/writing/voice-studio-ui.jpg`, an
+  AI-generated screenshot of an interface that was never photographed. Rebuilt
+  all three inline SVGs at 1200x675 around the argument (code has graders, gates
+  in front of judgment, register versus judgment) and regenerated the share card,
+  which had been carrying another post's artwork.
+- Stopped counting URLs toward `W-STOCK-PHRASE` in `scripts/lib/content-rules.mjs`.
+  Three notes linking the same repo file is evidence, not boilerplate, so link
+  targets are stripped before shingling. Covered by a new case in
+  `scripts/test/check-content.test.mjs`.
+- Wrapped `pre` blocks below 640px in `portfolio/style.css` so a command longer
+  than the phone reading column wraps instead of opening a horizontal scroll
+  gutter inside the article.
 - Integrated the local Gemma 4 runner (`scripts/gemma-local.sh` and `scripts/local_gemma.py`)
   into `.agents/skills/portfolio-review/SKILL.md` as an automated voice and cadence critique
   step in the maker/checker loop, with full 4096-token generation support.

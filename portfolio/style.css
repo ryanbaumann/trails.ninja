@@ -97,6 +97,11 @@ pre {
   overflow-x: auto;
 }
 pre code { background: none; padding: 0; }
+/* On a phone the reading column is narrower than most commands, and a
+   horizontal scroll gutter inside an article is worse than a wrapped line. */
+@media (max-width: 640px) {
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+}
 .table-scroll { max-width: 100%; overflow-x: auto; margin: 1.25rem 0; }
 table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
 th, td { padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
