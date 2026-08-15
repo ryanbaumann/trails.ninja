@@ -271,6 +271,14 @@ const CARDS = [
     source: 'portfolio/static/previews/isochrones.jpg',
     layout: 'screenshot',
   },
+  {
+    file: 'i-use-the-untuned-one.png',
+    eyebrow: 'FIELD NOTES · FINE-TUNING',
+    title: 'My Voice Model Invented a 40%, Four Times',
+    summary: 'Register transferred. Judgment did not.',
+    source: 'portfolio/static/img/writing/i-use-the-untuned-one-header.svg',
+    layout: 'artifact',
+  },
 ];
 
 const requestedFiles = new Set(process.argv.slice(2).map(f => f.replace(/\.png$/, '.jpg')));

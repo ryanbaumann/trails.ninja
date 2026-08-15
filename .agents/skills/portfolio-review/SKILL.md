@@ -65,7 +65,7 @@ Give reviewers the raw diff, rendered page, and assets. Do not give them the int
 
 After each review round: classify findings, make one focused correction pass, rerun deterministic checks, and request a fresh read-only review. Stop after at most three rounds. Stop earlier when all lanes are clean. If a material claim, source, or design decision remains unresolved, return `NEEDS_HUMAN`; do not average reviewer opinions or declare victory.
 
-Use deterministic tools and lower-cost models for inventory and mechanical checks, a balanced model for edits, and the strongest justified model only for final cross-surface synthesis or unresolved ambiguity. The maker is never the only grader.
+Use deterministic tools and lower-cost models for inventory and mechanical checks, a balanced model for edits, and the strongest justified model only for final cross-surface synthesis or unresolved ambiguity. For local voice and cadence critique, run `./scripts/gemma-local.sh review <file>` (or `./scripts/gemma-local.sh edit <file>`) to check active first-person framing and rhythm on Metal before final sign-off. The maker is never the only grader.
 
 ## 6. Required verification
 
@@ -73,6 +73,7 @@ Run the narrowest relevant checks, then the complete content path when practical
 
 ```bash
 npm run check:content   # mechanical writing and content rules; run this first
+./scripts/gemma-local.sh review <file>  # local voice and cadence critique
 cd portfolio && npm test && npm run build
 cd ../gateway && npm test
 cd .. && node scripts/build-local.mjs && node scripts/smoke.mjs

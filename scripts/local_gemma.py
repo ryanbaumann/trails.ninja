@@ -52,7 +52,7 @@ def load_model(model_path: str):
     print("[✓] Model loaded successfully.")
     return model, tokenizer
 
-def generate_text(model, tokenizer, prompt: str, max_tokens: int = 1024, temp: float = 0.7) -> str:
+def generate_text(model, tokenizer, prompt: str, max_tokens: int = 4096, temp: float = 0.7) -> str:
     """Generate response using MLX."""
     import mlx_lm
     messages = [
@@ -82,7 +82,7 @@ def generate_text(model, tokenizer, prompt: str, max_tokens: int = 1024, temp: f
     )
     return response.strip()
 
-def review_copy(model, tokenizer, target_path_or_text: str) -> str:
+def review_copy(model, tokenizer, target_path_or_text: str, max_tokens: int = 4096) -> str:
     """Perform editorial critique on copy."""
     text = target_path_or_text
     p = Path(target_path_or_text)
@@ -98,16 +98,16 @@ def review_copy(model, tokenizer, target_path_or_text: str) -> str:
         "4. Concrete Line-by-Line Rewrites: Provide specific, tightened rewrites for the weakest sections.\n\n"
         f"--- COPY TO REVIEW ---\n{text}"
     )
-    return generate_text(model, tokenizer, prompt)
+    return generate_text(model, tokenizer, prompt, max_tokens=max_tokens)
 
-def edit_copy(model, tokenizer, target_path_or_text: str) -> str:
+def edit_copy(model, tokenizer, target_path_or_text: str, max_tokens: int = 4096) -> str:
     """Rewrite text into Ryan's voice."""
     text = target_path_or_text
     p = Path(target_path_or_text)
     if p.exists() and p.is_file():
         text = p.read_text(encoding="utf-8")
     prompt = f"Rewrite the following text in Ryan's voice, stripping corporate boilerplate, passive voice, and buzzwords:\n\n{text}"
-    return generate_text(model, tokenizer, prompt)
+    return generate_text(model, tokenizer, prompt, max_tokens=max_tokens)
 
 def main():
     parser = argparse.ArgumentParser(description="Local Gemma 4 Runner (Apple Silicon / MLX)")
@@ -119,17 +119,19 @@ def main():
     # Review command
     rev_parser = subparsers.add_parser("review", help="Review copy against voice standards")
     rev_parser.add_argument("target", help="File path or string to review")
+    rev_parser.add_argument("--max-tokens", type=int, default=4096, help="Max response tokens")
     rev_parser.add_argument("--repo", default=DEFAULT_MODEL_REPO, help="Hugging Face repo ID")
 
     # Edit command
     edit_parser = subparsers.add_parser("edit", help="Rewrite text in Ryan's voice")
     edit_parser.add_argument("target", help="File path or string to rewrite")
+    edit_parser.add_argument("--max-tokens", type=int, default=4096, help="Max response tokens")
     edit_parser.add_argument("--repo", default=DEFAULT_MODEL_REPO, help="Hugging Face repo ID")
 
     # Generate / ask command
     gen_parser = subparsers.add_parser("generate", help="Generate response to an arbitrary prompt")
     gen_parser.add_argument("prompt", help="Prompt text")
-    gen_parser.add_argument("--max-tokens", type=int, default=1024, help="Max response tokens")
+    gen_parser.add_argument("--max-tokens", type=int, default=4096, help="Max response tokens")
     gen_parser.add_argument("--repo", default=DEFAULT_MODEL_REPO, help="Hugging Face repo ID")
 
     args = parser.parse_args()

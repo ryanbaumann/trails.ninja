@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-label="A single bar of 117 training examples split by where each target came from: 47 real prose, 27 copies of one identical critique response, 27 synthetic round-trips, 11 from one headline template, 5 hand-written, and a zero-width slice for the Present task with none.">
+  <style>
+    :root { --bg: #faf9f6; --surface: #ffffff; --ink: #111827; --faint: #5f6875; --line: #d9dde5; --accent: #3b82f6; --accent-ink: #2563eb; --real: #2563eb; --dup: #f59e0b; --synth: #94a3b8; --tmpl: #cbd5e1; --hand: #e2e8f0; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #030712; --surface: #111827; --ink: #f9fafb; --faint: #aeb7c4; --line: #334155; --accent: #60a5fa; --accent-ink: #93c5fd; --real: #60a5fa; --dup: #fbbf24; --synth: #64748b; --tmpl: #475569; --hand: #334155; } }
+  </style>
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.28"/></pattern>
+    <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="var(--dup)"/><line x1="0" y1="0" x2="0" y2="10" stroke="var(--bg)" stroke-width="4"/></pattern>
+  </defs>
+  <rect width="1200" height="620" fill="var(--bg)"/>
+  <rect width="1200" height="620" fill="url(#grid)"/>
+  <rect width="1200" height="8" fill="var(--accent)"/>
+  <rect x="1" y="1" width="1198" height="618" fill="none" stroke="var(--line)" stroke-width="2"/>
+
+  <text x="70" y="76" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="25" font-weight="700" letter-spacing="1.8" fill="var(--accent-ink)">117 TRAINING EXAMPLES · BY WHERE THE TARGET CAME FROM</text>
+  <text x="70" y="126" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="720" letter-spacing="-0.5" fill="var(--ink)">Half of it was my prose. Half of it was a template.</text>
+
+  <!-- Bar: x 70..1100, 1030px for 117 examples -->
+  <rect x="70" y="220" width="414" height="96" fill="var(--real)"/>
+  <rect x="484" y="220" width="238" height="96" fill="url(#hatch)"/>
+  <rect x="722" y="220" width="238" height="96" fill="var(--synth)"/>
+  <rect x="960" y="220" width="97" height="96" fill="var(--tmpl)"/>
+  <rect x="1057" y="220" width="44" height="96" fill="var(--hand)"/>
+  <rect x="70" y="220" width="1031" height="96" fill="none" stroke="var(--line)" stroke-width="2"/>
+  <line x1="484" y1="220" x2="484" y2="316" stroke="var(--bg)" stroke-width="2"/>
+  <line x1="722" y1="220" x2="722" y2="316" stroke="var(--bg)" stroke-width="2"/>
+  <line x1="960" y1="220" x2="960" y2="316" stroke="var(--bg)" stroke-width="2"/>
+  <line x1="1057" y1="220" x2="1057" y2="316" stroke="var(--bg)" stroke-width="2"/>
+
+  <!-- Present: zero width -->
+  <line x1="1101" y1="206" x2="1101" y2="330" stroke="var(--faint)" stroke-width="3"/>
+  <line x1="1101" y1="330" x2="1101" y2="368" stroke="var(--faint)" stroke-width="1" stroke-dasharray="3 4"/>
+  <text x="1130" y="382" text-anchor="end" font-family="ui-monospace, monospace" font-size="21" font-weight="700" fill="var(--faint)">Present: 0</text>
+
+  <!-- Row 1 labels -->
+  <text x="90" y="366" font-family="ui-sans-serif, system-ui, sans-serif" font-size="27" font-weight="700" fill="var(--ink)">47 real prose</text>
+  <text x="90" y="398" font-family="ui-sans-serif, system-ui, sans-serif" font-size="23" fill="var(--faint)">drawn from the corpus. The good part.</text>
+
+  <text x="504" y="366" font-family="ui-sans-serif, system-ui, sans-serif" font-size="27" font-weight="700" fill="var(--ink)">27 one identical target</text>
+  <text x="504" y="398" font-family="ui-sans-serif, system-ui, sans-serif" font-size="23" fill="var(--faint)">one string, 23% of the dataset</text>
+
+  <text x="742" y="366" font-family="ui-sans-serif, system-ui, sans-serif" font-size="27" font-weight="700" fill="var(--ink)">27 round-trips</text>
+  <text x="742" y="398" font-family="ui-sans-serif, system-ui, sans-serif" font-size="23" fill="var(--faint)">my own prose, machine-damaged</text>
+
+  <!-- Row 2 labels with leaders -->
+  <line x1="1008" y1="324" x2="1008" y2="452" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 4"/>
+  <line x1="1079" y1="324" x2="1079" y2="514" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 4"/>
+  <text x="1130" y="462" text-anchor="end" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="var(--ink)">11 from one headline template</text>
+  <text x="1130" y="524" text-anchor="end" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="var(--ink)">5 hand-written</text>
+
+  <!-- Footer -->
+  <rect x="70" y="546" width="6" height="38" rx="3" fill="var(--accent)"/>
+  <text x="102" y="574" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="var(--faint)">27 of the targets also end mid-sentence, because the template truncates at 300 characters.</text>
+</svg>

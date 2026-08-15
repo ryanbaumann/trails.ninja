@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Two paths side by side: a cloud tune on an A100 with 117 training examples that invented a percentage in four of twenty held-out outputs, and a laptop running the base model with no training examples whose edits shipped.">
+  <style>
+    :root { --bg: #faf9f6; --surface: #ffffff; --ink: #111827; --faint: #5f6875; --line: #d9dde5; --accent: #3b82f6; --accent-ink: #2563eb; --muted: #94a3b8; --live: #2563eb; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #030712; --surface: #111827; --ink: #f9fafb; --faint: #aeb7c4; --line: #334155; --accent: #60a5fa; --accent-ink: #93c5fd; --muted: #64748b; --live: #60a5fa; } }
+  </style>
+  <defs><pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.28"/></pattern></defs>
+  <rect width="1200" height="675" fill="var(--bg)"/>
+  <rect width="1200" height="675" fill="url(#grid)"/>
+  <rect width="1200" height="8" fill="var(--accent)"/>
+  <rect x="1" y="1" width="1198" height="673" fill="none" stroke="var(--line)" stroke-width="2"/>
+
+  <text x="70" y="76" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="25" font-weight="700" letter-spacing="1.8" fill="var(--accent-ink)">TWO PATHS TO A VOICE EDITOR</text>
+  <text x="70" y="126" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="720" letter-spacing="-0.5" fill="var(--ink)">One I trained. One I use.</text>
+
+  <!-- Left panel: cloud tune -->
+  <rect x="70" y="170" width="500" height="330" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+  <rect x="70" y="170" width="500" height="6" rx="3" fill="var(--muted)"/>
+  <text x="102" y="218" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="20" font-weight="700" letter-spacing="1.5" fill="var(--faint)">CLOUD TUNE · VERTEX AI</text>
+  <text x="102" y="272" font-family="ui-sans-serif, system-ui, sans-serif" font-size="27" fill="var(--ink)">1x A100 80GB</text>
+  <text x="102" y="316" font-family="ui-sans-serif, system-ui, sans-serif" font-size="27" fill="var(--ink)">117 training examples</text>
+  <text x="102" y="360" font-family="ui-sans-serif, system-ui, sans-serif" font-size="27" fill="var(--ink)">LoRA r=4, 4 epochs</text>
+  <text x="102" y="404" font-family="ui-sans-serif, system-ui, sans-serif" font-size="27" fill="var(--ink)">20 held-out outputs kept</text>
+  <line x1="102" y1="430" x2="538" y2="430" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 6"/>
+  <text x="102" y="470" font-family="ui-sans-serif, system-ui, sans-serif" font-size="26" font-weight="700" fill="var(--faint)">4 of 20 invented a percentage</text>
+
+  <!-- Right panel: local prompted -->
+  <rect x="630" y="170" width="500" height="330" rx="10" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+  <rect x="630" y="170" width="500" height="6" rx="3" fill="var(--accent)"/>
+  <text x="662" y="218" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="20" font-weight="700" letter-spacing="1.5" fill="var(--accent-ink)">LOCAL · MLX ON AN M4 PRO</text>
+  <text x="662" y="272" font-family="ui-sans-serif, system-ui, sans-serif" font-size="27" fill="var(--ink)">14.3 GB of 4-bit weights</text>
+  <text x="662" y="316" font-family="ui-sans-serif, system-ui, sans-serif" font-size="27" fill="var(--ink)">0 training examples</text>
+  <text x="662" y="360" font-family="ui-sans-serif, system-ui, sans-serif" font-size="27" fill="var(--ink)">9 sentences of system prompt</text>
+  <text x="662" y="404" font-family="ui-sans-serif, system-ui, sans-serif" font-size="27" fill="var(--ink)">about 35s per review pass</text>
+  <line x1="662" y1="430" x2="1098" y2="430" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 6"/>
+  <text x="662" y="470" font-family="ui-sans-serif, system-ui, sans-serif" font-size="26" font-weight="700" fill="var(--live)">edits shipped in PR #212</text>
+
+  <!-- Footer note -->
+  <rect x="70" y="546" width="6" height="66" rx="3" fill="var(--accent)"/>
+  <text x="102" y="576" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="var(--faint)">Register transferred. Judgment did not.</text>
+  <text x="102" y="606" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="var(--faint)">The local prompted runner caught structural errors without hallucinating numbers.</text>
+</svg>
