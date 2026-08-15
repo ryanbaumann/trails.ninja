@@ -15,9 +15,9 @@ tags: ["developer experience", "growth", "ai"]
 order: 2
 ---
 
-Between early 2025 and 2026, our open-source ecosystem more than doubled its unique active users, driving strong growth in API engagement. We moved those metrics by treating DevX as a growth discipline, not a docs queue. I helped lead distribution strategy across major UI frameworks and AI agent platforms alongside our product, engineering, UX, and technical writing teams. We treated product, distribution, and measurement as one system, because presence in a workflow is not proof of adoption.
+We more than doubled our unique active users across our open-source ecosystem in a year, driving strong growth in API engagement. We moved those metrics by treating DevX as a growth discipline, not a documentation queue. Our product, engineering, UX, and technical writing teams treated product, distribution, and measurement as one system, because presence in a workflow is not proof of adoption.
 
-Documentation requests often pull DevX teams away from the real scoreboard. Docs, code samples, advocacy, tutorials, and even talking to customers all have a limit. The job is to find the friction that stops a builder, fix it in the product or experience, put the better path where people work, and prove that behavior changed.
+Documentation requests feel like progress, but they are often a symptom of friction that hasn't been solved in the product yet. Docs, code samples, advocacy, and tutorials all have a ceiling. The real job is to identify the friction that stalls a builder, fix it directly in the developer experience, place the better path where people already work, and measure the behavioral shift.
 
 ## Own the friction
 
@@ -43,4 +43,4 @@ Evals don't replace user research, because no single score explains a human buil
 
 ![An agent evaluation loop moves from a representative task through an agent trace and rubric comparison to a ship-or-hold decision, then repeats using telemetry and research.](/assets/devx-eval-loop.webp)
 
-This is the discipline: stop counting output as progress by default. Own the friction, solve it, improve the product, ship the better experience into the workflow, and measure the impact. Then run the loop again. We're still experimenting with every part of it, and that's the point.
+This is the discipline: stop counting output as progress by default. Own the friction, solve it in the experience, ship the better path into the workflow, and measure whether behavior moved. If you are running DevX as a growth engine for your developer platform, I'd love to hear how you track and distribute your fixes. Let me know in the comments!

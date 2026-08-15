@@ -29,7 +29,12 @@ gha-creds-*.json
 .DS_Store
 **/.DS_Store
 
-# Ignore large source images
+# Large assets & local ML
 demos/strava-explorer/strava-explorer.png
 .playwright-mcp/
 .gemini/
+models/
+.venv/
+*.gguf
+.cache/
+hf_cache/

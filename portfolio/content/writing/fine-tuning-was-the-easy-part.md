@@ -15,21 +15,17 @@ shareSummary: Tuning a small model for one narrow job worked. Distributing that 
 shareImageAlt: Fine-Tuning Was the Easy Part, beside a two-panel card contrasting one tuned adapter with distribution across many jobs and models.
 ---
 
-How do you make your developer platform discoverable and easy to use for agents - is runtime context engineering with skills, MCP, and llms.txt enough, or do you need to go further and influence the core LLM model weights yourself?
+Point an autonomous coding agent at the Places API and it over-fetches fields. On Places, that over-fetching gets expensive fast: [Place Details bills in tiers](https://developers.google.com/maps/billing-and-pricing/sku-details), and you pay the highest tier any field in the request touches. A single unnecessary field quietly quadruples the cost of a call that still returns valid JSON.
 
-## The hypothesis
+Base models make this mistake because their weights are a stale snapshot of the internet. Runtime context like skills, MCP, and llms.txt helps, but for high-volume, cost-sensitive API calls, fine-tuning the model weights on a narrow job beats a much larger base model for a fraction of the inference cost.
 
-Base models are bad at using current APIs because their weights are a stale snapshot of the internet. Point an agent at the Places API and it over-fetches fields. On Places, that over-fetching gets expensive fast. [Place Details bills in tiers](https://developers.google.com/maps/billing-and-pricing/sku-details), and you pay the highest tier any field in the request touches, so a single unnecessary field can quietly quadruple the cost of a call that still returns valid JSON. My hypothesis: a small model, fine-tuned on this one job, would return the minimal correct [field mask](https://developers.google.com/maps/documentation/places/web-service/choose-fields?utm_campaign=gmp_git_agentskills_v1) and beat a much larger base model at it, for a fraction of the cost per call.
+## Tuning one adapter is the easy part
 
-## The test
-
-I trained a [LoRA](https://arxiv.org/abs/2106.09685) adapter on Gemma 4 E4B, the roughly 4B-class model, over a set of synthetic [Places field-mask requests](https://github.com/ryanbaumann/fieldwork/blob/main/evals/field-mask/dataset.v1.json). I split the ten cases into eight for training and two held out that the optimizer never saw, and graded exact match: a case counts only when the model returns exactly the fields the request needs, with no extra billable field. That grader carries correctness and cost in one number, because on Places an over-fetch is a billing event.
-
-## The result
+I trained a [LoRA](https://arxiv.org/abs/2106.09685) adapter on Gemma 4 E4B (the roughly 4B-class model) over a set of synthetic [Places field-mask requests](https://github.com/ryanbaumann/fieldwork/tree/main/evals/field-mask). I split the ten cases into eight for training and two held out that the optimizer never saw, and graded exact match: a case counts only when the model returns exactly the fields the request needs, with no extra billable field. That grader carries correctness and cost in one number, because on Places an over-fetch is a billing event.
 
 ![A chart comparing exact-match field masks for Gemma 4 E4B: across all ten cases the base model scores 2 and the tuned adapter 9; on the two held-out cases the base model scores 0 and the tuned adapter 1.](/img/writing/fine-tuning-evidence.svg)
 
-Base E4B returned the exact mask twice out of ten, and never on the two held-out cases; the tuned adapter got nine of ten, including all eight training cases and one of the two held out. Every attempt is in a [retained run trace](https://github.com/ryanbaumann/fieldwork/blob/main/evals/field-mask/results.v1.json) with the prompt, raw output, and grade per case. 
+The tuned adapter jumped from 2 of 10 to 9 of 10 exact-match masks, including all eight training cases and one of the two held out. Every attempt is in a [retained run trace](https://github.com/ryanbaumann/fieldwork/tree/main/evals/field-mask) with the prompt, raw output, and grade per case.
 
 Base E4B under-fetches by returning the first field and dropping the rest; on a prompt-injection request, it over-fetches four fields. The tuned model returns the minimal correct mask and an empty list for the injection; its one held-out miss dropped `places.servesWine` from a request about dogs and wine.
 
