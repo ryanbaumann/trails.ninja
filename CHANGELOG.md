@@ -14,21 +14,15 @@ All notable changes to this project will be documented in this file.
 - Drafted "I Fine-Tuned a Model on My Own Writing. I Use the Untuned One."
   (`portfolio/content/writing/i-use-the-untuned-one.md`, draft and noindex), a
   grounded post-mortem of the unpublished Gemma 4 26B-A4B voice tune measured
-  directly against its own artifacts rather than its README. Incorporates the
-  three-stage editorial progression (Raw Base Draft $\rightarrow$ Multi-Agent Review
-  Lanes $\rightarrow$ Local Gemma 4 Copy Editor) demonstrating how the layers
-  compose. Every claim was re-derived from the repository: 117 regenerated
-  examples (not the 129 the README reports), 27 Critique examples sharing one
-  identical diagnostic preamble before truncating at 300 characters, the
-  `"talks"`/`"talk"` filter bug that left the Present task with zero training
-  data, a validation split contaminated at the derived-example level (6 of 9
-  validation sources also in training), 6 em-dashes across 5 of 20 held-out
-  outputs against a "zero em-dashes" claim, and 4 fabricated percentages across
-  3 prompt-free outputs (plus a literal `[X]%` in a 4th). No baseline run exists in
-  `experiment/voice-ft/eval/results/base-model/`, so the post makes no tuned-versus-base
-  delta claim. Adds three inline SVGs (header, dataset provenance, grader
-  gates) following the existing light/dark custom-property house style, plus a
-  `scripts/social-cards.mjs` entry and the generated 1200x627 share card.
+  directly against its own artifacts rather than its README. Integrated empirical
+  validation from the University of Michigan author-voice study (*Dhillon et al., 2026*),
+  demonstrating the prompting-versus-tuning gap (82.7% MFA judge preference for human writing
+  over prompted models vs. 62% preference for fine-tuned models). Detailed the three-step
+  workflow (Human Dictation $\rightarrow$ Local Low-Latency Copyeditor $\rightarrow$ Human Review),
+  comparative metrics breakdown (sentence length variance, cliché token frequency, latency),
+  and training guardrails against metric hallucination. Includes three inline SVGs (header,
+  dataset provenance, grader gates), a `scripts/social-cards.mjs` entry, and the generated
+  1200x627 share card.
 - Integrated the local Gemma 4 runner (`scripts/gemma-local.sh` and `scripts/local_gemma.py`)
   into `.agents/skills/portfolio-review/SKILL.md` as an automated voice and cadence critique
   step in the maker/checker loop, with full 4096-token generation support.
