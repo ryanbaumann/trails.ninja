@@ -21,7 +21,7 @@ Base models make this mistake because their weights are a stale snapshot of the 
 
 ## Tuning one adapter is the easy part
 
-I trained a [LoRA](https://arxiv.org/abs/2106.09685) adapter on Gemma 4 E4B (the roughly 4B-class model) over a set of synthetic [Places field-mask requests](https://github.com/ryanbaumann/fieldwork/tree/main/evals/field-mask). I split the ten cases into eight for training and two held out that the optimizer never saw, and graded exact match: a case counts only when the model returns exactly the fields the request needs, with no extra billable field. That grader carries correctness and cost in one number, because on Places an over-fetch is a billing event.
+I trained a [LoRA](https://arxiv.org/abs/2106.09685) adapter on Gemma 4 E4B (the roughly 4B-class model) over a set of synthetic [Places field-mask requests](https://github.com/ryanbaumann/fieldwork/tree/main/evals/field-mask). I split the ten cases into eight for training and two held out that the optimizer never saw, and graded exact match: I count a case only when the model returns exactly the fields the request needs, with no extra billable field. That grader carries correctness and cost in one number, because on Places an over-fetch is a billing event.
 
 ![A chart comparing exact-match field masks for Gemma 4 E4B: across all ten cases the base model scores 2 and the tuned adapter 9; on the two held-out cases the base model scores 0 and the tuned adapter 1.](/img/writing/fine-tuning-evidence.svg)
 
@@ -39,7 +39,7 @@ Ten cases, with two held out, is just an early signal; the next version needs a 
 
 ## The hard part is distribution
 
-My adapter fixes one job on one deployment, but it doesn't help the base model another developer downloads tomorrow or the hosted model another team calls. A developer platform doesn't have one narrow job; it has hundreds of critical developer journeys across dozens of APIs, and its developers run models and agents the platform will never touch. Tuning an adapter per journey and hoping everyone loads it doesn't scale.
+My adapter fixes one job on one deployment, but it doesn't help the base model another developer downloads tomorrow or the hosted model another team calls. A developer platform doesn't have one narrow job; it has hundreds of core developer tasks across dozens of APIs, and its developers run models and agents the platform will never touch. Tuning an adapter per journey and hoping everyone loads it doesn't scale.
 
 ![A developer-platform distribution pyramid moves from directly controlled context and tools through an owned adapter and open traces to a held-out public benchmark, trading direct control for broader reach and more dependence on adoption.](/img/writing/fine-tuning-distribution-pyramid.svg)
 
@@ -47,4 +47,4 @@ Docs reach humans; SDKs reach applications; skills and an MCP service reach the 
 
 Call it share of gradient: whether the next generation of models gets shaped by your platform or by everything else on the internet. For a platform team, the order falls out of that: keep fast-changing facts in context, fine-tune the stable jobs you can grade, publish traces when you want the signal to travel past your own deployment, and publish a benchmark when you want the result to stay measurable across every model your developers might pick.
 
-The field-mask run is one rung on that ladder. Scaling it past ten cases and one job is the work, and so is getting those traces somewhere a model builder will actually train on them. If you're working the same gap between runtime context and learned model behavior, I'd love to hear how you're handling it. Let's compare traces and benchmarks in the comments!
+The field-mask run is one rung on that ladder. Scaling it past ten cases and one job is the work, and so is getting those traces somewhere a model builder will actually train on them. If you're working the same gap between runtime context and learned model behavior, how are you handling it? Compare traces and benchmarks in the comments.

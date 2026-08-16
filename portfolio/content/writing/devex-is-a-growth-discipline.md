@@ -15,7 +15,7 @@ tags: ["developer experience", "growth", "ai"]
 order: 2
 ---
 
-We more than doubled our unique active users across our open-source ecosystem in a year, driving strong growth in API engagement. We moved those metrics by treating DevX as a growth discipline, not a documentation queue. Our product, engineering, UX, and technical writing teams treated product, distribution, and measurement as one system, because presence in a workflow is not proof of adoption.
+We more than doubled our unique active users across our open-source ecosystem in a year, driving direct growth in API engagement. We moved those metrics by treating DevX as a growth discipline, not a documentation queue. Our product, engineering, UX, and technical writing teams treated product, distribution, and measurement as one system, because presence in a workflow is not proof of adoption.
 
 Documentation requests feel like progress, but they are often a symptom of friction that hasn't been solved in the product yet. Docs, code samples, advocacy, and tutorials all have a ceiling. The real job is to identify the friction that stalls a builder, fix it directly in the developer experience, place the better path where people already work, and measure the behavioral shift.
 
@@ -37,10 +37,10 @@ Distribution can't be an afterthought. Design the experience so it can travel, t
 
 ## Measure and own outcomes
 
-Traditional feedback loops are slow. While interviews, support themes, and developer surveys remain essential, they rarely translate into immediate product decisions. We shorten this loop using [Agent evaluations](/work/agentic-evals/). When a coding agent attempts a representative task, its trace reveals exactly where the task stalls or branches wrong. A rubric then scores that result against a no-context baseline, giving us a clear ship-or-hold decision before we launch.
+Traditional feedback loops are slow. Interviews, support themes, and developer surveys remain essential, but they rarely translate into immediate product decisions. We shorten this loop using [Agent evaluations](/work/agentic-evals/). When a coding agent attempts a representative task, its trace reveals exactly where the task stalls or branches wrong. A rubric then scores that result against a no-context baseline, giving us a clear ship-or-hold decision before we launch.
 
-Evals don't replace user research, because no single score explains a human builder. An eval delta confirms that the experience can complete the task mechanically. Product telemetry tells us whether builders actually found that path, finished the work, and returned. Finally, direct research explains why people behaved that way. Together, these signals let a DevX team test specific hypotheses and measure the real outcome.
+Evals don't replace user research, because no single score explains a human builder. An eval delta confirms that the experience completes the task mechanically. Product telemetry tells us whether builders actually found that path, finished the work, and returned. Finally, direct research explains why people behaved that way. Together, these signals let a DevX team test specific hypotheses and measure the real outcome.
 
 ![An agent evaluation loop moves from a representative task through an agent trace and rubric comparison to a ship-or-hold decision, then repeats using telemetry and research.](/assets/devx-eval-loop.webp)
 
-This is the discipline: stop counting output as progress by default. Own the friction, solve it in the experience, ship the better path into the workflow, and measure whether behavior moved. If you are running DevX as a growth engine for your developer platform, I'd love to hear how you track and distribute your fixes. Let me know in the comments!
+This is the discipline: stop counting output as progress by default. Own the friction, solve it in the experience, ship the better path into the workflow, and measure whether behavior moved. If you're running DevX as a growth engine for your developer platform, how do you track and distribute your fixes? Join the discussion below.

@@ -160,10 +160,13 @@ Run commands from the app directory unless noted.
 - Respect reduced-motion preferences for camera, map, and UI animation work.
 - If a perceptible web UI change is made, run or document a browser/screenshot check when the environment allows it.
 
-## Local ML Fine-Tuning and Hardware Guidelines (Apple Silicon Metal)
+## Local ML Fine-Tuning and Inference Guidelines (Apple Silicon Metal)
 
-- **Strictly Zero Parallel Model Training**: Never attempt to run multiple ML training jobs concurrently or train two models in parallel on Apple Silicon unified memory. Multiple training processes (e.g. running MoE and Dense fine-tuning simultaneously) compete for unified memory and Metal GPU contexts, causing severe memory spikes (55+ GB on 64 GB Mac), gradient explosion/instability, device resets, and kernel stalls. Always execute fine-tuning and evaluation runs strictly sequentially.
-- **Pre-flight Concurrency Check**: Always verify that no background `mlx_lm.lora` or `voice_eval` process is running before starting a new training or eval job (`pgrep -f "mlx_lm.lora|voice_eval"`).
+- **Strictly Zero Parallel Model Training**: Never attempt to run multiple ML training jobs concurrently or train two models in parallel on Apple Silicon unified memory. Multiple training processes (e.g. running MoE and Dense fine-tuning simultaneously) compete for unified memory and Metal GPU contexts, causing severe memory spikes, gradient explosion/instability, device resets, and kernel stalls. Always execute fine-tuning runs strictly sequentially.
+- **Local Inference & Subagent Concurrency Limits**: For local model evaluation, editorial review, and copyediting subagents, observe strict concurrency caps:
+  - **Smaller / MoE Models** (e.g., Gemma 4 26B-A4B / ~4B active): Up to **4 concurrent processes**.
+  - **Dense Models** (e.g., Gemma 4 31B Dense): Up to **2 concurrent processes**.
+- **Pre-flight Concurrency Check**: Always verify active process counts before starting a new job (`pgrep -f "mlx_lm.lora|voice_eval" | wc -l`) to respect the capacity limits above.
 - **Fine-Tuning Memory Optimization Rules**:
   - Keep `batch_size: 1` with dynamic sequence length padding (`pad_to_max_length: false`).
   - Cap `max_seq_length` to dataset requirements (e.g., 1024–1536 for micro-pair datasets) to minimize attention activation memory.

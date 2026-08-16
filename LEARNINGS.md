@@ -2,6 +2,13 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-16 - Local ML inference and subagent concurrency limits on Apple Silicon unified memory
+
+Context: Running parallel local model inference (Gemma 4 31B Dense and Gemma 4 26B-A4B MoE) for background editorial review, critique, and copyediting subagents across multiple Field Notes.
+Learning: While model training must remain strictly sequential due to gradient state and backward-pass memory footprint, local inference can run concurrently within calibrated memory budgets on Apple Silicon unified memory: up to 4 concurrent processes for the smaller / MoE model (26B-A4B / ~4B active) and up to 2 concurrent processes for the dense model (31B Dense). Exceeding these bounds risks Metal context thrashing and unified memory eviction.
+Evidence: Calibrated memory allocation on Apple Silicon Metal allows 2 concurrent 31B Dense inference workers (~18GB unified memory per worker) or 4 concurrent 26B-A4B MoE workers (~15GB unified memory per worker) without Metal GPU context drops or kernel stalls.
+Use next time: When dispatching parallel local voice subagents, limit concurrent workers to 4 for MoE models and 2 for Dense models. Keep fine-tuning runs strictly sequential.
+
 ## 2026-08-16 - Dense 31B vs MoE 26B-A4B: Full-parameter LoRA reduces echo and repetition at the cost of 3x inference latency
 
 Context: Evaluating SFT LoRA adapters fine-tuned on Ryan's 221-example voice dataset across two base architectures: sparse Mixture of Experts (Gemma 4 26B-A4B, 4B active params/token) vs dense (Gemma 4 31B, 31B active params/token).

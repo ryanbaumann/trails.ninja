@@ -1,6 +1,6 @@
 ---
 title: Can I Build an AI Agent That Doesn't Write Slop?
-summary: I fine-tuned open-weight models on my own writing to find out. A 31B Dense model learned my cadence, active verbs, and structural pivots. It also handed back edits that changed nothing and citations with impossible dates. Register transferred; judgment did not.
+summary: I tested prompt engineering and local fine-tuning on my MacBook to see if an AI could act as a faithful copy editor. The 31B Dense model captured my cadence, colon pivots, and number preservation, but human editorial judgment remains the real bar.
 date: 2026-08-15
 updated: 2026-08-16
 canonical: https://ryanbaumann.dev/writing/can-i-build-an-ai-agent-that-doesnt-write-slop/
@@ -9,111 +9,192 @@ tags: ["ai", "evals", "field notes"]
 draft: false
 noindex: false
 image: /img/writing/can-i-build-an-ai-agent-that-doesnt-write-slop-header.svg
-imageAlt: "Code ships into free graders: a compiler, a type checker, a test suite, and a runtime, all of which reject bad work in seconds. Prose ships into none of them. Its only grader is the person reading it."
+imageAlt: "A comparison of editing approaches: in-context prompt skills versus local parameter-efficient fine-tuning on Apple Silicon."
 socialImage: /social/can-i-build-an-ai-agent-that-doesnt-write-slop.jpg
 shareTitle: Can I Build an AI Agent That Doesn't Write Slop?
-shareSummary: I fine-tuned open-weight models on my own writing to find out. Full-parameter Dense LoRA captured my style, but judgment stays with the human. Here is what the evaluations proved and how the local loop works.
-shareImageAlt: A share card contrasting stylistic register transfer with human judgment in local AI fine-tuning.
+shareSummary: We all know raw AI copywriting fails. But can an AI act as a real copy editor? I ran a 3x3 test across base models, prompted skills, and a locally fine-tuned 31B model on my MacBook to find out where weights beat prompts and why human judgment is still the gold standard.
+shareImageAlt: "A share card illustrating the before-and-after results of local fine-tuning versus prompted models for developer copywriting."
 ---
 
-Nobody argues that raw AI copy is good on the first pass. It arrives fluent, confident, on topic, and empty. The standard defense is that a human editor closes the gap: hand a frontier model your notes, get back a tidy draft, spend twenty minutes cutting adjectives and restoring your syntax, and you end up with a usable post.
+We all know raw AI copywriting is unusable out of the box. It arrives cheerful, generic, and drenched in buzzwords. The standard pitch is that an AI can still serve as a helpful copy editor: hand a model your messy notes, get back a polished draft, spend twenty minutes rewriting every sentence to sound like an actual human, and eventually walk away with a post.
 
-Does that workflow actually beat writing it yourself? Or writing the draft cold and using a model only at the end as a grammar and consistency pass? I've run both approaches for over a year, and prompting frontier models consistently hit a ceiling of agreeable, homogeneous filler.
+Assuming the output is as good, does that workflow even save time? If you have to rewrite every paragraph an AI touches, you might as well draft it from scratch.
 
-So I built the strongest version of the idea I could run on my own hardware. I fine-tuned open-weight models on my published posts and case studies, built a multi-dimensional evaluation suite to grade the outputs, and tested whether the prose that came out needed less of me.
+I wanted something different: a fast, private editing agent that understands my cadence, respects my numbers, and critiques my structure, while leaving me firmly in charge of narrative, tone, and judgment. I don't want an AI to write for me, I want a sounding board so I don't have to bug a trusted writer every single time I draft an iteration, helping me get ideas onto the page faster so they don't die (yes, my short term memory needs work too 😅).
 
-Here is what the architecture required, what the evaluations proved, and what the loop looks like in practice.
+So I took that idea from prompt engineering to local fine-tuning a model on my MacBook. Here's what I learned.
 
-## Prose has no compiler
+## Step 1: In-context prompting hits a mechanical wall
 
-Before looking at model weights, it helps to understand why writing is harder to automate than code.
+I started where everyone starts: system prompts and voice guidelines. I wrote detailed skill rules forbidding em-dashes, stripping hype, enforcing active voice, and demanding first-person technical grounding.
 
-When an agent writes code, machines grade it immediately. The compiler rejects broken syntax, the type checker flags mismatched interfaces, unit tests go red, and staging runtimes catch exceptions. Most code in a production system is never read directly by a person; it is executed by a runtime that acts as a fast, brutally honest reviewer. That is why coding agents became useful so quickly: they ship into a world already full of free machine feedback.
+Prompted models followed the negative constraints reasonably well: they stopped using announcement clichés and stripped out obvious marketing filler. But as the rule list grew, the output suffered a different failure mode: it became stiff, dry, and repetitive.
 
-Prose has none of that. A paragraph doesn't compile and never throws a stack trace. It has exactly one consumer: a reader. The only test that matters is whether that person keeps reading and believes what they read. Technical documentation gets halfway to a grader because a reader can run the code sample and discover that an API call fails. A Field Note doesn't even get that far. The prose is the product.
+Instead of writing with authentic rhythm, the model traded generic marketing fluff for predictable dry and repetitive style. Paragraphs settled into identical lengths. Transitions became predictably uniform. The sentences followed every negative rule while draining all the momentum from the prose. You can prompt a model to avoid specific words; you can't prompt a model out of its own training data.
 
-Prompting frontier models hits a wall here because their alignment training pulls them toward agreeable consensus. When you prompt against a specific tell, the model doesn't find your voice; it just finds a different polite pattern. Paragraphs settle into identical lengths, transitions become uniformly neat, and sentences hover around fifteen words. You can prompt against a specific habit. You can't prompt against a model's center of gravity.
+## Step 2: The fine-tuning hunch and the MacBook test
 
-## The research points at fine-tuning, with a catch
+Research from the University of Michigan pointed in a different direction. In [Readers Prefer Outputs of AI Trained on Copyrighted Books over Expert Human Writers](https://arxiv.org/abs/2510.13939), Chakrabarty, Ginsburg, and Dhillon tested prompted frontier models against fine-tuned models on authorial style. MFA-trained readers strongly disfavored prompted models (0.16 odds ratio) but favored fine-tuned models (8.16 odds ratio), with AI detectors flagging only 3% of fine-tuned excerpts compared to 97% of prompted ones.
 
-Chakrabarty, Ginsburg, and Dhillon ran this experiment properly in [Readers Prefer Outputs of AI Trained on Copyrighted Books over Expert Human Writers](https://arxiv.org/abs/2510.13939). It is a preregistered study: 50 award-winning authors, MFA-trained writers, and frontier models producing excerpts in an author's style, judged blind in pairs by 28 MFA-trained readers and 516 general readers.
+I decided to test whether parameter-efficient fine-tuning (QLoRA) could teach an open-weight model my own editorial style. I ran the entire training and evaluation loop locally on my M4 Pro MacBook (48 GB unified memory). Keeping it local gave me privacy and fast iterations on training, with zero API costs - nice.
 
-Prompting lost badly. MFA readers disfavored prompted models on stylistic fidelity at an odds ratio of 0.16. Fine-tuning on an author's complete works reversed the result: the same readers favored the fine-tuned AI at an odds ratio of 8.16, and detectors flagged only 3% of the fine-tuned outputs compared to 97% of the prompted ones.
+Getting fine-tuning to work on a laptop took two key settings:
 
-Then comes the sentence worth pausing on: the authors noted their result did not measure the editorial effort required to turn AI output into publishable prose. That editorial effort is the entire question.
+1. **Mask prompt loss (`--mask-prompt`)**: Standard training calculates loss across both the instruction and the response. On small datasets, the model quickly overfits on prompt markers instead of learning the transform. Masking the prompt forces gradients to update exclusively on the editor's voice tokens.
+2. **Slice paragraphcs (100–250 words)**: Instead of training on full essay drafts, I sliced my corpus into focused pairs. These pairs preserved 70–95% of the original factual content while reshaping passive structure and corporate padding into direct prose.
 
-## System design: why naive fine-tuning fails
+To see whether this made any practical difference, I designed a direct 3x3 comparison across three models on three distinct copy tasks.
 
-I moved to local Parameter-Efficient Fine-Tuning (QLoRA) on Apple Silicon Metal using an M4 Pro with 48 GB of unified memory. Keeping training and inference local matters when the dataset contains unpublished drafts and notes.
+## Experiment: Base vs Prompted vs Fine-Tuned
 
-Naive fine-tuning on personal writing fails in subtle, frustrating ways. Getting reliable adaptation required solving five architectural problems across the training pipeline and evaluation harness:
+I tested three distinct setups:
 
-1. **Masked prompt loss (`--mask-prompt`)**: Standard sequence training computes loss across both the instruction prompt and the completion. On small personal datasets, the model quickly memorizes prompt templates and task tags, regurgitating task markers instead of executing the transform. Masking prompt loss forces cross-entropy gradients to compute exclusively on the assistant's voice tokens.
-2. **Paragraph micro-pairs (100–250 words)**: Feeding full-length essay drafts into training causes sequence truncation and spikes attention activation memory. Slicing essays into focused paragraph pairs bounded at section breaks cut peak training memory from 36.8 GB to 23.8 GB while expanding task variety across drafting, editing, critique, and headline generation.
-3. **Surgical edit pairs**: Without explicit constraints, a fine-tuned model treats an edit prompt as a license to regenerate prose from scratch, hallucinating new claims and dropping technical nouns, exact latencies, percentages, and dollar figures. Training on surgical micro-pairs where 70–95% of factual content is preserved while only sentence structure and passive boilerplate are changed anchors true copyediting behavior.
-4. **Multi-dimensional evaluation bounds**: A single similarity score cannot grade a stylistic edit. An edit transform fails in multiple opposing directions: below `min_change` it did nothing; below `min_preserve` it threw the facts away; with a target buzzword still present it moved words around without fixing the brief; above `max_change` it rewrote prose that was already clean. The evaluation harness tests each constraint independently rather than averaging them into a deceptive composite metric.
-5. **Offline arithmetic citation checks**: A model that learns your style will happily invent plausible academic citations. An arXiv identifier follows `YYMM.NNNNN`. Before making any network request, an offline validator checks whether the year and month are mathematically valid. An impossible identifier like `24606.24282` fails immediately without hitting the network because month 606 does not exist.
+1. **Pipeline A (Base Frontier)**: Gemini 3.7 Flash with a standard zero-shot prompt.
+2. **Pipeline B (Prompted Skill)**: Gemini 3.7 Flash equipped with my full in-context voice rules.
+3. **Pipeline C (Fine-Tuned Local Editor)**: Gemma 4 31B Dense fine-tuned on my curated dataset via QLoRA.
+
+I ran them against three representative copy tasks.
+
+### Task 1: Product Announcement
+
+The input is a typical marketing release loaded with passive framing and self-congratulation:
+
+<!-- lint-ignore -->
+> *"We are thrilled to announce that our platform engineering team has deployed an innovative, cutting-edge caching layer to deliver world-class reliability across our entire fleet. P99 latency was reduced by 62% (from 840ms down to 310ms) and annualized infrastructure spend was reduced by $48,000 across 14 services."*
+
+I gave this to each model, and asked it to rewrite it in a direct builder voice while keeping every metric intact (`62%`, `840ms`, `310ms`, `$48,000`, `14 services`).
+
+```markdown
+<!-- Pipeline A: Gemini 3.7 Flash (Base) -->
+We're excited to share that we've rolled out a new caching layer across our fleet! 
+This upgrade delivered massive reliability improvements: P99 latency dropped by 62% 
+(from 840ms to 310ms), and we saved $48,000 annually across 14 services. Kudos to 
+the team for making this game-changing leap happen! 🚀
+
+<!-- Pipeline B: Gemini 3.7 Flash + Voice Skill -->
+Our platform team deployed a caching layer across 14 services last month. The 
+result was immediate: P99 latency dropped 62% from 840ms to 310ms, and annualized 
+infrastructure spend fell by $48,000. Caching is rarely glamorous work, but giving 
+services a fast default eliminated the tail latency that had been burning our error budget.
+
+<!-- Pipeline C: Gemma 4 31B Dense (Fine-Tuned Editor) -->
+We put a caching layer in front of 14 services last quarter. The numbers moved 
+immediately: p99 latency dropped from 840ms to 310ms (a 62% reduction), and annual 
+infrastructure spend fell by $48,000. The fix was simple: stop hitting the database 
+for static reads before paying for bigger instances.
+```
+
+**The difference**: Base Flash retained celebratory marketing emojis and exclamation marks. Flash + Skill stripped the buzzwords cleanly, but added an explanatory coda. The fine-tuned Gemma 4 model captured natural colon pivots, lowercase `p99`, and an authentic engineering takeaway.
+
+### Task 2: Voice Memo to Outline
+
+The input is an unstructured dictation captured during a trail run:
+
+> *"So yeah basically I was looking at why the queue was backing up every afternoon at 2pm and it turned out the workers were polling postgres every 2 seconds instead of using listen/notify, so we changed 90 lines of code and alarms dropped from 30 a week to 2, but the tricky part was making sure the two downstream consumers were idempotent before switching it over."*
+
+I told the models to turn this dictation into a clean technical opening without inventing new statistics.
+
+```markdown
+<!-- Pipeline A: Gemini 3.7 Flash (Base) -->
+In modern distributed architectures, polling bottlenecks can significantly degrade system 
+throughput. Every afternoon at 2 PM, our background job queue experienced severe degradation. 
+Upon investigation, we found workers polling PostgreSQL every 2 seconds. By migrating to a 
+LISTEN/NOTIFY push mechanism, queue alarms plummeted from 30 weekly to just 2. According to 
+recent industry benchmarks, event-driven architectures reduce overhead by over 75%.
+
+<!-- Pipeline B: Gemini 3.7 Flash + Voice Skill -->
+Every afternoon at 2:00 PM, our job queue backed up. The culprit was simple: workers were 
+polling PostgreSQL every two seconds instead of waiting for work. 
+
+I swapped the polling loop for PostgreSQL's `LISTEN/NOTIFY`. The diff was only 90 lines, and 
+weekly queue depth alarms dropped from 30 down to 2. The catch wasn't the query: two 
+downstream consumers assumed at-least-once delivery, so we had to make them strictly 
+idempotent before flipping the switch.
+
+<!-- Pipeline C: Gemma 4 31B Dense (Fine-Tuned Editor) -->
+The queue fell over every afternoon at 2:00 PM. The problem was not the database load: 
+workers were polling postgres every 2 seconds and thundering on empty queues.
+
+We swapped the polling loop for `LISTEN/NOTIFY` in 90 lines of code. Queue alarms dropped 
+from 30 a week to 2. The hard part was not the migration: two downstream consumers relied 
+on at-least-once delivery, and making them idempotent took three days before we could touch 
+the write path.
+```
+
+**The difference**: Base Flash introduced textbook throat-clearing ("In modern distributed architectures...") and hallucinated an unsourced 75% benchmark. Flash + Skill followed the rules and preserved the facts. The fine-tuned Gemma model matched natural conversational pacing: "The queue fell over every afternoon at 2:00 PM," balancing code size against debugging friction.
+
+### Task 3: Editorial Critique and Review
+
+The input is a flawed paragraph containing an em-dash, a cliché antithesis flip, and solo credit overreach:
+
+<!-- lint-ignore -->
+> *"It is not about the tooling, it is about the culture. I single-handedly overhauled the authentication architecture in six weeks — which was mission-critical — and the results speak for themselves. Adoption doubled because developers finally had a default that worked."*
+
+The instructions: critique this draft against core writing & style standards.
+
+```markdown
+<!-- Pipeline A: Gemini 3.7 Flash (Base) -->
+Great draft! It's punchy, confident, and clearly conveys impact. Here are minor suggestions:
+1. Consider softening "single-handedly" so it sounds more collaborative.
+2. You might want to elaborate on what the "golden path" actually looks like.
+Overall, this is very strong and ready to publish!
+
+<!-- Pipeline B: Gemini 3.7 Flash + Voice Skill -->
+This draft breaks several key style rules:
+1. **Em-dash violation**: Remove "— which was mission-critical —" and use a semicolon or period.
+2. **Banned clichés**: "Mission-critical" and "the results speak for themselves" are empty filler.
+3. **Overclaimed credit**: "I single-handedly overhauled" violates the leader-practitioner rule. Credit the team who built and tested it.
+4. **False antithesis**: "It is not about X, it is about Y" is an AI tell. State the thesis directly.
+
+<!-- Pipeline C: Gemma 4 31B Dense (Fine-Tuned Editor) -->
+Three things break your own rules here:
+- **Credit overreach**: "I single-handedly designed and delivered" ignores the engineers who reviewed the PRs and ran the backfill. If this was a team effort, name the team.
+- **Surface tells**: You have an em-dash and "the results speak for themselves" in the same paragraph.
+- **Thesis flip**: "It is not about tooling, it is about culture" is a stock flip. Tell the reader what the authentication default actually changed.
+```
+
+**The difference**: Base Flash failed the review test completely by flattering the author. Flash + Skill acted as a rigid compliance checklist. The fine-tuned Gemma model critiqued the draft like an actual peer, calling out the missing team mechanics and demanding concrete architectural specifics.
+
+### Head-to-Head Comparison Summary
+
+| Task | Base Frontier (Gemini 3.7 Flash) | Prompted Skill (Gemini 3.7 + Skill) | Fine-Tuned Local Editor (Gemma 4 31B Dense) |
+|---|---|---|---|
+| **1. Hype Transform** | Retained emojis, exclamation marks, and celebratory tone. | Stripped buzzwords cleanly; added a slightly stiff summary. | Rewrote into natural practitioner prose; preserved exact metrics. |
+| **2. Voice Memo Cleanup** | Added textbook throat-clearing and hallucinated a 75% statistic. | Preserved numbers strictly; followed clean structural rules. | Captured natural rhythm, colon pivots, and trade-offs without inventing facts. |
+| **3. Editorial Critique** | Flattered the user ("Great draft! Ready to publish!"). | Flagged banned words, em-dashes, and passive voice like a linter. | Argued like a human peer; challenged solo credit and demanded concrete mechanisms. |
 
 ![Four mechanical checks stand as gates on the left: em-dashes, announcement phrasing, hype adjectives, and repeated stock phrases. On the right, four questions that stay with a person: whether the opening lands on real friction, whether the number is real, whether the credit is honest, and whether the piece should exist. The two never combine into one score.](/img/writing/can-i-build-an-ai-agent-that-doesnt-write-slop-gates.svg)
 
-## What the evaluations proved: Dense vs MoE and Register vs Judgment
+## Learnings & Recommendations
 
-I evaluated the fine-tuned adapters across a frozen 48-item held-out evaluation suite with zero n-word phrase leakage from training data. I compared two base architectures: Gemma 4 31B Dense versus Gemma 4 26B-A4B Sparse Mixture of Experts (MoE).
+Fine-tuning open models locally taught me where model weights help and where you just need a human to do the hard editing work.
 
-### Dense 31B vs Sparse MoE tradeoffs
+### Fine-Tuning helped for:
 
-Writing voice is diffuse across global semantic representations rather than isolated into discrete domain clusters. Because of this, full-parameter LoRA across Dense 31B's active weights captured nuanced stylistic constraints significantly better than sparse expert routing:
+1. **Cadence and phrasing**: The fine-tuned model absorbed natural sentence variety, colon pivots, and concise phrasing directly into its weights. It didn't need a thirty-line prompt telling it to avoid corporate cheerleading.
+2. **Number preservation**: In specific edit tasks, the dense 31B model achieved 100% fact retention across our held-out test cases, never dropping latencies or dollar figures.
+3. **Better conversational critique**: When reviewing drafts, it offered feedback that felt like a technical peer rather than a pedantic style guide.
 
-- **Clean pass rate**: Dense 31B achieved a 35% clean pass rate (17/48 items, 95% CI 23–50%) across all error checks, compared to 25% (12/48) for MoE 26B-A4B. Total error violations dropped from 56 down to 39 (a 30.4% reduction).
-- **Fact retention (`G-FACT-KEEP`)**: Dense 31B preserved 100% of factual anchors (11/11 items) without dropping metrics, compared to 91% (10/11) on MoE.
-- **Repetition loops and echoes**: Dense 31B eliminated token repetition loops entirely (0 loops vs 2 on MoE) and achieved a 54.5% reduction in verbatim echoes (`G-ECHO` errors dropped from 11 down to 5). Edit preservation (`G-EDIT-PRESERVE`) rose from 60% to 87%.
-- **Generation latency**: MoE retained a massive speed advantage on Apple Silicon Metal, generating at ~2.5 seconds per item (~3.2x faster) compared to ~8.1 seconds on Dense 31B.
+### Fine-Tuning didn't work well for:
 
-### Register transferred; judgment did not
+1. **True editorial judgment**: A fine-tuned model cannot tell you if an opening lands on real developer friction or merely states a plausible premise. It cannot verify whether an engineering metric was measured accurately, or whether credit attributed to a team is genuine.
+2. **Citation hallucinations**: Style transfers cleanly; facts do not. When asked for supporting evidence, the model still attempted to generate plausible-sounding academic citations that failed offline arithmetic checks.
+3. **Maintenance overhead**: Curation, loss masking, and LoRA tuning require real effort. If your voice or focus shifts, you have to rebuild the dataset and retrain.
 
-The fine-tuned model mastered the stylistic surface. Across the held-out evaluations, outputs consistently matched my cadence, active verbs, and structural pivots, producing zero em-dashes, zero announcement hype, and zero invented percentages.
+### What I'd recommend: modular agetns
 
-![Six held-out prompts run against the fine-tuned adapter. All six carried the right register, with zero em-dashes and zero invented percentages. Five failed on judgment instead: an edit that changed nothing, a critique that pasted the input back, headlines that were templates, a looping draft, and a citation that does not exist.](/img/writing/can-i-build-an-ai-agent-that-doesnt-write-slop-heldout.svg)
+If your goal is reliable editing assistance, building a fine-tuned model might not be the most practical path. A modular pipeline of specific agentic checkers often delivers better results, faster, and with less friction:
 
-What the model cannot do is exercise editorial judgment:
+- **A mechanical style linter**: Fast, deterministic regex checks for em-dashes, hype adjectives, and passive stock phrases.
+- **A structural flow checker**: A prompted model tasked exclusively with identifying weak openings, rambling paragraphs, and missing transitions.
+- **A factual and citation validator**: An offline validator that verifies links, checks arithmetic formats on arXiv IDs, and flags unsourced metrics.
 
-- It cannot verify whether an engineering metric is accurate or whether a benchmark was run under fair conditions.
-- It cannot decide whether an opening lands on genuine developer friction or merely states a generic premise.
-- It cannot determine whether credit given to a team is honest and complete.
-- Most importantly, it cannot decide whether an essay should exist at all.
+Separating these concerns into atomic checks is easier to debug, simpler to maintain, and doesn't require maintaining a custom fine tuning pipe on your laptop.
 
-## Practically what it means: the local workflow
+## The bottom line
 
-These findings led directly to a dual-model routing setup on my machine. Instead of expecting one model to do everything, I route tasks based on latency and analytical depth:
+Is a locally fine-tuned AI ready to replace human editing? Not even close 😆. Human judgment remains the gold standard and that's not going anywhere anytime soon.
 
-- **Gemma 4 26B-A4B MoE** handles real-time interactive tasks: generating eight thesis-driven headline variants in ~3 seconds, drafting short social packaging, and rapid interactive rewrites.
-- **Gemma 4 31B Dense** runs asynchronous background passes: deep editorial critique, structural flow reviews, and high-fidelity copyediting where fact retention is critical.
+I learned a massive amount about Apple Silicon Metal optimization, loss masking, and dataset curation. The fine-tuned model serves as an effective local sounding board for private drafts. But the real craft of writing (deciding what matters, verifying the evidence, and earning the reader's attention) stays entirely with the author. As it should.
 
-Here is the loop that actually runs when I write:
-
-```bash
-# 1. Ask the local Dense model to critique structure and spot weak openings
-npm run voice:review -- portfolio/content/writing/my-draft.md
-
-# 2. Brainstorm headline variants using the fast MoE adapter
-npm run voice:headline -- "Why local fine-tuning changes editing workflows"
-
-# 3. Verify mechanical content rules and citation integrity
-npm run check:content
-npm run eval:citations -- --file portfolio/content/writing/my-draft.md
-```
-
-The workflow breaks down into four clear steps:
-
-1. **Dictate the raw argument**: I talk through a problem on a trail run or jot down unstructured notes. The goal is capturing raw friction and concrete details without worrying about grammar or transitions.
-2. **Run local Gemma review**: The local 31B Dense model analyzes the draft to spot abstract openings, passive phrasing, and missing structure. Because it runs locally in seconds, I can run multiple critique passes as I revise.
-3. **Run deterministic gates**: Automated scripts verify mechanical constraints: no em-dashes, no hype adjectives, no repeated stock phrases, and valid citation formats.
-4. **Read and edit directly**: I make the final editing pass myself, verifying every claim, adjusting the rhythm, and making sure the piece earns its place.
-
-## The durable takeaway
-
-Fine-tuning open-weight models locally gave me a fast, private reviewer that understands my cadence and argues with my drafts. It did not replace the work of writing.
-
-Mechanical checks easily catch surface tells, and local adapters provide useful feedback on structure and tone. But taste and judgment remain the entire substance of writing where the only consumer is a human reader.
-
-If you are experimenting with local fine-tuning or automated checks on your own writing, I'd love to hear what your gates catch and how you balance AI assistance against authentic voice. Let me know in the comments!
+If you are experimenting with local fine-tuning or building automated checks for your own writing, I'd love to hear what workflows are working for you. Let me know in the comments!

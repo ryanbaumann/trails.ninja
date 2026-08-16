@@ -48,6 +48,6 @@ Only then can the router learn something defensible: this task family clears the
 
 I still think the model doing the planning can influence which platform, API, and authentication boundary a developer ends up with. The worker that writes the code may simply execute a decision made earlier in the session. But the original Note treated that split as observed fact without a trace showing it.
 
-To test it, retain the planning decision and every downstream handoff. Record where the platform was first selected, whether a worker changed it, and which verifier caught a bad choice. That evidence would turn the thesis into something a platform team can act on.
+To test it, run the planning decision and every downstream handoff through a trace. Record where the platform was first selected, whether a worker changed it, and which verifier caught a bad choice. That evidence would turn the thesis into something a platform team can act on.
 
-For now, the router is a policy with a good question inside it. If you have a public routing benchmark that follows cost and quality back to individual attempts, I'd like to compare notes.
+For now, the router is a policy with a good question inside it. If you have a public routing benchmark that follows cost and quality back to individual attempts, let's compare notes in the discussion below.
