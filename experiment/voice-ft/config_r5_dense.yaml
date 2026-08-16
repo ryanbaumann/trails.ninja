@@ -17,26 +17,32 @@
 # compare with:
 #   python3 scripts/voice_eval.py compare --baseline <moe>.json --candidate <dense>.json
 
-model: "mlx-community/gemma-4-31b-it-4bit"
+model: "models/gemma-4-31b-it-4bit"
 train: true
 data: "./experiment/voice-ft/training"
 
 fine_tune_type: lora
-num_layers: 12
-grad_checkpoint: true
+# Gemma 4 31B has 60 transformer layers (language_model.model.layers.0..59).
+# num_layers=32 adapts the last half (~65M LoRA params at r=16). The 0.106%
+# figure from num_layers=16 is only low as a percentage of 30.7B total params;
+# absolute trainable count matters more for a 221-example fine-tune.
+# grad_checkpoint was removed: it causes NaN at iter ~20 on 4bit quantized models
+# in mlx-lm 0.31.3 (recomputed activations don't reconstruct cleanly). Memory
+# budget is fine without it: 17-18 GB weights + 1536-token activations stays under
+# 28 GB on a 48 GB M4 Pro.
+num_layers: 20
 
-iters: 200
+iters: 300
 batch_size: 1
-grad_accumulation_steps: 2
-max_seq_length: 2048
+max_seq_length: 1280
 mask_prompt: true
 
-learning_rate: 4.0e-5
+learning_rate: 1.0e-5
 lr_schedule:
   name: cosine_decay
   warmup: 20
-  warmup_init: 1.0e-7
-  arguments: [4.0e-5, 200, 1.0e-6]
+  warmup_init: 1.0e-8
+  arguments: [1.0e-5, 300, 1.0e-7]
 
 lora_parameters:
   rank: 16
@@ -44,8 +50,10 @@ lora_parameters:
   dropout: 0.05
 
 seed: 42
-adapter_path: "./adapters/gemma-4-31b-ryan-voice-v5"
+adapter_path: "./adapters/gemma-4-31b-ryan-voice-v6"
 save_every: 50
-steps_per_eval: 25
+# steps_per_eval:0 causes ZeroDivisionError. Use 9999 to skip mid-training eval.
+# Same Metal compute graph crash as MoE. Eval runs after training via voice_eval.py.
+steps_per_eval: 9999
 steps_per_report: 10
-val_batches: 12
+val_batches: 1

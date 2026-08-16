@@ -2,7 +2,29 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-16 - Dense 31B vs MoE 26B-A4B: Full-parameter LoRA reduces echo and repetition at the cost of 3x inference latency
+
+Context: Evaluating SFT LoRA adapters fine-tuned on Ryan's 221-example voice dataset across two base architectures: sparse Mixture of Experts (Gemma 4 26B-A4B, 4B active params/token) vs dense (Gemma 4 31B, 31B active params/token).
+Learning: SFT LoRA adapting all layers of a Dense 31B model integrates complex, diffuse writing style constraints significantly better than sparse expert routing on small (<500 example) datasets. Dense 31B achieved 100% fact retention (`G-FACT-KEEP`), zero repetition loops (`G-LOOP`), 55% fewer verbatim echoes (`G-ECHO`), and a 35% clean item pass rate (vs 25% on MoE), with total errors dropping from 56 to 39. However, token generation latency on Apple Silicon Metal was ~3x slower (8.1s vs 2.5s per item) due to computing all 31B weights per step.
+Evidence: On the 48-item held-out evaluation suite (`experiment/voice-ft/eval/heldout.jsonl`), `round6_dense` scored 17/48 (35% clean, 95% CI 23–50%) vs `round6_dynamic` (MoE) 12/48 (25%). `G-ECHO` errors dropped from 11 to 5, `G-EDIT-PRESERVE` rose from 60% to 87%, and `G-FACT-KEEP` scored 100% (11/11).
+Use next time: For asynchronous background editorial reviews, critique, and high-fidelity copyediting where quality and fact retention outrank speed, select the Dense 31B adapter (`adapters/gemma-4-31b-ryan-voice-v6`). For real-time CLI completions and interactive headline drafting, use the MoE 26B-A4B adapter (`adapters/gemma-4-26b-a4b-ryan-voice-v6`).
+
+## 2026-08-16 - Surgical edit pairs and fact preservation anchor task boundaries in voice LoRA fine-tuning
+
+Context: In early fine-tuning rounds (R1–R5), LoRA adapters over-generalized the `[Task: Edit]` tag as an instruction to generate entirely new prose from scratch, often dropping technical nouns, exact latencies, percentages, and dollar figures (`G-EDIT-PRESERVE`, `G-FACT-KEEP`).
+Learning: Without explicit surgical edit examples in the training distribution where 70–95% of factual content is preserved while only sentence structure and passive boilerplate are changed, the model treats style adaptation as wholesale content regeneration. Adding micro-pairs that preserve numbers, metrics, and entity names while fixing voice tells anchors the model to true copyediting behavior, lifting Draft and Edit task fidelity without mode collapse.
+Evidence: Round 6 added 24 surgical edit, negative grounding, and length-constrained micro-pairs to the training set (`scripts/generate-ft-dataset.py`). When evaluated across the 48-item held-out suite (`experiment/voice-ft/eval/heldout.jsonl`), Draft task clean pass rate doubled to 50% (4/8 items clean) and zero-shot fact retention reached 91% (`G-FACT-KEEP`).
+Use next time: When fine-tuning for voice and editing, always include dedicated surgical edit pairs where specific numbers, technical nouns, and URLs are explicitly preserved across the input/output pair.
+
+## 2026-08-16 - Apple Silicon unified memory exhaustion and Metal kernel stalls under concurrent LoRA training
+
+Context: Launching concurrent local QLoRA fine-tuning jobs for Gemma 4 MoE (26B-A4B) and Dense (31B) models on Apple Silicon (M4 Pro). Both jobs shared the single unified memory address space and Metal compute pipeline.
+Learning: Apple Silicon's unified memory architecture allows rapid zero-copy GPU compute, but running two 20B+ parameter model training processes simultaneously causes aggressive unified memory competition (>55 GB allocated on a 64 GB system). This leads to severe Metal context thrashing, activation memory spikes, gradient instability/NaNs, and kernel panics. Training jobs and evaluations on Apple Silicon must be strictly serialized, with automated process pre-flight checks (`pgrep`) guarding execution.
+Evidence: SFT training for MoE 26B-A4B and Dense 31B crashed with Metal driver resets when run concurrently; adding pre-flight locks (`scripts/run_r5_moe.sh`, `scripts/run_r5_dense.sh`) and codifying zero parallel training in `AGENTS.md` and `README.md` allowed MoE Round 5 to train cleanly to 300 iterations at 0.73 it/s and evaluate 48 held-out items without error.
+Use next time: Always serialize local LLM training and evaluation on Apple Silicon. Add automated `pgrep -f "mlx_lm.lora|voice_eval"` guards before starting any training script.
+
 ## 2026-08-16 - A style-transfer edit fails in three directions, so one similarity score cannot grade it
+
 
 Context: Round 4 of the local voice tune produced six held-out outputs that all carried the
 voice and five of which failed on judgment. The most instructive failure was an "edit" that
@@ -103,8 +125,16 @@ developer friction in an agent session. Both rewrites passed `npm run check:cont
 0 errors and 0 warnings.
 Use next time: Run `./scripts/gemma-local.sh review <file>` during maker/checker review
 passes on new Field Notes before publication.
- 
+
+## 2026-08-13 - Fine-tuning Gemma 4 MoE (26B-A4B) on Vertex AI and VRAM sizing for unquantized vLLM serving
+
+Context: Fine-tuning Gemma 4 for voice transfer across 5 task types (Draft, Edit, Critique, Headline, Present). The dense 31B model repeatedly hit regional GPU capacity ceilings (Code 8) across all regions (`us-central1`, `us-west1`, `global`, `europe-west4`), while 26B-A4B MoE SFT succeeded in `us-central1`. During serving deployment, vLLM threw `torch.OutOfMemoryError` on 24GB (L4) and 40GB (A100) before succeeding on 80GB (A100 80GB).
+Learning: (1) When dense 31B models hit regional capacity exhaustion during peak hours, switching to MoE architectures (like 26B-A4B with 4B active parameters) dramatically improves scheduling availability on Vertex AI. (2) Unquantized vLLM serving for 26B MoE models loads all expert weights into memory during initialization (~38 GiB VRAM), so serving requires an 80GB GPU (`a2-ultragpu-1g`, `NVIDIA_A100_80GB`) rather than a 24GB L4 or 40GB A100. (3) Fine-tuned models conditioned with a system prompt at training time require the system prompt at inference time; omitting it causes token repetition loops.
+Evidence: SFT tuning job `3148119227337015296` succeeded in `us-central1`; endpoint deployment on `a2-ultragpu-1g` passed health checks and executed all 20 held-out evaluation prompts at ~8s per prompt; `scripts/ryan_voice.py` provides on-demand spin-up and teardown to eliminate idle GPU costs.
+Use next time: For open-model fine-tuning on Vertex AI, prefer MoE models for scheduling resilience, allocate 80GB VRAM for unquantized 26B+ serving, always include training system prompts in inference payloads, and script explicit endpoint spin-down after evaluations.
+
 ## 2026-08-07 - Correcting the proof must not replace the article's thesis
+
 
 Context: The evidence pass on “Fine-Tuning Was the Easy Part” correctly removed
 fabricated scores, a wrong billing claim, and an evaluator that never ran. It
