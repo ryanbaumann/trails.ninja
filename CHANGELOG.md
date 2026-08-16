@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - Added `experiment/voice-ft/config_r5.yaml` and `config_r5_dense.yaml` (20-step warmup and cosine decay to 1e-6, the most likely fix for round 4's repetition loops) and npm scripts `test:voice`, `eval:grade`, `eval:citations`, `eval:leakage`.
 
 ### Changed
+- Applied Round 6 Gemma 4 31B Dense local copyeditor reviews in Ryan's voice across all 5 published public Field Notes (`builder-platforms-grow-by-owning-the-agent-loop.md`, `devex-is-a-growth-discipline.md`, `fine-tuning-was-the-easy-part.md`, `loop-engineering-coding-agent.md`, `the-model-that-picks-your-platform-doesnt-write-the-code.md`), tightening active first-person phrasing, replacing corporate abstraction with concrete developer tasks, removing em-dashes, and sharpening community discussion endings.
 - Refined and updated [`portfolio/content/writing/can-i-build-an-ai-agent-that-doesnt-write-slop.md`](file:///Users/ryanbaumann/projects/portfolio/portfolio/content/writing/can-i-build-an-ai-agent-that-doesnt-write-slop.md) with empirical findings, architectural design insights, and local workflow routing:
   - Synthesized system design principles (masked prompt loss, 100–250 word micro-pairs, surgical edit pairs, multi-dimensional grader bounds, offline arithmetic citation checks).
   - Contrasted Gemma 4 31B Dense (35% clean pass rate, 100% fact retention, zero repetition loops, 55% fewer echoes) against Gemma 4 26B-A4B MoE (~2.5s latency, 3.2x faster on Apple Silicon Metal).

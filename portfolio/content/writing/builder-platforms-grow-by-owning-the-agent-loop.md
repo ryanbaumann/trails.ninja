@@ -16,11 +16,11 @@ draft: false
 noindex: false
 ---
 
-When a developer asks a coding agent to build with your platform, that session becomes part of your activation funnel.
+When a developer asks a coding agent to build with your platform, that session becomes part of how they experience your product.
 
 If the agent chooses the wrong API, misses an authentication step, or writes code that fails to compile, the developer doesn't blame the model: they experience that failure as your platform, and they leave.
 
-The best model will change, and so will the agent harness wrapped around it. A builder platform cannot anchor its developer experience to either one. It needs to own the feedback loop that keeps its critical developer journeys working as models and agents move around it.
+The best model will change, and so will the agent harness wrapped around it. A builder platform can't anchor its developer experience to either one. It needs to own the feedback loop that keeps core developer tasks working as models and agents move around it.
 
 ## The model is not the strategy
 
@@ -51,7 +51,7 @@ Pretraining gives a model broad capability. Post-training turns that capability 
 
 ## Start with deterministic checks
 
-For each critical developer journey, define the checks that can be objective:
+For each task, define the checks that can be objective:
 
 - Does the project install and compile?
 - Does it complete the task with the current API?
@@ -84,7 +84,7 @@ Open source the skills, examples, and selected evals you want agent builders and
 
 ## Build one complete loop
 
-Start with ten critical developer journeys. For each one:
+Start with ten core developer tasks. For each one:
 
 1. Write the task in the developer's language.
 2. Define the deterministic checks and the small amount of calibrated judgment it needs.
@@ -92,4 +92,4 @@ Start with ten critical developer journeys. For each one:
 4. Test it across representative model and harness versions.
 5. Measure outcomes and review failures. Reuse traces only when they're authorized and cleared through privacy and security review.
 
-Start small and let the loop compound. If you are building developer platforms for an agent-first world, join the conversation below and share how you structure your evaluation and distribution loops.
+Start small and let the loop compound. If you're building developer platforms for an agent-first world, join the conversation below and share how you structure your evaluation and distribution loops.
