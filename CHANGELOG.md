@@ -28,6 +28,13 @@ All notable changes to this project will be documented in this file.
 - Added `scripts/test/voiceeval_test.py`, 52 stdlib `unittest` cases pinned to the real round-4 outputs, plus restraint cases that must not fire. `npm run test:voice`.
 - Added `experiment/voice-ft/config_r5.yaml` and `config_r5_dense.yaml` (20-step warmup and cosine decay to 1e-6, the most likely fix for round 4's repetition loops) and npm scripts `test:voice`, `eval:grade`, `eval:citations`, `eval:leakage`.
 
+### Changed
+- Refined and updated [`portfolio/content/writing/can-i-build-an-ai-agent-that-doesnt-write-slop.md`](file:///Users/ryanbaumann/projects/portfolio/portfolio/content/writing/can-i-build-an-ai-agent-that-doesnt-write-slop.md) with empirical findings, architectural design insights, and local workflow routing:
+  - Synthesized system design principles (masked prompt loss, 100–250 word micro-pairs, surgical edit pairs, multi-dimensional grader bounds, offline arithmetic citation checks).
+  - Contrasted Gemma 4 31B Dense (35% clean pass rate, 100% fact retention, zero repetition loops, 55% fewer echoes) against Gemma 4 26B-A4B MoE (~2.5s latency, 3.2x faster on Apple Silicon Metal).
+  - Articulated the core divide: stylistic register transferred cleanly, but editorial judgment remains human-owned.
+  - Documented practical dual-model local routing and the 4-step local writing and verification loop.
+
 ### Fixed
 - Fixed `scripts/generate-ft-dataset.py` comparing `content_type == "talk"` against a corpus that labels talks `"talks"`, which meant the **Present task produced zero training examples across all four rounds** while the README claimed four. Present prompts were being evaluated against a model that had never seen one. Now 8.
 - Stopped `scripts/generate-ft-dataset.py` overwriting `experiment/voice-ft/eval/prompts.jsonl` on every run, which made the held-out set a function of the training set. It now reports leakage against the held-out suite and exits non-zero on overlap instead of writing to it.
