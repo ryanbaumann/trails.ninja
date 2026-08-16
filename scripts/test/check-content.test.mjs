@@ -92,3 +92,14 @@ test('a phrase repeated across three entries is flagged, two is not', () => {
   assert.ok(rules(findings).includes('W-STOCK-PHRASE'));
   assert.match(findings[0].message, /appears in 3 entries/);
 });
+
+test('the same evidence link in three entries is not a stock phrase', () => {
+  const url = 'https://github.com/ryanbaumann/fieldwork/tree/main/scripts/lib/content-rules.mjs';
+  const make = (path, text) => ({ path, collection: 'writing', raw: `---\ntitle: T\n---\n${text}` });
+  const docs = [
+    make('a.md', `The rules live in [content-rules.mjs](${url}).`),
+    make('b.md', `Four checks run from [the linter](${url}) on every build.`),
+    make('c.md', `I keep them in [one file](${url}) so they stay readable.`),
+  ];
+  assert.deepEqual(checkStockPhrases(docs), []);
+});

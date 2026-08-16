@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Across six held-out prompts, all six outputs carried the voice with zero em-dashes and zero invented percentages, while five of the six failed on judgment: the edit changed nothing, the critique pasted the input back, the headlines were templates, the draft looped, and the citation did not exist.">
+  <style>
+    :root { --bg: #faf9f6; --surface: #ffffff; --ink: #111827; --faint: #5f6875; --line: #d9dde5; --accent: #3b82f6; --accent-ink: #2563eb; --pass: #047857; --fail: #b91c1c; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #030712; --surface: #111827; --ink: #f9fafb; --faint: #aeb7c4; --line: #334155; --accent: #60a5fa; --accent-ink: #93c5fd; --pass: #34d399; --fail: #f87171; } }
+    .eyebrow { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 28px; font-weight: 700; letter-spacing: 1.6px; }
+    .deck { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 40px; font-weight: 720; letter-spacing: -0.6px; fill: var(--ink); }
+    .score { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 76px; font-weight: 760; letter-spacing: -2px; }
+    .label { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 30px; font-weight: 660; fill: var(--ink); }
+    .item { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 28px; fill: var(--ink); }
+    .sub { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 28px; fill: var(--faint); }
+    .note { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 28px; fill: var(--faint); }
+  </style>
+  <defs><pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.28"/></pattern></defs>
+  <rect width="1200" height="675" fill="var(--bg)"/>
+  <rect width="1200" height="675" fill="url(#grid)"/>
+  <rect width="1200" height="8" fill="var(--accent)"/>
+  <rect x="1" y="1" width="1198" height="673" fill="none" stroke="var(--line)" stroke-width="2"/>
+
+  <text x="70" y="84" class="eyebrow" fill="var(--accent-ink)">SIX HELD-OUT PROMPTS</text>
+  <text x="70" y="140" class="deck">Register transferred. Judgment did not.</text>
+
+  <!-- Left: surface passed -->
+  <rect x="70" y="180" width="368" height="356" rx="12" fill="var(--surface)" stroke="var(--pass)" stroke-width="3"/>
+  <text x="104" y="288" class="score" fill="var(--pass)">6 / 6</text>
+  <text x="104" y="340" class="label">sounded like me</text>
+  <line x1="104" y1="376" x2="404" y2="376" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 6"/>
+  <text x="104" y="422" class="sub">0 em-dashes</text>
+  <text x="104" y="466" class="sub">0 invented percents</text>
+
+  <!-- Right: judgment failed -->
+  <rect x="474" y="180" width="656" height="356" rx="12" fill="var(--surface)" stroke="var(--fail)" stroke-width="3"/>
+  <text x="508" y="272" class="score" fill="var(--fail)">5 / 6</text>
+  <text x="716" y="272" class="label">failed on judgment</text>
+  <line x1="508" y1="306" x2="1096" y2="306" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 6"/>
+  <text x="508" y="350" class="item">the edit changed nothing</text>
+  <text x="508" y="392" class="item">the critique pasted the input back</text>
+  <text x="508" y="434" class="item">the headlines were templates</text>
+  <text x="508" y="476" class="item">the draft looped</text>
+  <text x="508" y="518" class="item" style="fill: var(--fail)" font-weight="650">the citation did not exist</text>
+
+  <!-- Payoff -->
+  <rect x="70" y="576" width="6" height="62" rx="3" fill="var(--accent)"/>
+  <text x="104" y="602" class="note" fill="var(--ink)" font-weight="650">A linter catches a hype word in a second.</text>
+  <text x="104" y="638" class="note">Nothing catches a plausible citation but a person.</text>
+</svg>
