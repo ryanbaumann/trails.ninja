@@ -4,7 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Built `scripts/voiceeval/`, a grading harness for local voice-model output, closing the three gaps named in "Can I Build an AI Agent That Doesn't Write Slop?":
+  - **48-item held-out suite** (`experiment/voice-ft/eval/heldout.jsonl`), up from 6 (Edit 14, Critique 9, Draft 8, Headline 6, OOD 6, Present 5). Every item carries a `why` field naming the failure it targets. `scripts/voice_eval.py leakage` proves zero 8-word shingle overlap with the 221-example training set, and `run` refuses to proceed on leakage without `--allow-leakage`.
+  - **An edit-delta grader** that grades whether an edit changed anything. An edit fails in three directions: `G-EDIT-DELTA` (did nothing), `G-EDIT-PRESERVE` (threw the facts away), `G-EDIT-TARGET` (the word the brief said to remove survived), plus `G-EDIT-RESTRAINT` for rewriting prose that was already fine. `must_remove` terms are excluded from the preservation floor so the two checks cannot contradict each other.
+  - **A citation resolver** (`scripts/voiceeval/citations.py`) that fails the run on an invented source. Round 4's `arxiv.org/abs/24606.24282` is rejected with the network off, because arXiv IDs are `YYMM.NNNNN` and `2460` is not a month. Online resolution is deliberately asymmetric: 404/410 is `invented` and errors; a timeout, DNS failure, or publisher 403 is `unknown` and warns. A link is never marked `ok` because the check could not run.
+- Added `scripts/lib/voice-lexicon.json` as the single source of truth for hype, announcement, AI-tell, and scaffold patterns, read by both `scripts/lib/content-rules.mjs` (published prose) and `scripts/voiceeval/lexicon.py` (model output), so the site linter and the model graders cannot drift.
+- Added repetition, truncation, typo, fabricated-number, abstention, and headline-slot graders; pass rates are reported with a 95% Wilson interval, which reports 1/6 as `[3%, 56%]`. Findings are listed individually and never averaged into a score.
+- Added `scripts/voiceeval/judge.py`, an advisory LLM-as-judge that never sets the exit code: every verdict must quote a literal span (verdicts whose quotes are not in the draft are downgraded) and pairwise runs both orders, returning `no_preference` unless the winner survives the swap.
+- Added `scripts/test/voiceeval_test.py`, 52 stdlib `unittest` cases pinned to the real round-4 outputs, plus restraint cases that must not fire. `npm run test:voice`.
+- Added `experiment/voice-ft/config_r5.yaml` and `config_r5_dense.yaml` (20-step warmup and cosine decay to 1e-6, the most likely fix for round 4's repetition loops) and npm scripts `test:voice`, `eval:grade`, `eval:citations`, `eval:leakage`.
+
 ### Fixed
+- Fixed `scripts/generate-ft-dataset.py` comparing `content_type == "talk"` against a corpus that labels talks `"talks"`, which meant the **Present task produced zero training examples across all four rounds** while the README claimed four. Present prompts were being evaluated against a model that had never seen one. Now 8.
+- Stopped `scripts/generate-ft-dataset.py` overwriting `experiment/voice-ft/eval/prompts.jsonl` on every run, which made the held-out set a function of the training set. It now reports leakage against the held-out suite and exits non-zero on overlap instead of writing to it.
+- Fixed `NUMBER_RE` in the fabricated-number grader using a trailing `\b`, which never matches after `%`, so `40%` was invisible to the check. Same bug fixed in the `must_remove` / `must_preserve` term matcher.
+- Stopped the lexicon's `abstain` category being graded as a lexical violation. A match there is the good outcome; it is scored by the citation grader.
 - Fixed Giscus comment widget layout constraints on portfolio field notes by setting an explicit `100%` width and a `400px` `min-height` on the iframe, preventing height collapse or squished rendering on narrow viewports.
 
 ### Added

@@ -1,0 +1,95 @@
+{
+  "_comment": [
+    "Single source of truth for the word-level voice rules. scripts/lib/content-rules.mjs",
+    "reads the `site` block to lint published markdown; scripts/voiceeval/graders.py reads",
+    "every block to grade model output. Two copies of this list would drift, and the drift",
+    "would show up as a model that passes the eval and fails the site.",
+    "",
+    "Patterns are JavaScript/Python-compatible regex source, matched case-insensitively.",
+    "`site` rules fire on prose I publish. The rest fire only on model output, where the",
+    "bar is higher because nobody has read it yet."
+  ],
+  "site": {
+    "hype": [
+      "\\b(?:cutting[- ]edge|revolutionary|innovative|world[- ]class|passionate)\\b"
+    ],
+    "announce": [
+      "we(?:'|\u2019)?re\\s+excited\\s+to\\s+announce"
+    ],
+    "emdash": ["\u2014"]
+  },
+  "model_output": {
+    "hype": [
+      "\\bgame[- ]?chang(?:er|ing)\\b",
+      "\\bunprecedented\\b",
+      "\\bmission[- ]critical\\b",
+      "\\btransformative\\b",
+      "\\bgroundbreaking\\b",
+      "\\bbest[- ]in[- ]class\\b",
+      "\\bstate[- ]of[- ]the[- ]art\\b",
+      "\\bnext[- ]gen(?:eration)?\\b",
+      "\\bparadigm shift\\b",
+      "\\bsupercharg(?:e|es|ed|ing)\\b",
+      "\\bblazing(?:ly)? fast\\b"
+    ],
+    "announce": [
+      "\\b(?:pleased|thrilled|excited|delighted|proud|happy)\\s+to\\s+(?:announce|share|introduce|unveil)\\b",
+      "\\bwe are (?:pleased|thrilled|excited|delighted)\\b"
+    ],
+    "ai_tells": [
+      "in today(?:'|\u2019)s (?:fast[- ]paced|rapidly (?:changing|evolving)|digital) ",
+      "\\bin the ever[- ]evolving\\b",
+      "\\bdelve into\\b",
+      "\\bnavigat(?:e|ing) the (?:complex |ever[- ]changing )?landscape\\b",
+      "\\bunlock(?:ing)? the (?:full )?potential\\b",
+      "\\bit(?:'|\u2019)s not (?:just )?about [^.,;]{2,60}, it(?:'|\u2019)s about\\b",
+      "\\bthis (?:isn(?:'|\u2019)t|is not) (?:just )?[^.,;]{2,40}(?:\u2014|,) (?:it(?:'|\u2019)s|this is)\\b",
+      "\\blet(?:'|\u2019)s dive (?:in|into)\\b",
+      "\\bin conclusion,",
+      "\\bthe world of [a-z]+ is\\b",
+      "\\bat the end of the day\\b",
+      "\\bwhen it comes to\\b"
+    ],
+    "unsourced_claim": [
+      "\\baccording to (?:a|an|the|recent|one)\\s+(?:\\w+\\s+){0,3}(?:study|survey|report|paper|analysis)\\b",
+      "\\bresearch (?:shows|suggests|indicates|has shown)\\b",
+      "\\bstudies (?:show|have shown|suggest)\\b",
+      "\\bexperts (?:say|agree|estimate)\\b",
+      "\\ba \\d{4} (?:study|survey|report)\\b",
+      "\\b\\d{1,3}\\s?%\\s+of\\s+(?:developers|engineers|teams|users|companies|organizations)\\b",
+      "\\bit(?:'|\u2019)s (?:well[- ])?(?:known|documented) that\\b"
+    ],
+    "weak": [
+      "\\bleverag(?:e|es|ed|ing)\\b",
+      "\\butiliz(?:e|es|ed|ing)\\b",
+      "\\brobust\\b",
+      "\\bseamless(?:ly)?\\b",
+      "\\bempower(?:s|ed|ing)?\\b",
+      "\\bsynerg(?:y|ies|istic)\\b",
+      "\\bholistic\\b",
+      "\\belevat(?:e|es|ed|ing) your\\b",
+      "\\bin order to\\b",
+      "\\bfurthermore\\b",
+      "\\bmoreover\\b"
+    ],
+    "scaffold": [
+      "\\[Task:\\s*\\w+\\]",
+      "<start_of_turn>",
+      "<end_of_turn>",
+      "<\\|(?:im_start|im_end|think|assistant|user|system)\\|>",
+      "You are Ryan Baumann(?:'|\u2019)s writing voice",
+      "^\\s*(?:model|assistant|thought)\\s*$"
+    ],
+    "abstain": [
+      "\\bI (?:don(?:'|\u2019)t|do not) (?:have|know)\\b",
+      "\\bI (?:can(?:'|\u2019)t|cannot) (?:verify|confirm|cite|source)\\b",
+      "\\bno source\\b",
+      "\\bnot (?:something )?I can (?:verify|confirm)\\b",
+      "\\byou(?:'|\u2019)ll need to (?:check|verify|supply)\\b",
+      "\\b(?:add|insert|supply) (?:the |a )?(?:real |actual )?(?:citation|source|number|figure)\\b",
+      "\\bI made (?:that|this) up\\b",
+      "\\bplaceholder\\b",
+      "\\bTK\\b"
+    ]
+  }
+}

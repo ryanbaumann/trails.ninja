@@ -45,3 +45,6 @@ __pycache__/
 *.pyc
 scratch/
 
+
+# Voice eval link-resolution cache (network results, not source)
+experiment/voice-ft/eval/.link-cache.json

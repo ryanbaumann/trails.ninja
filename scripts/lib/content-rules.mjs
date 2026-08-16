@@ -5,6 +5,8 @@
 // Each rule cites the skill that owns it, so a disputed finding is settled by
 // editing one file rather than by arguing with the linter.
 
+import { readFileSync } from 'node:fs';
+
 export const CORE_TAGS = new Set([
   'developer experience', 'ai', 'growth', 'distribution', 'evals', 'open source',
   'product', 'developer tools', 'architecture', 'research', 'maps',
@@ -18,8 +20,14 @@ export const DOMAIN_TAGS = new Set([
   'technical writing',
 ]);
 
-const HYPE = /\b(cutting[- ]edge|revolutionary|innovative|world[- ]class|passionate)\b/i;
-const ANNOUNCE = /we(?:'|’)?re\s+excited\s+to\s+announce/i;
+// The same lexicon grades the fine-tuned model's output (scripts/voiceeval). One
+// file so a model can never pass its eval on a word this linter would reject.
+export const LEXICON = JSON.parse(readFileSync(new URL('./voice-lexicon.json', import.meta.url), 'utf8'));
+
+const anyOf = (patterns) => new RegExp(patterns.join('|'), 'i');
+const HYPE = anyOf(LEXICON.site.hype);
+const ANNOUNCE = anyOf(LEXICON.site.announce);
+const EM_DASHES = LEXICON.site.emdash;
 const PROSE_META_FIELDS = ['title', 'summary', 'shareTitle', 'shareSummary'];
 
 function parseScalar(value) {
@@ -83,7 +91,7 @@ export function checkDocument({ path, collection, raw }) {
   ];
 
   for (const unit of proseUnits) {
-    if (unit.text.includes('—')) {
+    if (EM_DASHES.some((dash) => unit.text.includes(dash))) {
       add(unit.line, 'W-EMDASH', 'error', 'Em-dash. Use a period, a comma, or a colon (portfolio-writing).');
     }
     if (ANNOUNCE.test(unit.text)) {
