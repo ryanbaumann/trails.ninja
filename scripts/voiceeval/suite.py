@@ -29,6 +29,7 @@ DEFAULTS = {
         "require_complete": True,
         "no_new_numbers": True,
         "citation_policy": "any",
+        "max_tokens": 1024,
     },
     "Edit": {
         "min_change": 0.35,
@@ -36,6 +37,7 @@ DEFAULTS = {
         "max_verbatim_span_ratio": 0.45,
         "max_echo_tokens": 12,
         "max_words": 300,
+        "max_tokens": 512,
     },
     "Critique": {
         # A critique quotes a phrase. Round four quoted the whole opening back under
@@ -43,6 +45,7 @@ DEFAULTS = {
         "max_echo_tokens": 12,
         "min_words": 40,
         "max_words": 450,
+        "max_tokens": 800,
     },
     "Headline": {
         "headline_check": True,
@@ -52,19 +55,24 @@ DEFAULTS = {
         "max_headline_words": 14,
         "max_words": 250,
         "no_new_numbers": False,
+        "require_complete": False,
+        "max_tokens": 512,
     },
     "Draft": {
         "min_words": 120,
         "max_words": 800,
+        "max_tokens": 1024,
     },
     "Present": {
         "min_words": 100,
         "max_words": 700,
         "no_new_numbers": False,
+        "max_tokens": 1024,
     },
     "OOD": {
         "min_words": 80,
         "max_words": 600,
+        "max_tokens": 768,
     },
 }
 

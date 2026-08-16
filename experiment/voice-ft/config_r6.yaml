@@ -1,0 +1,44 @@
+# MLX LoRA fine-tuning, round 6. Gemma 4 26B-A4B MoE.
+#
+#   mlx_lm.lora --config experiment/voice-ft/config_r6.yaml
+#
+# Round 6 Focus:
+#   - Surgical editing and strict factual preservation (fixing G-EDIT-PRESERVE and G-FACT-KEEP).
+#   - Negative citation grounding (abstaining from hallucinated URLs or benchmark results).
+#   - Length conditioning for concise headlines, social snippets, and release summaries.
+#   - Cosine decay learning rate schedule with 20-step warmup.
+#
+# Budget: ~221 train examples, batch 1. 300 iters = ~1.35 epochs.
+
+model: "models/gemma-4-26b-a4b-it-4bit"
+train: true
+data: "./experiment/voice-ft/training"
+
+fine_tune_type: lora
+num_layers: 16
+
+iters: 300
+batch_size: 1
+max_seq_length: 2048
+
+# Loss on the assistant turn only to prevent scaffold echoing.
+mask_prompt: true
+
+learning_rate: 5.0e-5
+lr_schedule:
+  name: cosine_decay
+  warmup: 20
+  warmup_init: 1.0e-7
+  arguments: [5.0e-5, 300, 1.0e-6]
+
+lora_parameters:
+  rank: 16
+  scale: 32.0
+  dropout: 0.05
+
+seed: 42
+adapter_path: "./adapters/gemma-4-26b-ryan-voice-v6"
+save_every: 50
+steps_per_eval: 9999
+steps_per_report: 10
+val_batches: 1

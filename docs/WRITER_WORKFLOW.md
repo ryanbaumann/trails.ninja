@@ -89,3 +89,36 @@ container.
 For staging from `/writer/`, attach the same four names to the Cloud Run
 service. Store `BUFFER_API_KEY` in Secret Manager. The organization and channel
 IDs can be ordinary environment variables. Neither path publishes directly.
+
+## Local Voice AI Review & Editorial Aide
+
+Before publishing or saving final draft edits, use the fine-tuned local Gemma 4 models on Apple Silicon to critique rhythm, suggest headline variations, rewrite corporate fragments, or generate social packaging:
+
+```bash
+# Critique voice and cadence against Ryan's style rules (Dense 31B: deep narrative & structure analysis)
+npm run voice:review -- portfolio/content/writing/my-draft.md
+
+# Rewrite corporate copy into Ryan's active, first-person voice (Dense 31B / MoE 26B)
+npm run voice:edit -- "Our engineering team deployed an innovative solution to enhance system availability."
+
+# Generate 8 thesis-driven headline options (MoE 26B: ~3s interactive turnaround)
+npm run voice:headline -- "Why retrieval systems fail on chunking rather than the embedding model"
+
+# Draft a punchy developer social post (< 120 words) (MoE 26B)
+npm run voice:social -- portfolio/content/writing/my-draft.md
+
+# Verify all arXiv, DOI, and external reference links in a draft
+npm run eval:citations -- --file portfolio/content/writing/my-draft.md
+
+# Verify held-out evaluation dataset has zero shingle leakage against training data
+npm run eval:leakage
+```
+
+### Architectural Routing
+
+- **Gemma 4 31B Dense (`adapters/gemma-4-31b-ryan-voice-v6`)**: Used for pre-publication editorial reviews (`npm run voice:review`) and high-fidelity copyediting. Yields 100% fact retention (`G-FACT-KEEP`), zero repetition loops, and 55% fewer verbatim echoes.
+- **Gemma 4 26B-A4B MoE (`adapters/gemma-4-26b-ryan-voice-v6`)**: Used for interactive headline generation (`npm run voice:headline`), quick surgical edits (`npm run voice:edit`), and social copy packaging (`npm run voice:social`). Yields ~3x faster generation latency (~2.5s vs ~8.1s) on Apple Silicon Metal.
+
+All commands run locally via Apple Silicon Metal acceleration with zero external API calls or latency.
+
+

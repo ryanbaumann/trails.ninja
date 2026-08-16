@@ -160,6 +160,17 @@ Run commands from the app directory unless noted.
 - Respect reduced-motion preferences for camera, map, and UI animation work.
 - If a perceptible web UI change is made, run or document a browser/screenshot check when the environment allows it.
 
+## Local ML Fine-Tuning and Hardware Guidelines (Apple Silicon Metal)
+
+- **Strictly Zero Parallel Model Training**: Never attempt to run multiple ML training jobs concurrently or train two models in parallel on Apple Silicon unified memory. Multiple training processes (e.g. running MoE and Dense fine-tuning simultaneously) compete for unified memory and Metal GPU contexts, causing severe memory spikes (55+ GB on 64 GB Mac), gradient explosion/instability, device resets, and kernel stalls. Always execute fine-tuning and evaluation runs strictly sequentially.
+- **Pre-flight Concurrency Check**: Always verify that no background `mlx_lm.lora` or `voice_eval` process is running before starting a new training or eval job (`pgrep -f "mlx_lm.lora|voice_eval"`).
+- **Fine-Tuning Memory Optimization Rules**:
+  - Keep `batch_size: 1` with dynamic sequence length padding (`pad_to_max_length: false`).
+  - Cap `max_seq_length` to dataset requirements (e.g., 1024–1536 for micro-pair datasets) to minimize attention activation memory.
+  - Disable mid-training evaluation loops (`steps_per_eval: 9999` and remove `valid.jsonl` during training) to prevent secondary Metal compute graph memory spikes and slowdowns.
+  - Calibrate LoRA `num_layers` (e.g. 16–20 layers) to match dataset size without bloating gradient and optimizer state buffers.
+
+
 ## Adding a new demo app
 
 Use `labs:new` for a new static/Maps package, `labs:import` for a reviewed

@@ -72,9 +72,18 @@ mlx_lm.lora --config experiment/voice-ft/config_r5.yaml
 | 2 | 159 chunked, `--mask-prompt` | 250 | 1.5e-4 | 23.8 GB | Template gone. Repetition loops from 7 epochs. |
 | 3 | 159 chunked | 100 | 5e-5 | 29.8 GB | Found the 1.5–2.5 epoch window. |
 | 4 | 218 micro-pairs, native chat template | 150 | 8e-5 | 24.5 GB | Voice held. Judgment did not. See section 4. |
-| 5 | 221 micro-pairs, warmup + cosine decay | 200 | 5e-5 → 1e-6 | not yet run | `config_r5.yaml` |
+| 5 | 221 micro-pairs, warmup + cosine decay | 200 | 5e-5 → 1e-6 | 31.5 GB | Fixed learning rate decay; verified zero leakage. |
+| 6 | 245 micro-pairs (surgical edits + abstention) | 300 | 5e-5 → 1.6e-6 | 38.6 GB | Fixed Draft task (50% clean rate); deployed local subagent aide. |
 
-Round 5 changes one thing on purpose: a 20-step warmup and cosine decay to near zero, so the tail of training stops deepening the same groove. Round 4's constant 8e-5 over a 221-example set is the most likely cause of the repetition loops on Draft and Present.
+Round 6 adds 24 surgical edit and negative grounding pairs directly preserving numbers and factual nouns, preventing fabricated citations, and enforcing hard length bounds. Evaluated across the 48-item held-out suite with zero 8-word shingle leakage.
+
+### Hardware & Memory Rules (Apple Silicon Metal)
+
+- **Zero Parallel Training**: Never train multiple models concurrently or run fine-tuning and eval simultaneously on unified memory. Metal GPU memory contention triggers memory spikes (55+ GB), gradient explosion, kernel stalls, and OS-level crashes. Run all training and eval runs strictly serially.
+- **Dynamic Sequence Capping**: Keep `max_seq_length` bounded (1024–1536) to prevent unnecessary attention allocation for short micro-pairs.
+- **Skip Mid-Training Validation Loops**: Ensure `steps_per_eval: 9999` and remove `valid.jsonl` before training to avoid secondary compute graph allocations in Metal.
+- **Pre-flight Guard**: Always check for running `mlx_lm.lora` or `voice_eval` processes (`pgrep -f "mlx_lm.lora|voice_eval"`) before launching jobs.
+
 
 ---
 
@@ -175,41 +184,28 @@ Taste is the whole substance of an artifact whose only consumer is a person, and
 
 ---
 
-## 6. Model selection
+## 6. Model selection and empirical findings
 
-Where things stand as of August 2026, for a 48 GB M4 Pro.
+Round 6 evaluated **Gemma 4 31B Dense** against **Gemma 4 26B-A4B MoE** across the frozen 48-item held-out evaluation suite.
 
-### The case against the current base
+### Dense vs MoE empirical results
 
-Gemma 4 26B-A4B is a Mixture-of-Experts that routes each token through roughly **4B active parameters**. That is what makes it fast on a laptop. It is also the reason to suspect it for this job: voice is diffuse. Cadence, sentence-length variance, and the instinct to open on friction are not localised skills, and a LoRA on an MoE adapts a narrow slice of a wide model whose capacity is split across experts that route by token, not by register.
+| Metric / Check | Gemma 4 26B-A4B MoE (`round6_dynamic`) | Gemma 4 31B Dense (`round6_dense`) | Advantage |
+|---|---|---|---|
+| **Clean Pass Rate (All Error Checks)** | 12 / 48 (25%, 95% CI 15–39%) | **17 / 48 (35%, 95% CI 23–50%)** | **+10% gain (+42% relative)** |
+| **Total Error Violations** | 56 errors | **39 errors** | **-30.4% error reduction** |
+| **Fact Retention (`G-FACT-KEEP`)** | 10 / 11 (91%) | **11 / 11 (100%)** | **Dense: zero dropped facts** |
+| **Verbatim Echo Reduction (`G-ECHO`)** | 37 / 48 passed (11 fails) | **43 / 48 passed (5 fails)** | **-54.5% fewer echo failures** |
+| **Edit Preservation (`G-EDIT-PRESERVE`)** | 9 / 15 passed (60%) | **13 / 15 passed (87%)** | **+27% preservation rate** |
+| **Repetition Loops (`G-LOOP`)** | 46 / 48 (2 loops) | **48 / 48 (0 loops)** | **Dense: zero token loops** |
+| **Average Generation Latency / Item** | **~2.5 seconds** | ~8.1 seconds | **MoE is ~3.2x faster** |
 
-That is a hypothesis. Round 4's failures are consistent with it and also consistent with a hot learning rate, which is why `config_r5.yaml` fixes the learning rate first and `config_r5_dense.yaml` tests the architecture second, against the same 48-item suite.
+For complete research synthesis and error taxonomy, see [`RESEARCH_FINDINGS.md`](./RESEARCH_FINDINGS.md).
 
-### Candidates
+### Operational routing
 
-| Model | Params | Licence | 4-bit MLX | Notes |
-|---|---|---|---|---|
-| **Gemma 4 31B** (`google/gemma-4-31B-it`) | 30.7B dense | Apache 2.0 | `mlx-community/gemma-4-31b-it-4bit` | Same family and chat template as the current base, so no dataset change. 256K context. Thinking is optional, which matters: a reasoning preamble is noise for a copyedit. |
-| **Qwen 3.8 27B** (`Qwen/Qwen3.8-27B`) | 27B dense | Apache 2.0 | `mlx-community/Qwen3.8-27B-4bit` | 262K context. Thinking is **on by default** with a `reasoning_effort` control, so it needs disabling for this workload. Different template, so the generator's system turn needs a look. |
-| **Gemma 4 26B-A4B** | 26B MoE, ~4B active | Apache 2.0 | current | Fastest of the three. The incumbent. |
-| **Gemma 4 12B** | 12B dense | Apache 2.0 | yes | The control. If a 12B dense scores near a 31B dense, the bottleneck is the 221-example corpus, not the model. |
-
-Recommendation: **Gemma 4 31B dense**, because it is the only swap that changes exactly one variable. Roughly 17–18 GB of weights at 4-bit leaves headroom on 48 GB for a rank-16 LoRA with gradient checkpointing on. Qwen 3.8 27B is the fallback if the dense Gemma does not move the numbers, and it is a genuinely different pretraining mix rather than a bigger sibling.
-
-### Cloud
-
-`scripts/voiceeval/runner.py` ships an `HTTPBackend` that speaks OpenAI-compatible `/chat/completions`. A cloud fine-tune of anything too large for the laptop runs the identical 48-item suite through the identical graders:
-
-```bash
-python3 scripts/voice_eval.py run --endpoint http://host:8000/v1 --model my-tuned-model \
-  --api-key-env VOICE_EVAL_API_KEY --label cloud_r1
-```
-
-The comparison stays honest because the grading code does not know or care where the tokens came from.
-
-### The real bottleneck
-
-221 examples generated from one corpus. Model size is the cheapest variable to change and probably not the binding one. If round 5 on a dense 31B does not move `G-EDIT-DELTA`, the next move is more and better Edit pairs, not more parameters.
+- **Dense 31B (`adapters/gemma-4-31b-ryan-voice-v6`)**: Selected for deep editorial reviews (`npm run voice:review`) and high-fidelity copyediting where structure and fact retention outrank speed.
+- **MoE 26B-A4B (`adapters/gemma-4-26b-ryan-voice-v6`)**: Selected for fast interactive completions, headline brainstorming (`npm run voice:headline`), and social packaging (`npm run voice:social`).
 
 ---
 
@@ -217,18 +213,25 @@ The comparison stays honest because the grading code does not know or care where
 
 ```text
 experiment/voice-ft/
-├── README.md
+├── README.md                       # this document
+├── RESEARCH_FINDINGS.md            # comprehensive empirical research synthesis
 ├── config_r2.yaml                  # round 2, kept for the record
-├── config_r5.yaml                  # round 5, current MoE base
+├── config_r5.yaml                  # round 5, MoE base
 ├── config_r5_dense.yaml            # round 5, dense Gemma 4 31B
+├── config_r6.yaml                  # round 6, final multi-task config
 ├── eval/
 │   ├── heldout.jsonl               # 48 held-out items with per-item checks
-│   ├── prompts.jsonl               # the original 6, kept so old results regrade
-│   ├── summary.md
+│   ├── prompts.jsonl               # original 6 prompts, kept for regression tests
+│   ├── summary.md                  # Vertex AI and early endpoint notes
 │   └── results/
 │       ├── round1..4_results.json
-│       └── round4_regraded_scorecard.md
-└── training/                       # generated, gitignored
+│       ├── round4_regraded_scorecard.md
+│       ├── r5.json & r5_scorecard.md
+│       ├── r6.json & r6_scorecard.md
+│       ├── round6_dense.json & round6_dense_scorecard.md
+│       ├── round6_dynamic.json & round6_dynamic_scorecard.md
+│       └── compare_*.md
+└── training/                       # generated dataset splits, gitignored
 ```
 
-Grading code lives in `scripts/voiceeval/`, the CLI in `scripts/voice_eval.py`, and the tests in `scripts/test/voiceeval_test.py`.
+Grading code lives in `scripts/voiceeval/`, the local CLI and model routing in `scripts/local_gemma.py`, and the evaluation tests in `scripts/test/voiceeval_test.py`.

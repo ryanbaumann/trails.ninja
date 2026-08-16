@@ -149,7 +149,25 @@ def cmd_run(args):
         backend = runner.HTTPBackend(args.endpoint, args.model or "default",
                                      api_key_env=args.api_key_env)
     else:
-        model_path = args.model or str(DEFAULT_MODEL)
+        model_path = args.model
+        if not model_path and args.adapter:
+            cfg_path = os.path.join(args.adapter, "adapter_config.json")
+            if os.path.exists(cfg_path):
+                try:
+                    with open(cfg_path, "r", encoding="utf-8") as f:
+                        cfg = json.load(f)
+                        if "31b" in cfg.get("model", ""):
+                            candidate_31b = ROOT / "models" / "gemma-4-31b-it-4bit"
+                            if candidate_31b.exists():
+                                model_path = str(candidate_31b)
+                except Exception:
+                    pass
+            elif "31b" in str(args.adapter):
+                candidate_31b = ROOT / "models" / "gemma-4-31b-it-4bit"
+                if candidate_31b.exists():
+                    model_path = str(candidate_31b)
+        if not model_path:
+            model_path = str(DEFAULT_MODEL)
         if not os.path.exists(model_path):
             print("model not found at %s. Run scripts/local_gemma.py download first."
                   % model_path, file=sys.stderr)
@@ -178,8 +196,10 @@ def cmd_run(args):
         for sample in range(args.samples):
             seed = args.seed + sample
             messages = runner.build_messages(item)
+            item_checks = suite.resolve_checks(item)
+            budget = args.max_tokens if args.max_tokens is not None else item_checks.get("max_tokens", 1024)
             output, seconds = backend.generate(
-                messages, max_tokens=args.max_tokens, temperature=args.temperature,
+                messages, max_tokens=budget, temperature=args.temperature,
                 seed=seed)
             record = dict(item)
             record["id"] = item["id"] if args.samples == 1 else "%s#%d" % (item["id"], sample + 1)
@@ -420,7 +440,8 @@ def build_parser():
     run.add_argument("--limit", type=int, default=0)
     run.add_argument("--samples", type=int, default=1,
                      help="generations per prompt; >1 measures run-to-run variance")
-    run.add_argument("--max-tokens", type=int, default=1024)
+    run.add_argument("--max-tokens", type=int, default=None,
+                     help="override the per-task dynamic token budget (e.g. 1024)")
     run.add_argument("--temperature", type=float, default=0.7)
     run.add_argument("--seed", type=int, default=11)
     run.add_argument("--think", action="store_true", help="leave thinking mode on")

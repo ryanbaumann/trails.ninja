@@ -18,8 +18,10 @@
 #   generator checked content_type == "talk" against a corpus that says "talks".
 #   Fixed, so this round sees 8 Present pairs instead of 0.
 #
-# Budget: 199 train examples, batch 1, accum 2 gives ~100 optimizer steps per epoch.
-# 200 iters is 2 epochs, which is the window round 3 identified before mode collapse.
+# Budget: 199 train examples, batch 1. grad_accumulation_steps was removed:
+# accum > 1 with mask_prompt + batch_size 1 produces micro-batches where every
+# token is masked, loss = 0 every step, and the cosine decays to zero before any
+# real gradient flows. 300 iters at accum 1 = ~1.5 epochs (round 3's sweet spot).
 
 model: "models/gemma-4-26b-a4b-it-4bit"
 train: true
@@ -28,9 +30,8 @@ data: "./experiment/voice-ft/training"
 fine_tune_type: lora
 num_layers: 16
 
-iters: 200
+iters: 300
 batch_size: 1
-grad_accumulation_steps: 2
 max_seq_length: 2048
 
 # Loss on the assistant turn only. Without this the model memorises the prompt
@@ -42,7 +43,7 @@ lr_schedule:
   name: cosine_decay
   warmup: 20
   warmup_init: 1.0e-7
-  arguments: [5.0e-5, 200, 1.0e-6]
+  arguments: [5.0e-5, 300, 1.0e-6]
 
 # Rank 16 held voice at round 4. Going higher buys capacity the corpus cannot fill;
 # 221 examples is not enough signal for r=64 and the extra parameters mostly memorise.
@@ -54,6 +55,9 @@ lora_parameters:
 seed: 42
 adapter_path: "./adapters/gemma-4-26b-ryan-voice-v5"
 save_every: 50
-steps_per_eval: 25
+# steps_per_eval:0 causes ZeroDivisionError (trainer does it % steps_per_eval).
+# Use 9999 to never trigger mid-training eval. val_batches set to minimum 1
+# so the initial pass doesn't crash, but effectively disabled by the large interval.
+steps_per_eval: 9999
 steps_per_report: 10
-val_batches: 12
+val_batches: 1

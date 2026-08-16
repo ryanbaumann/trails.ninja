@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Fine-tuned and evaluated **Round 6 Gemma 4 31B Dense** adapter (`adapters/gemma-4-31b-ryan-voice-v6`) across the 48-item held-out suite:
+  - Lifted clean item pass rate to **35% (17/48 items clean, 95% CI [23%–50%])**, up from 25% on MoE 26B-A4B.
+  - Reduced total error-level failures from 56 down to **39** (30% error reduction).
+  - Achieved **100% fact retention** (`G-FACT-KEEP` 11/11 passed), **zero repetition loops** (`G-LOOP` 48/48 passed), **87% edit preservation** (`G-EDIT-PRESERVE`), and cut verbatim echo failures by 55% (`G-ECHO` down to 5 failures).
+  - Higher voice fidelity and semantic stability across `Critique` (33% clean), `Present` (60% clean), and `OOD` (67% clean).
+- Fine-tuned and evaluated **Round 6 MoE 26B-A4B** adapter (`adapters/gemma-4-26b-ryan-voice-v6`) across the 48-item held-out suite:
+  - 245 micro-pairs (221 train, 24 val) adding surgical edits, fact preservation pairs, negative grounding abstentions, and strict length bounds.
+  - Achieved **50% clean pass rate on Draft tasks** (4/8 items clean), 98% pass on `G-EMDASH` (47/48), 98% pass on `G-AI-TELLS` (47/48), 100% on `G-ANNOUNCE`, `G-SCAFFOLD`, and `G-WEAK`.
+  - Added dynamic task-specific generation token budgeting (`Headline: 512`, `Draft/Present: 1024`, `Critique: 800`, `Edit: 512`, `OOD: 768`) in `scripts/voiceeval/suite.py` and `scripts/voice_eval.py`, eliminating truncation artifacts (`G-TRUNCATED` 100% pass).
+  - Wired local Gemma 4 voice model into npm workflows (`npm run voice:review`, `npm run voice:edit`, `npm run voice:headline`, `npm run voice:social`, `npm run voice:eval`) and documented the local editorial aide workflow in `docs/WRITER_WORKFLOW.md`.
+- Evaluated **Round 5 MoE 26B-A4B** adapter (`adapters/gemma-4-26b-ryan-voice-v5`) on the 48-item held-out suite: 12/48 clean items (25.0%, 95% CI [15%–39%]), passing G-AI-TELLS (98%), G-EMDASH (96%), and G-ANNOUNCE (96%).
+- Added **Apple Silicon Metal Hardware & Concurrency Rules** (`AGENTS.md`, `README.md`) enforcing strictly serial execution of local ML fine-tuning and evals, with automated `pgrep` pre-flight guards in `scripts/run_r5_moe.sh` and `scripts/run_r5_dense.sh`.
+- Added **Dense 31B Round 5 Memory Optimizations** (`experiment/voice-ft/config_r5_dense.yaml`) tuning `max_seq_length: 1280` and `num_layers: 20` to prevent unified memory exhaustion and activation spikes during local training.
 - Built `scripts/voiceeval/`, a grading harness for local voice-model output, closing the three gaps named in "Can I Build an AI Agent That Doesn't Write Slop?":
   - **48-item held-out suite** (`experiment/voice-ft/eval/heldout.jsonl`), up from 6 (Edit 14, Critique 9, Draft 8, Headline 6, OOD 6, Present 5). Every item carries a `why` field naming the failure it targets. `scripts/voice_eval.py leakage` proves zero 8-word shingle overlap with the 221-example training set, and `run` refuses to proceed on leakage without `--allow-leakage`.
   - **An edit-delta grader** that grades whether an edit changed anything. An edit fails in three directions: `G-EDIT-DELTA` (did nothing), `G-EDIT-PRESERVE` (threw the facts away), `G-EDIT-TARGET` (the word the brief said to remove survived), plus `G-EDIT-RESTRAINT` for rewriting prose that was already fine. `must_remove` terms are excluded from the preservation floor so the two checks cannot contradict each other.
@@ -108,6 +121,7 @@ All notable changes to this project will be documented in this file.
 - Pinned the Cloud Run service to `--max-instances 1`. The gateway's in-memory per-IP rate limiters (private-demo auth brute-force, and the spend limits in front of Isochrones, Gemini, and Resend) are only correct on a single instance, but the deploy passed no instance cap and Cloud Run's default is 100, so under load every limit silently became per-instance. Also pinned `--concurrency`, `--memory`, and `--cpu` at their current defaults so a platform default change cannot raise cost or dilute the limits again.
 
 ### Added
+- Fine-tuned Gemma 4 26B-A4B on Ryan Baumann's published writing across 5 core task types (Draft, Edit, Critique, Headline, Present). Added `scripts/ryan_voice.py` as an on-demand lifecycle manager and copy review tool that can spin up the Vertex AI endpoint for interactive reviews or subagent workflows and cleanly spin down to zero idle cost.
 - Released Real World Reasoning Agent as a first-party open-source Fieldwork Lab from the explicitly authorized private snapshot at `68e8c34547066a984ccb97f5b587caeb97561ec1`. The reviewed source, tests, eval fixtures, guarded Maps/Gemini proxy logic, and provenance now live under `demos/real-world-reasoning-agent/`; the old repository's visibility and settings were not changed.
 - Imported Hairstyle AI Studio from its public upstream repository at
   `9ea2c0f31e5e1d252220ede6731b655bf2fb8fba`, hosted it at

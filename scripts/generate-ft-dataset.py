@@ -371,7 +371,147 @@ def main():
                 task_tag="Present"
             ))
 
-    # 4. Out-of-Domain (OOD) Voice Transfer Examples
+    # 4. Surgical Edits & Fact Preservation Pairs
+    # Teaches the model to preserve metrics, technical entities, and author structure
+    # during editing rather than aggressively rewriting from scratch.
+    surgical_edit_pairs = [
+        (
+            "Adapt this paragraph into first-person active voice. Retain the exact measurement values and service names:\n\n"
+            "Our team is pleased to share that an observability solution was deployed across the cluster, "
+            "resulting in a p99 latency reduction of 35% and full error budget preservation across the entire deployment window.",
+            "We shipped an observability pipeline across the cluster. P99 latency dropped by 35% and the error budget held throughout the deployment window."
+        ),
+        (
+            "Convert this passive incident update into an active builder account, keeping the downtime length and region:\n\n"
+            "A service degradation was observed by clients in the ap-southeast cluster lasting 22 minutes. "
+            "The outage was determined to originate from an unindexed foreign key in the billing database. A patch was deployed to restore query performance.",
+            "Clients in the ap-southeast cluster hit a 22-minute degradation. We tracked down an unindexed foreign key in the billing database, pushed an indexing migration, and query latency normalized immediately."
+        ),
+        (
+            "Condense these SDK release bullet points for a changelog. Keep the version number and timeouts:\n\n"
+            "We are pleased to announce that version 2.4 of the client library is now available. This release brings exciting improvements to the developer experience. "
+            "Specifically, the retry handler now implements exponential backoff with jitter, the default timeout has been raised from 3 seconds to 25 seconds, and a new --dry-run flag is supported.",
+            "Version 2.4 of the client library adds exponential backoff with jitter to the retry handler, raises the default timeout from 3 seconds to 25 seconds, and adds the --dry-run flag."
+        ),
+        (
+            "Rewrite this in active first-person voice. Every metric in it is measured, so every number must survive:\n\n"
+            "Utilization was made of an in-memory cache by the infrastructure group, yielding a reduction of database read load by 58%, "
+            "a decrease in median query latency from 420ms to 95ms, and an annualized infrastructure saving of $36,000 across 8 services.",
+            "We put an in-memory cache in front of the database. Read load dropped by 58%, median query latency fell from 420ms to 95ms, and we saved $36,000 annualized across 8 services."
+        ),
+        (
+            "Minor edit only. Correct any stylistic flaw without modifying unchanged sentences:\n\n"
+            "The web worker was dropping one payload in every six hundred during surge windows. I isolated the flaw by replaying captured network events "
+            "against a staging container with concurrency restricted to 30 workers. The bug was a race between socket initialization and token refresh, and it had been running in production for seven months.",
+            "The web worker was dropping one payload in every six hundred during surge windows. I isolated the flaw by replaying captured network events against a staging container with concurrency restricted to 30 workers. The bug was a race between socket initialization and token refresh, and it had been running in production for seven months."
+        ),
+        (
+            "Identify the single punctuation or formatting violation here and fix only that token:\n\n"
+            "We stopped maintaining the custom load-testing script after three sprints — the production traces already had every edge case we needed to measure. "
+            "Analyzing the traces took two hours. Writing the synthetic load generator would have taken a month.",
+            "We stopped maintaining the custom load-testing script after three sprints; the production traces already had every edge case we needed to measure. Analyzing the traces took two hours. Writing the synthetic load generator would have taken a month."
+        ),
+        (
+            "Remove verbose transition phrases from this paragraph while leaving the remaining sentences untouched:\n\n"
+            "The refactor took four days. The first two days went to studying the legacy query planner, which had not been touched since 2022. "
+            "The third went to the schema migration, and the fourth went to edge cases. In an effort to prevent recurrences, I now profile the query plan before touching table definitions.",
+            "The refactor took four days. The first two days went to studying the legacy query planner, which had not been touched since 2022. The third went to the schema migration, and the fourth went to edge cases. To prevent recurrences, I now profile the query plan before touching table definitions."
+        ),
+        (
+            "Remove false dichotomies and filler phrases from this engineering update:\n\n"
+            "It is not about the framework, it is about the feedback loop. Our team spent the quarter establishing a unified linter — which is mission-critical — and the outcome was clear. "
+            "CI build failures dropped by half, because engineers finally had a single deterministic check.",
+            "Our team spent the quarter establishing a unified linter, and CI build failures dropped by half because engineers finally had a single deterministic check."
+        ),
+        (
+            "Refactor this corporate social post into a concrete technical highlight under 80 words:\n\n"
+            "🚀 Exciting news! We are thrilled to announce our revolutionary new telemetry engine that empowers developers to achieve unprecedented observability. "
+            "This game-changing paradigm shift unlocks transformative velocity. Proud of the team! #Innovation #Engineering",
+            "We just replaced our polling telemetry with a push-based stream. Pipeline latency dropped from 15 seconds to 400ms, and we stopped dropping metric samples during traffic spikes. The single architectural change: moving from periodic batch scrapers to direct event subscriptions."
+        ),
+        (
+            "Make this feedback concrete and direct without inventing unverified numbers:\n\n"
+            "Our developer onboarding documentation has been characterized by external builders as difficult to navigate. "
+            "We are committed to driving meaningful improvements to the user journey in future milestones.",
+            "The onboarding docs bury the initial API key setup behind four conceptual overview pages. We need to move the curl command and working code snippet to step one so developers get a successful 200 response in under two minutes."
+        )
+    ]
+
+    for prompt, resp in surgical_edit_pairs:
+        examples.append(make_ex(prompt, resp, task_tag="Edit"))
+
+    # 5. Abstention & Negative Grounding Pairs
+    # Teaches the model to refuse hallucinating unrun benchmarks, invented statistics, or fake arXiv links.
+    abstention_pairs = [
+        (
+            "Provide the verified dropoff rate of developers during initial API key generation with academic citations.",
+            "I do not have verified industry-wide telemetry or published research on exact developer dropoff percentages during API key setup, and guessing a statistic weakens technical credibility. What we can observe in live request traces is the cliff between initial credential creation and the first authenticated request: builders churn when sample code fails to run on modern runtimes.",
+            "Draft"
+        ),
+        (
+            "Write the throughput and latency comparison table for a database migration test before running the harness.",
+            "Because the migration benchmark has not been executed yet, I will not generate synthetic latency numbers or invented throughput figures. Here is the evaluation harness schema to report against once measurements are collected:\n\n- Baseline workload: 10,000 req/sec over 30 minutes\n- Latency distribution: p50, p90, p99 (ms)\n- Memory ceiling under peak concurrent connections\n- Error rate during instance restarts",
+            "Draft"
+        ),
+        (
+            "Evaluate the validity of the external references in this literature summary:\n\n"
+            "The performance characteristics are thoroughly analyzed in the literature; see the 2025 survey at https://arxiv.org/abs/25999.00123 and follow-up benchmarks at https://arxiv.org/abs/9999.99999 for verified data.",
+            "Both citations in this passage are invalid. The arXiv identifiers 25999.00123 and 9999.99999 do not exist. Rather than referencing fabricated links or placeholder URLs, cite verified primary documentation or ground the claims directly in reproducible benchmark logs.",
+            "Critique"
+        ),
+        (
+            "Audit this paragraph against style standards. If no defects exist, confirm it is publication-ready:\n\n"
+            "The cache stampede was the problem, not the database hardware. When twenty workers simultaneously refreshed the same expired key, "
+            "they saturated the connection pool and dropped incoming requests. Adding probabilistic early expiration fixed it in twelve lines of code. "
+            "Writing the fix took ten minutes; reproducing the race condition under load took two days.",
+            "This paragraph is solid. The opening lands directly on the technical defect, the causal chain is concrete, and the sentence cadence is crisp with active first-person ownership. Leave it as is.",
+            "Critique"
+        )
+    ]
+
+    for prompt, resp, tag in abstention_pairs:
+        examples.append(make_ex(prompt, resp, task_tag=tag))
+
+    # 6. Length-Constrained Headline & Summary Variations
+    constrained_pairs = [
+        (
+            "List 6 concise email headings discussing why our engineering team abandoned velocity point estimates (max 8 words each):",
+            "1. Why We Stopped Estimating Sprints\n"
+            "2. The Problem With Velocity Points\n"
+            "3. What Replaced Our Sprint Estimation\n"
+            "4. Measuring Shipped Code, Not Story Points\n"
+            "5. Why Estimation Buries Real Blockers\n"
+            "6. Turning Sprint Planning Into Async Reviews",
+            "Headline"
+        ),
+        (
+            "Generate 8 article headlines about removing 250 unused feature toggles from production systems:",
+            "1. The Misconception Behind Feature Flags: Why More Toggles Mean Slower Deploys\n"
+            "2. What Deleting 250 Feature Flags Revealed About Our Architecture\n"
+            "3. Why Feature Flags Become Unpaid Tech Debt\n"
+            "4. 250 Flags Later: The Cost of Postponing Hard Decisions\n"
+            "5. The Feature Flag Trap: Turning Config Into Branching Complexity\n"
+            "6. Cleaning Up 250 Stale Flags in Production\n"
+            "7. How We Pruned 250 Feature Flags Without Dropping Traffic\n"
+            "8. Stop Adding Flags: Designing Systems That Ship Straight to Main",
+            "Headline"
+        ),
+        (
+            "Propose 6 declarative titles for a tech talk demonstrating real-time AI tool failures in production:",
+            "1. Three Agent Failures in Production and the Context That Fixed Them\n"
+            "2. When Agents Break: Live Traces From Real Platforms\n"
+            "3. Beyond Prompt Engineering: Architecture for Autonomous Tool Use\n"
+            "4. Fixing Agent Auth, Pagination, and Error Recovery in Real Time\n"
+            "5. The Anatomy of an Agent Failure Loop\n"
+            "6. Building Resilient Tool Plumbings for Production AI Agents",
+            "Headline"
+        )
+    ]
+
+    for prompt, resp, tag in constrained_pairs:
+        examples.append(make_ex(prompt, resp, task_tag=tag))
+
+    # 7. Out-of-Domain (OOD) Voice Transfer Examples
     ood_examples = [
         (
             "Write a short Field Note about preparing for a 100-mile gravel bike race.",

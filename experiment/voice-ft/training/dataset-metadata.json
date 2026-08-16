@@ -1,0 +1,16 @@
+{
+  "total_examples": 245,
+  "train_examples": 221,
+  "val_examples": 24,
+  "task_breakdown": {
+    "Edit": 122,
+    "Draft": 57,
+    "Critique": 32,
+    "Headline": 22,
+    "Present": 8,
+    "OOD": 4
+  },
+  "source_inventory": {
+    "portfolio_entries": 23
+  }
+}
