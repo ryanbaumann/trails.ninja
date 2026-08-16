@@ -1,0 +1,51 @@
+# MLX LoRA fine-tuning, round 5, dense variant. Gemma 4 31B instead of 26B-A4B.
+#
+#   mlx_lm.lora --config experiment/voice-ft/config_r5_dense.yaml
+#
+# The argument for switching, in one line: 26B-A4B routes each token through about 4B
+# active parameters, so a LoRA on it is adapting a thin slice of a wide model, and voice
+# is exactly the kind of diffuse, everywhere-at-once property that gets spread across
+# experts. A dense 31B puts every parameter on every token. Same family, same chat
+# template, same Apache 2.0 licence, so nothing in training/ has to change.
+#
+# Cost on an M4 Pro 48 GB: mlx-community/gemma-4-31b-it-4bit is roughly 17-18 GB of
+# weights. Round 4 peaked at 24.5 GB on the MoE. Expect this run to sit higher, so
+# grad_checkpoint is on and num_layers is cut to 12. If it still swaps, drop
+# max_seq_length to 1536 before touching rank; the micro-pairs are short.
+#
+# This is a hypothesis, not a result. Run both, grade both with the same suite, and
+# compare with:
+#   python3 scripts/voice_eval.py compare --baseline <moe>.json --candidate <dense>.json
+
+model: "mlx-community/gemma-4-31b-it-4bit"
+train: true
+data: "./experiment/voice-ft/training"
+
+fine_tune_type: lora
+num_layers: 12
+grad_checkpoint: true
+
+iters: 200
+batch_size: 1
+grad_accumulation_steps: 2
+max_seq_length: 2048
+mask_prompt: true
+
+learning_rate: 4.0e-5
+lr_schedule:
+  name: cosine_decay
+  warmup: 20
+  warmup_init: 1.0e-7
+  arguments: [4.0e-5, 200, 1.0e-6]
+
+lora_parameters:
+  rank: 16
+  scale: 32.0
+  dropout: 0.05
+
+seed: 42
+adapter_path: "./adapters/gemma-4-31b-ryan-voice-v5"
+save_every: 50
+steps_per_eval: 25
+steps_per_report: 10
+val_batches: 12

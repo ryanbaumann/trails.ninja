@@ -19,6 +19,10 @@
     "labs:smoke-private": "node scripts/smoke-private-artifacts.mjs",
     "test:labs": "node --test scripts/test/*.test.mjs",
     "test:social": "node --test scripts/test/social-drafts.test.mjs",
+    "test:voice": "python3 -m unittest discover -s scripts/test -p '*_test.py'",
+    "eval:grade": "python3 scripts/voice_eval.py grade",
+    "eval:citations": "python3 scripts/voice_eval.py citations",
+    "eval:leakage": "python3 scripts/voice_eval.py leakage",
     "new:demo": "node scripts/new-demo.mjs",
     "new:post": "node scripts/new-post.mjs",
     "previews": "node scripts/previews.mjs"

@@ -1,0 +1,59 @@
+# MLX LoRA fine-tuning, round 5. Gemma 4 26B-A4B, the same MoE round 4 used.
+#
+#   mlx_lm.lora --config experiment/voice-ft/config_r5.yaml
+#
+# What round 4 got wrong, and what changed here:
+#
+#   Repetition loops on open-ended tasks (Draft, Present). Round 4 ran 150 iters at
+#   lr 8e-5 with no warmup and no decay, which is a hot constant rate on a 221-example
+#   set. Round 5 warms up over 20 steps and cosine-decays to near zero, so the last
+#   third of training stops carving the same groove deeper.
+#
+#   Edits that did not edit. That is a data problem more than a hyperparameter one:
+#   the generator now emits 108 Edit pairs (was 111 at a smaller corpus) and the
+#   held-out suite grades change as well as preservation. Nothing here fixes it
+#   directly. Watch G-EDIT-DELTA across rounds rather than the loss curve.
+#
+#   Thin task coverage. Present was silently producing zero examples because the
+#   generator checked content_type == "talk" against a corpus that says "talks".
+#   Fixed, so this round sees 8 Present pairs instead of 0.
+#
+# Budget: 199 train examples, batch 1, accum 2 gives ~100 optimizer steps per epoch.
+# 200 iters is 2 epochs, which is the window round 3 identified before mode collapse.
+
+model: "models/gemma-4-26b-a4b-it-4bit"
+train: true
+data: "./experiment/voice-ft/training"
+
+fine_tune_type: lora
+num_layers: 16
+
+iters: 200
+batch_size: 1
+grad_accumulation_steps: 2
+max_seq_length: 2048
+
+# Loss on the assistant turn only. Without this the model memorises the prompt
+# scaffold and emits "[Task: Edit]" at inference. See G-SCAFFOLD.
+mask_prompt: true
+
+learning_rate: 5.0e-5
+lr_schedule:
+  name: cosine_decay
+  warmup: 20
+  warmup_init: 1.0e-7
+  arguments: [5.0e-5, 200, 1.0e-6]
+
+# Rank 16 held voice at round 4. Going higher buys capacity the corpus cannot fill;
+# 221 examples is not enough signal for r=64 and the extra parameters mostly memorise.
+lora_parameters:
+  rank: 16
+  scale: 32.0
+  dropout: 0.05
+
+seed: 42
+adapter_path: "./adapters/gemma-4-26b-ryan-voice-v5"
+save_every: 50
+steps_per_eval: 25
+steps_per_report: 10
+val_batches: 12

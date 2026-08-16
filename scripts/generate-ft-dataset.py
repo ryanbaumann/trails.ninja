@@ -18,6 +18,7 @@ import json
 import os
 import random
 import re
+import sys
 
 SYSTEM_PROMPT = (
     "You are Ryan Baumann's writing voice and editorial agent. You draft, edit, rewrite, critique, and present in his style: "
@@ -338,7 +339,10 @@ def main():
 
     # 3. Process talk entries (Present Task)
     for item in portfolio:
-        if item.get("content_type") == "talk":
+        # The loader tags these "talks" after the directory name. Matching on the
+        # singular meant this whole branch never ran and the dataset shipped with zero
+        # Present examples while the README claimed four.
+        if item.get("content_type") == "talks":
             title = item.get("title") or "Technical Presentation"
             venue = item.get("venue", "Developer Meetup")
             body = item["body"]
@@ -463,22 +467,40 @@ def main():
     with open(os.path.join(TRAINING_DIR, "dataset-metadata.json"), "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2)
 
-    # Ensure held-out test prompts file exists in eval/prompts.jsonl
-    eval_prompts = [
-        {"id": "eval_01", "task": "Edit", "prompt": "Rewrite this corporate draft in Ryan's voice: We are pleased to announce our platform."},
-        {"id": "eval_02", "task": "Edit", "prompt": "Rewrite this announcement: Our engineering team has deployed an innovative solution to enhance system availability."},
-        {"id": "eval_03", "task": "Critique", "prompt": "Critique this draft opening: In today's fast-paced digital world, developers face numerous challenges with API integrations."},
-        {"id": "eval_04", "task": "Headline", "prompt": "Generate 8 headline variants for an article on why prompt engineering hits an RLHF ceiling."},
-        {"id": "eval_05", "task": "Draft", "prompt": "Write a short Field Note on why local fine-tuning on Apple Silicon changes personal developer workflows."},
-        {"id": "eval_06", "task": "Present", "prompt": "Draft a talk outline for GeoMob SF on live-coding agentic map applications."}
-    ]
-    with open(os.path.join(EVAL_DIR, "prompts.jsonl"), "w", encoding="utf-8") as f:
-        for ep in eval_prompts:
-            f.write(json.dumps(ep, ensure_ascii=False) + "\n")
-
     print("[✓] Dataset generated successfully from repository markdown!")
     print(f"Total examples: {len(examples)} (Train: {len(train_set)}, Val: {len(val_set)})")
     print("Task Breakdown:", json.dumps(task_counts, indent=2))
+
+    # The held-out suite is authored by hand and lives in eval/heldout.jsonl. This
+    # script used to overwrite it with six generated prompts on every run, which
+    # meant the eval set was a function of the training set. It now only reads it,
+    # and it reports any phrasing the two share, because an overlap here turns a
+    # generalisation claim into a memorisation claim.
+    report_leakage()
+
+
+def report_leakage():
+    heldout_path = os.path.join(EVAL_DIR, "heldout.jsonl")
+    if not os.path.exists(heldout_path):
+        print(f"[!] No held-out suite at {heldout_path}; skipping the leakage check.")
+        return
+
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from voiceeval import suite as suite_mod
+
+    items = suite_mod.load_suite(heldout_path)
+    findings = suite_mod.check_leakage(items, training_dir=TRAINING_DIR)
+    errors = [f for f in findings if f["severity"] == "error"]
+    print(f"\nHeld-out suite: {len(items)} items {suite_mod.coverage_report(items)}")
+    if not errors:
+        print("[✓] No 8-word phrase is shared between the held-out suite and the training data.")
+        return
+    for f in errors:
+        print(f"[!] leakage in {f['id']}: {f['message']} {f['shared']}")
+    raise SystemExit(
+        "Held-out prompts overlap the training data. Reword the suite or the generators; "
+        "an eval that shares phrasing with training measures recall."
+    )
 
 
 if __name__ == "__main__":
