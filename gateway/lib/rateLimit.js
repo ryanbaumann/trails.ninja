@@ -94,7 +94,7 @@ export class CircularBucket {
     this.bucketDurationMs = bucketDurationMs;
     this.slots = new Array(bucketCount);
     for (let i = 0; i < bucketCount; i += 1) {
-      this.slots[i] = { bucketIndex: -1, calls: 0, tokens: 0 };
+      this.slots[i] = { bucketIndex: -1, calls: 0, tokens: 0, costMicros: 0 };
     }
   }
 
@@ -106,6 +106,7 @@ export class CircularBucket {
       slot.bucketIndex = bucketIndex;
       slot.calls = 0;
       slot.tokens = 0;
+      slot.costMicros = 0;
     }
     return slot;
   }
@@ -115,6 +116,7 @@ export class CircularBucket {
     const minBucketIndex = currentBucketIndex - this.bucketCount + 1;
     let calls = 0;
     let tokens = 0;
+    let costMicros = 0;
     let oldestActiveBucketIndex = currentBucketIndex;
     let hasActivity = false;
 
@@ -123,7 +125,8 @@ export class CircularBucket {
       if (slot.bucketIndex >= minBucketIndex && slot.bucketIndex <= currentBucketIndex) {
         calls += slot.calls;
         tokens += slot.tokens;
-        if (slot.calls > 0 || slot.tokens > 0) {
+        costMicros += slot.costMicros;
+        if (slot.calls > 0 || slot.tokens > 0 || slot.costMicros > 0) {
           if (!hasActivity || slot.bucketIndex < oldestActiveBucketIndex) {
             oldestActiveBucketIndex = slot.bucketIndex;
             hasActivity = true;
@@ -136,35 +139,46 @@ export class CircularBucket {
     return {
       calls,
       tokens,
+      costMicros,
       resetTimestamp,
       resetAt: new Date(resetTimestamp).toISOString(),
     };
   }
 
-  add(timestamp, calls = 0, tokens = 0) {
+  add(timestamp, calls = 0, tokens = 0, costMicros = 0) {
     const slot = this._getSlot(timestamp);
     slot.calls += Math.max(0, calls);
     slot.tokens += Math.max(0, tokens);
+    slot.costMicros += Math.max(0, costMicros);
   }
 
-  refund(timestamp, calls = 0, tokens = 0) {
+  refund(timestamp, calls = 0, tokens = 0, costMicros = 0) {
     const slot = this._getSlot(timestamp);
     slot.calls = Math.max(0, slot.calls - calls);
     slot.tokens = Math.max(0, slot.tokens - tokens);
+    slot.costMicros = Math.max(0, slot.costMicros - costMicros);
   }
 
   reset() {
     for (let i = 0; i < this.bucketCount; i += 1) {
-      this.slots[i] = { bucketIndex: -1, calls: 0, tokens: 0 };
+      this.slots[i] = { bucketIndex: -1, calls: 0, tokens: 0, costMicros: 0 };
     }
   }
 }
 
 export const DEFAULT_GEMINI_LIMITS = Object.freeze({
-  userMaxCalls: 100,
-  userMaxTokens: 100_000,
-  globalMaxCalls: 1_000,
-  globalMaxTokens: 1_000_000,
+  userMaxCalls: 500,
+  userDailyCalls: 500,
+  userMaxTokens: 5_000_000,
+  userDailyTokens: 5_000_000,
+  userMaxCostMicros: 600_000, // $0.60 per user/day
+  userDailyCostMicros: 600_000,
+  globalMaxCalls: 5_000,
+  globalDailyCalls: 5_000,
+  globalMaxTokens: 50_000_000,
+  globalDailyTokens: 50_000_000,
+  globalMaxCostMicros: 5_000_000, // $5.00 global/day
+  globalDailyCostMicros: 5_000_000,
   windowMs: 24 * 60 * 60_000, // 24 hours (86,400,000 ms)
   bucketCount: 288, // 5 minutes per bucket
 });
@@ -172,8 +186,10 @@ export const DEFAULT_GEMINI_LIMITS = Object.freeze({
 export const DEFAULT_GEMINI_OMNI_LIMITS = Object.freeze({
   userDailyCalls: 2,
   userDailyTokens: 100_000,
+  userMaxCostMicros: 400_000,
   globalDailyCalls: 10,
   globalDailyTokens: 1_000_000,
+  globalMaxCostMicros: 2_000_000,
   bucketDurationMs: 5 * 60 * 1000, // 5 mins
   bucketCount: 288, // 24 hours
   windowMs: 24 * 60 * 60_000,
@@ -185,8 +201,20 @@ export class CircularBucketRateLimiter {
     this.label = options.label || options.serviceName || 'Gemini';
     this.userMaxCalls = Number(options.userMaxCalls ?? options.userDailyCalls ?? DEFAULT_GEMINI_LIMITS.userMaxCalls);
     this.userMaxTokens = Number(options.userMaxTokens ?? options.userDailyTokens ?? DEFAULT_GEMINI_LIMITS.userMaxTokens);
+    this.userMaxCostMicros = Number(
+      options.userMaxCostMicros
+      ?? (options.userDailyCostDollars ? Math.round(Number(options.userDailyCostDollars) * 1_000_000) : undefined)
+      ?? (options.userCostCapDollars ? Math.round(Number(options.userCostCapDollars) * 1_000_000) : undefined)
+      ?? DEFAULT_GEMINI_LIMITS.userMaxCostMicros
+    );
     this.globalMaxCalls = Number(options.globalMaxCalls ?? options.globalDailyCalls ?? DEFAULT_GEMINI_LIMITS.globalMaxCalls);
     this.globalMaxTokens = Number(options.globalMaxTokens ?? options.globalDailyTokens ?? DEFAULT_GEMINI_LIMITS.globalMaxTokens);
+    this.globalMaxCostMicros = Number(
+      options.globalMaxCostMicros
+      ?? (options.globalDailyCostDollars ? Math.round(Number(options.globalDailyCostDollars) * 1_000_000) : undefined)
+      ?? (options.globalCostCapDollars ? Math.round(Number(options.globalCostCapDollars) * 1_000_000) : undefined)
+      ?? DEFAULT_GEMINI_LIMITS.globalMaxCostMicros
+    );
     this.bucketDurationMs = options.bucketDurationMs ? Number(options.bucketDurationMs) : undefined;
     this.bucketCount = Math.max(1, Math.floor(Number(options.bucketCount ?? DEFAULT_GEMINI_LIMITS.bucketCount)));
     this.windowMs = Number(options.windowMs ?? (this.bucketDurationMs ? this.bucketDurationMs * this.bucketCount : DEFAULT_GEMINI_LIMITS.windowMs));
@@ -217,7 +245,7 @@ export class CircularBucketRateLimiter {
     for (const [key, bucket] of this.userBuckets.entries()) {
       let active = false;
       for (const slot of bucket.slots) {
-        if (slot.bucketIndex >= minBucketIndex && (slot.calls > 0 || slot.tokens > 0)) {
+        if (slot.bucketIndex >= minBucketIndex && (slot.calls > 0 || slot.tokens > 0 || slot.costMicros > 0)) {
           active = true;
           break;
         }
@@ -231,27 +259,33 @@ export class CircularBucketRateLimiter {
     }
   }
 
-  check(key, { calls = 1, tokens = 0, timestamp = this.now() } = {}) {
+  check(key, { calls = 1, tokens = 0, costMicros = 0, timestamp = this.now() } = {}) {
     const userBucket = this._getUserBucket(key, timestamp);
     const userTotals = userBucket.getTotals(timestamp);
     const globalTotals = this.globalBucket.getTotals(timestamp);
 
     if (userTotals.calls + calls > this.userMaxCalls) return false;
+    if (userTotals.costMicros + costMicros > this.userMaxCostMicros) return false;
     if (userTotals.tokens + tokens > this.userMaxTokens) return false;
     if (globalTotals.calls + calls > this.globalMaxCalls) return false;
+    if (globalTotals.costMicros + costMicros > this.globalMaxCostMicros) return false;
     if (globalTotals.tokens + tokens > this.globalMaxTokens) return false;
     return true;
   }
 
-  consume(key, { calls = 1, tokens = 0, timestamp = this.now() } = {}) {
+  consume(key, { calls = 1, tokens = 0, costMicros = 0, timestamp = this.now() } = {}) {
     const userBucket = this._getUserBucket(key, timestamp);
     const userTotals = userBucket.getTotals(timestamp);
     const globalTotals = this.globalBucket.getTotals(timestamp);
 
     const userRemainingCalls = Math.max(0, this.userMaxCalls - userTotals.calls);
     const userRemainingTokens = Math.max(0, this.userMaxTokens - userTotals.tokens);
+    const userRemainingCostMicros = Math.max(0, this.userMaxCostMicros - userTotals.costMicros);
     const globalRemainingCalls = Math.max(0, this.globalMaxCalls - globalTotals.calls);
     const globalRemainingTokens = Math.max(0, this.globalMaxTokens - globalTotals.tokens);
+    const globalRemainingCostMicros = Math.max(0, this.globalMaxCostMicros - globalTotals.costMicros);
+
+    const formatCost = (micros) => `$${(micros / 1_000_000).toFixed(2)}`;
 
     if (userTotals.calls + calls > this.userMaxCalls) {
       const retryAfterSeconds = Math.max(1, Math.ceil((userTotals.resetTimestamp - timestamp) / 1000));
@@ -264,18 +298,69 @@ export class CircularBucketRateLimiter {
         user: {
           calls: userTotals.calls,
           tokens: userTotals.tokens,
+          costMicros: userTotals.costMicros,
+          costDollars: Number((userTotals.costMicros / 1_000_000).toFixed(4)),
           remainingCalls: userRemainingCalls,
           remainingTokens: userRemainingTokens,
+          remainingCostMicros: userRemainingCostMicros,
+          remainingCostDollars: Number((userRemainingCostMicros / 1_000_000).toFixed(4)),
           limitCalls: this.userMaxCalls,
           limitTokens: this.userMaxTokens,
+          limitCostMicros: this.userMaxCostMicros,
+          limitCostDollars: Number((this.userMaxCostMicros / 1_000_000).toFixed(2)),
         },
         global: {
           calls: globalTotals.calls,
           tokens: globalTotals.tokens,
+          costMicros: globalTotals.costMicros,
+          costDollars: Number((globalTotals.costMicros / 1_000_000).toFixed(4)),
           remainingCalls: globalRemainingCalls,
           remainingTokens: globalRemainingTokens,
+          remainingCostMicros: globalRemainingCostMicros,
+          remainingCostDollars: Number((globalRemainingCostMicros / 1_000_000).toFixed(4)),
           limitCalls: this.globalMaxCalls,
           limitTokens: this.globalMaxTokens,
+          limitCostMicros: this.globalMaxCostMicros,
+          limitCostDollars: Number((this.globalMaxCostMicros / 1_000_000).toFixed(2)),
+        },
+      };
+    }
+
+    if (userTotals.costMicros + costMicros > this.userMaxCostMicros) {
+      const retryAfterSeconds = Math.max(1, Math.ceil((userTotals.resetTimestamp - timestamp) / 1000));
+      return {
+        allowed: false,
+        reason: 'USER_COST_LIMIT',
+        message: `Daily ${this.label} shared allowance reached (${formatCost(this.userMaxCostMicros)}/day). Please try again tomorrow or connect your own API key.`,
+        retryAfterSeconds,
+        resetAt: userTotals.resetAt,
+        user: {
+          calls: userTotals.calls,
+          tokens: userTotals.tokens,
+          costMicros: userTotals.costMicros,
+          costDollars: Number((userTotals.costMicros / 1_000_000).toFixed(4)),
+          remainingCalls: userRemainingCalls,
+          remainingTokens: userRemainingTokens,
+          remainingCostMicros: userRemainingCostMicros,
+          remainingCostDollars: Number((userRemainingCostMicros / 1_000_000).toFixed(4)),
+          limitCalls: this.userMaxCalls,
+          limitTokens: this.userMaxTokens,
+          limitCostMicros: this.userMaxCostMicros,
+          limitCostDollars: Number((this.userMaxCostMicros / 1_000_000).toFixed(2)),
+        },
+        global: {
+          calls: globalTotals.calls,
+          tokens: globalTotals.tokens,
+          costMicros: globalTotals.costMicros,
+          costDollars: Number((globalTotals.costMicros / 1_000_000).toFixed(4)),
+          remainingCalls: globalRemainingCalls,
+          remainingTokens: globalRemainingTokens,
+          remainingCostMicros: globalRemainingCostMicros,
+          remainingCostDollars: Number((globalRemainingCostMicros / 1_000_000).toFixed(4)),
+          limitCalls: this.globalMaxCalls,
+          limitTokens: this.globalMaxTokens,
+          limitCostMicros: this.globalMaxCostMicros,
+          limitCostDollars: Number((this.globalMaxCostMicros / 1_000_000).toFixed(2)),
         },
       };
     }
@@ -291,18 +376,30 @@ export class CircularBucketRateLimiter {
         user: {
           calls: userTotals.calls,
           tokens: userTotals.tokens,
+          costMicros: userTotals.costMicros,
+          costDollars: Number((userTotals.costMicros / 1_000_000).toFixed(4)),
           remainingCalls: userRemainingCalls,
           remainingTokens: userRemainingTokens,
+          remainingCostMicros: userRemainingCostMicros,
+          remainingCostDollars: Number((userRemainingCostMicros / 1_000_000).toFixed(4)),
           limitCalls: this.userMaxCalls,
           limitTokens: this.userMaxTokens,
+          limitCostMicros: this.userMaxCostMicros,
+          limitCostDollars: Number((this.userMaxCostMicros / 1_000_000).toFixed(2)),
         },
         global: {
           calls: globalTotals.calls,
           tokens: globalTotals.tokens,
+          costMicros: globalTotals.costMicros,
+          costDollars: Number((globalTotals.costMicros / 1_000_000).toFixed(4)),
           remainingCalls: globalRemainingCalls,
           remainingTokens: globalRemainingTokens,
+          remainingCostMicros: globalRemainingCostMicros,
+          remainingCostDollars: Number((globalRemainingCostMicros / 1_000_000).toFixed(4)),
           limitCalls: this.globalMaxCalls,
           limitTokens: this.globalMaxTokens,
+          limitCostMicros: this.globalMaxCostMicros,
+          limitCostDollars: Number((this.globalMaxCostMicros / 1_000_000).toFixed(2)),
         },
       };
     }
@@ -318,18 +415,69 @@ export class CircularBucketRateLimiter {
         user: {
           calls: userTotals.calls,
           tokens: userTotals.tokens,
+          costMicros: userTotals.costMicros,
+          costDollars: Number((userTotals.costMicros / 1_000_000).toFixed(4)),
           remainingCalls: userRemainingCalls,
           remainingTokens: userRemainingTokens,
+          remainingCostMicros: userRemainingCostMicros,
+          remainingCostDollars: Number((userRemainingCostMicros / 1_000_000).toFixed(4)),
           limitCalls: this.userMaxCalls,
           limitTokens: this.userMaxTokens,
+          limitCostMicros: this.userMaxCostMicros,
+          limitCostDollars: Number((this.userMaxCostMicros / 1_000_000).toFixed(2)),
         },
         global: {
           calls: globalTotals.calls,
           tokens: globalTotals.tokens,
+          costMicros: globalTotals.costMicros,
+          costDollars: Number((globalTotals.costMicros / 1_000_000).toFixed(4)),
           remainingCalls: globalRemainingCalls,
           remainingTokens: globalRemainingTokens,
+          remainingCostMicros: globalRemainingCostMicros,
+          remainingCostDollars: Number((globalRemainingCostMicros / 1_000_000).toFixed(4)),
           limitCalls: this.globalMaxCalls,
           limitTokens: this.globalMaxTokens,
+          limitCostMicros: this.globalMaxCostMicros,
+          limitCostDollars: Number((this.globalMaxCostMicros / 1_000_000).toFixed(2)),
+        },
+      };
+    }
+
+    if (globalTotals.costMicros + costMicros > this.globalMaxCostMicros) {
+      const retryAfterSeconds = Math.max(1, Math.ceil((globalTotals.resetTimestamp - timestamp) / 1000));
+      return {
+        allowed: false,
+        reason: 'GLOBAL_COST_LIMIT',
+        message: `The shared ${this.label} daily budget is exhausted (${formatCost(this.globalMaxCostMicros)}/day). Add your own API key to continue.`,
+        retryAfterSeconds,
+        resetAt: globalTotals.resetAt,
+        user: {
+          calls: userTotals.calls,
+          tokens: userTotals.tokens,
+          costMicros: userTotals.costMicros,
+          costDollars: Number((userTotals.costMicros / 1_000_000).toFixed(4)),
+          remainingCalls: userRemainingCalls,
+          remainingTokens: userRemainingTokens,
+          remainingCostMicros: userRemainingCostMicros,
+          remainingCostDollars: Number((userRemainingCostMicros / 1_000_000).toFixed(4)),
+          limitCalls: this.userMaxCalls,
+          limitTokens: this.userMaxTokens,
+          limitCostMicros: this.userMaxCostMicros,
+          limitCostDollars: Number((this.userMaxCostMicros / 1_000_000).toFixed(2)),
+        },
+        global: {
+          calls: globalTotals.calls,
+          tokens: globalTotals.tokens,
+          costMicros: globalTotals.costMicros,
+          costDollars: Number((globalTotals.costMicros / 1_000_000).toFixed(4)),
+          remainingCalls: globalRemainingCalls,
+          remainingTokens: globalRemainingTokens,
+          remainingCostMicros: globalRemainingCostMicros,
+          remainingCostDollars: Number((globalRemainingCostMicros / 1_000_000).toFixed(4)),
+          limitCalls: this.globalMaxCalls,
+          limitTokens: this.globalMaxTokens,
+          limitCostMicros: this.globalMaxCostMicros,
+          limitCostDollars: Number((this.globalMaxCostMicros / 1_000_000).toFixed(2)),
         },
       };
     }
@@ -345,24 +493,36 @@ export class CircularBucketRateLimiter {
         user: {
           calls: userTotals.calls,
           tokens: userTotals.tokens,
+          costMicros: userTotals.costMicros,
+          costDollars: Number((userTotals.costMicros / 1_000_000).toFixed(4)),
           remainingCalls: userRemainingCalls,
           remainingTokens: userRemainingTokens,
+          remainingCostMicros: userRemainingCostMicros,
+          remainingCostDollars: Number((userRemainingCostMicros / 1_000_000).toFixed(4)),
           limitCalls: this.userMaxCalls,
           limitTokens: this.userMaxTokens,
+          limitCostMicros: this.userMaxCostMicros,
+          limitCostDollars: Number((this.userMaxCostMicros / 1_000_000).toFixed(2)),
         },
         global: {
           calls: globalTotals.calls,
           tokens: globalTotals.tokens,
+          costMicros: globalTotals.costMicros,
+          costDollars: Number((globalTotals.costMicros / 1_000_000).toFixed(4)),
           remainingCalls: globalRemainingCalls,
           remainingTokens: globalRemainingTokens,
+          remainingCostMicros: globalRemainingCostMicros,
+          remainingCostDollars: Number((globalRemainingCostMicros / 1_000_000).toFixed(4)),
           limitCalls: this.globalMaxCalls,
           limitTokens: this.globalMaxTokens,
+          limitCostMicros: this.globalMaxCostMicros,
+          limitCostDollars: Number((this.globalMaxCostMicros / 1_000_000).toFixed(2)),
         },
       };
     }
 
-    userBucket.add(timestamp, calls, tokens);
-    this.globalBucket.add(timestamp, calls, tokens);
+    userBucket.add(timestamp, calls, tokens, costMicros);
+    this.globalBucket.add(timestamp, calls, tokens, costMicros);
 
     return {
       allowed: true,
@@ -370,18 +530,30 @@ export class CircularBucketRateLimiter {
       user: {
         calls: userTotals.calls + calls,
         tokens: userTotals.tokens + tokens,
+        costMicros: userTotals.costMicros + costMicros,
+        costDollars: Number(((userTotals.costMicros + costMicros) / 1_000_000).toFixed(4)),
         remainingCalls: Math.max(0, this.userMaxCalls - (userTotals.calls + calls)),
         remainingTokens: Math.max(0, this.userMaxTokens - (userTotals.tokens + tokens)),
+        remainingCostMicros: Math.max(0, this.userMaxCostMicros - (userTotals.costMicros + costMicros)),
+        remainingCostDollars: Number((Math.max(0, this.userMaxCostMicros - (userTotals.costMicros + costMicros)) / 1_000_000).toFixed(4)),
         limitCalls: this.userMaxCalls,
         limitTokens: this.userMaxTokens,
+        limitCostMicros: this.userMaxCostMicros,
+        limitCostDollars: Number((this.userMaxCostMicros / 1_000_000).toFixed(2)),
       },
       global: {
         calls: globalTotals.calls + calls,
         tokens: globalTotals.tokens + tokens,
+        costMicros: globalTotals.costMicros + costMicros,
+        costDollars: Number(((globalTotals.costMicros + costMicros) / 1_000_000).toFixed(4)),
         remainingCalls: Math.max(0, this.globalMaxCalls - (globalTotals.calls + calls)),
         remainingTokens: Math.max(0, this.globalMaxTokens - (globalTotals.tokens + tokens)),
+        remainingCostMicros: Math.max(0, this.globalMaxCostMicros - (globalTotals.costMicros + costMicros)),
+        remainingCostDollars: Number((Math.max(0, this.globalMaxCostMicros - (globalTotals.costMicros + costMicros)) / 1_000_000).toFixed(4)),
         limitCalls: this.globalMaxCalls,
         limitTokens: this.globalMaxTokens,
+        limitCostMicros: this.globalMaxCostMicros,
+        limitCostDollars: Number((this.globalMaxCostMicros / 1_000_000).toFixed(2)),
       },
     };
   }
@@ -391,16 +563,16 @@ export class CircularBucketRateLimiter {
     return result.allowed === true;
   }
 
-  record(key, { calls = 0, tokens = 0, timestamp = this.now() } = {}) {
+  record(key, { calls = 0, tokens = 0, costMicros = 0, timestamp = this.now() } = {}) {
     const userBucket = this._getUserBucket(key, timestamp);
-    userBucket.add(timestamp, calls, tokens);
-    this.globalBucket.add(timestamp, calls, tokens);
+    userBucket.add(timestamp, calls, tokens, costMicros);
+    this.globalBucket.add(timestamp, calls, tokens, costMicros);
   }
 
-  refund(key, { calls = 0, tokens = 0, timestamp = this.now() } = {}) {
+  refund(key, { calls = 0, tokens = 0, costMicros = 0, timestamp = this.now() } = {}) {
     const userBucket = this._getUserBucket(key, timestamp);
-    userBucket.refund(timestamp, calls, tokens);
-    this.globalBucket.refund(timestamp, calls, tokens);
+    userBucket.refund(timestamp, calls, tokens, costMicros);
+    this.globalBucket.refund(timestamp, calls, tokens, costMicros);
   }
 
   status(key, { timestamp = this.now() } = {}) {
@@ -410,27 +582,47 @@ export class CircularBucketRateLimiter {
 
     const userRemainingCalls = Math.max(0, this.userMaxCalls - userTotals.calls);
     const userRemainingTokens = Math.max(0, this.userMaxTokens - userTotals.tokens);
+    const userRemainingCostMicros = Math.max(0, this.userMaxCostMicros - userTotals.costMicros);
     const globalRemainingCalls = Math.max(0, this.globalMaxCalls - globalTotals.calls);
     const globalRemainingTokens = Math.max(0, this.globalMaxTokens - globalTotals.tokens);
+    const globalRemainingCostMicros = Math.max(0, this.globalMaxCostMicros - globalTotals.costMicros);
 
     return {
-      allowed: userRemainingCalls > 0 && userRemainingTokens > 0 && globalRemainingCalls > 0 && globalRemainingTokens > 0,
+      allowed:
+        userRemainingCalls > 0
+        && userRemainingTokens > 0
+        && userRemainingCostMicros > 0
+        && globalRemainingCalls > 0
+        && globalRemainingTokens > 0
+        && globalRemainingCostMicros > 0,
       resetAt: userTotals.resetAt,
       user: {
         calls: userTotals.calls,
         tokens: userTotals.tokens,
+        costMicros: userTotals.costMicros,
+        costDollars: Number((userTotals.costMicros / 1_000_000).toFixed(4)),
         remainingCalls: userRemainingCalls,
         remainingTokens: userRemainingTokens,
+        remainingCostMicros: userRemainingCostMicros,
+        remainingCostDollars: Number((userRemainingCostMicros / 1_000_000).toFixed(4)),
         limitCalls: this.userMaxCalls,
         limitTokens: this.userMaxTokens,
+        limitCostMicros: this.userMaxCostMicros,
+        limitCostDollars: Number((this.userMaxCostMicros / 1_000_000).toFixed(2)),
       },
       global: {
         calls: globalTotals.calls,
         tokens: globalTotals.tokens,
+        costMicros: globalTotals.costMicros,
+        costDollars: Number((globalTotals.costMicros / 1_000_000).toFixed(4)),
         remainingCalls: globalRemainingCalls,
         remainingTokens: globalRemainingTokens,
+        remainingCostMicros: globalRemainingCostMicros,
+        remainingCostDollars: Number((globalRemainingCostMicros / 1_000_000).toFixed(4)),
         limitCalls: this.globalMaxCalls,
         limitTokens: this.globalMaxTokens,
+        limitCostMicros: this.globalMaxCostMicros,
+        limitCostDollars: Number((this.globalMaxCostMicros / 1_000_000).toFixed(2)),
       },
     };
   }
@@ -445,10 +637,50 @@ export function createCircularBucketRateLimiter(options = {}) {
   return new CircularBucketRateLimiter(options);
 }
 
-export function extractGeminiTokenUsage(body, fallbackTextLength = 0) {
-  if (!body) {
-    return Math.max(1, Math.ceil(Number(fallbackTextLength || 0) / 4));
+export function calculateGeminiCostMicros({
+  promptTokens = 0,
+  candidateTokens = 0,
+  cachedTokens = 0,
+  isImage = false,
+  isVideo = false,
+} = {}) {
+  if (isImage) {
+    return 30_000; // $0.03 per image
   }
+  if (isVideo) {
+    return 200_000; // $0.20 per video generation
+  }
+  const uncachedPrompt = Math.max(0, promptTokens - cachedTokens);
+  // Uncached prompt: $0.10 / 1M tokens = 0.10 micros / token
+  const uncachedCost = uncachedPrompt * 0.10;
+  // Cached prompt: $0.025 / 1M tokens (75% cache discount) = 0.025 micros / token
+  const cachedCost = cachedTokens * 0.025;
+  // Candidate / reasoning / output: $0.40 / 1M tokens = 0.40 micros / token
+  const candidateCost = candidateTokens * 0.40;
+
+  return Math.ceil(uncachedCost + cachedCost + candidateCost);
+}
+
+export function extractGeminiUsageAndCost(body, fallbackTextLength = 0, { isImage = false, isVideo = false } = {}) {
+  if (isImage) {
+    return {
+      totalTokens: 1500,
+      promptTokens: 0,
+      candidateTokens: 0,
+      cachedTokens: 0,
+      costMicros: 30_000,
+    };
+  }
+  if (isVideo) {
+    return {
+      totalTokens: 1000,
+      promptTokens: 0,
+      candidateTokens: 0,
+      cachedTokens: 0,
+      costMicros: 200_000,
+    };
+  }
+
   let parsed = body;
   if (typeof body === 'string') {
     const trimmed = body.trim();
@@ -467,8 +699,22 @@ export function extractGeminiTokenUsage(body, fallbackTextLength = 0) {
             const dataObj = JSON.parse(line.slice(5).trim());
             const meta = dataObj?.usageMetadata || dataObj?.usage_metadata;
             if (meta) {
-              const total = Number(meta.totalTokenCount ?? meta.total_token_count);
-              if (Number.isFinite(total) && total > 0) return total;
+              const prompt = Number(meta.promptTokenCount ?? meta.prompt_token_count) || 0;
+              const candidates = Number(meta.candidatesTokenCount ?? meta.candidates_token_count) || 0;
+              const cached = Number(meta.cachedContentTokenCount ?? meta.cached_content_token_count) || 0;
+              const total = Number(meta.totalTokenCount ?? meta.total_token_count) || (prompt + candidates);
+              const costMicros = calculateGeminiCostMicros({
+                promptTokens: prompt,
+                candidateTokens: candidates,
+                cachedTokens: cached,
+              });
+              return {
+                totalTokens: total,
+                promptTokens: prompt,
+                candidateTokens: candidates,
+                cachedTokens: cached,
+                costMicros,
+              };
             }
           } catch {
             // Ignore parse errors on individual SSE frames
@@ -481,11 +727,22 @@ export function extractGeminiTokenUsage(body, fallbackTextLength = 0) {
   if (parsed && typeof parsed === 'object') {
     const meta = parsed.usageMetadata || parsed.usage_metadata;
     if (meta && typeof meta === 'object') {
-      const total = Number(meta.totalTokenCount ?? meta.total_token_count);
-      if (Number.isFinite(total) && total > 0) return total;
       const prompt = Number(meta.promptTokenCount ?? meta.prompt_token_count) || 0;
       const candidates = Number(meta.candidatesTokenCount ?? meta.candidates_token_count) || 0;
-      if (prompt + candidates > 0) return prompt + candidates;
+      const cached = Number(meta.cachedContentTokenCount ?? meta.cached_content_token_count) || 0;
+      const total = Number(meta.totalTokenCount ?? meta.total_token_count) || (prompt + candidates);
+      const costMicros = calculateGeminiCostMicros({
+        promptTokens: prompt,
+        candidateTokens: candidates,
+        cachedTokens: cached,
+      });
+      return {
+        totalTokens: total,
+        promptTokens: prompt,
+        candidateTokens: candidates,
+        cachedTokens: cached,
+        costMicros,
+      };
     }
     if (Array.isArray(parsed.steps)) {
       let stepTokens = 0;
@@ -494,27 +751,61 @@ export function extractGeminiTokenUsage(body, fallbackTextLength = 0) {
           stepTokens += Number(step.usage.total_tokens) || 0;
         }
       }
-      if (stepTokens > 0) return stepTokens;
+      if (stepTokens > 0) {
+        const costMicros = Math.ceil(stepTokens * 0.15);
+        return {
+          totalTokens: stepTokens,
+          promptTokens: stepTokens,
+          candidateTokens: 0,
+          cachedTokens: 0,
+          costMicros,
+        };
+      }
     }
   }
 
   const length = typeof body === 'string' ? body.length : (Number(fallbackTextLength) || 0);
-  return Math.max(1, Math.ceil(length / 4));
+  const estimatedTokens = Math.max(1, Math.ceil(length / 4));
+  const costMicros = Math.ceil(estimatedTokens * 0.15);
+  return {
+    totalTokens: estimatedTokens,
+    promptTokens: estimatedTokens,
+    candidateTokens: 0,
+    cachedTokens: 0,
+    costMicros,
+  };
+}
+
+export function extractGeminiTokenUsage(body, fallbackTextLength = 0) {
+  const usage = extractGeminiUsageAndCost(body, fallbackTextLength);
+  return usage.totalTokens;
 }
 
 export const geminiRateLimiter = createCircularBucketRateLimiter({
   userMaxCalls: process.env.GEMINI_USER_DAILY_CALLS_CAP || DEFAULT_GEMINI_LIMITS.userMaxCalls,
   userMaxTokens: process.env.GEMINI_USER_DAILY_TOKENS_CAP || DEFAULT_GEMINI_LIMITS.userMaxTokens,
+  userMaxCostMicros: process.env.GEMINI_USER_DAILY_COST_CAP
+    ? Math.round(Number(process.env.GEMINI_USER_DAILY_COST_CAP) * 1_000_000)
+    : DEFAULT_GEMINI_LIMITS.userMaxCostMicros,
   globalMaxCalls: process.env.GEMINI_GLOBAL_DAILY_CALLS_CAP || DEFAULT_GEMINI_LIMITS.globalMaxCalls,
   globalMaxTokens: process.env.GEMINI_GLOBAL_DAILY_TOKENS_CAP || DEFAULT_GEMINI_LIMITS.globalMaxTokens,
+  globalMaxCostMicros: process.env.GEMINI_GLOBAL_DAILY_COST_CAP
+    ? Math.round(Number(process.env.GEMINI_GLOBAL_DAILY_COST_CAP) * 1_000_000)
+    : DEFAULT_GEMINI_LIMITS.globalMaxCostMicros,
 });
 
 export const geminiOmniRateLimiter = createCircularBucketRateLimiter({
   ...DEFAULT_GEMINI_OMNI_LIMITS,
   userDailyCalls: process.env.GEMINI_OMNI_USER_DAILY_CALLS_CAP || DEFAULT_GEMINI_OMNI_LIMITS.userDailyCalls,
   userDailyTokens: process.env.GEMINI_OMNI_USER_DAILY_TOKENS_CAP || DEFAULT_GEMINI_OMNI_LIMITS.userDailyTokens,
+  userMaxCostMicros: process.env.GEMINI_OMNI_USER_DAILY_COST_CAP
+    ? Math.round(Number(process.env.GEMINI_OMNI_USER_DAILY_COST_CAP) * 1_000_000)
+    : DEFAULT_GEMINI_OMNI_LIMITS.userMaxCostMicros,
   globalDailyCalls: process.env.GEMINI_OMNI_GLOBAL_DAILY_CALLS_CAP || DEFAULT_GEMINI_OMNI_LIMITS.globalDailyCalls,
   globalDailyTokens: process.env.GEMINI_OMNI_GLOBAL_DAILY_TOKENS_CAP || DEFAULT_GEMINI_OMNI_LIMITS.globalDailyTokens,
+  globalMaxCostMicros: process.env.GEMINI_OMNI_GLOBAL_DAILY_COST_CAP
+    ? Math.round(Number(process.env.GEMINI_OMNI_GLOBAL_DAILY_COST_CAP) * 1_000_000)
+    : DEFAULT_GEMINI_OMNI_LIMITS.globalMaxCostMicros,
 });
 
 export function clientIp(request) {
