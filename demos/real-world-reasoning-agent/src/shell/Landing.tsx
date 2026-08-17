@@ -6,7 +6,6 @@ import type { LatLng } from '@/lib/types';
 import { useAtlas } from '@/state/store';
 import { startExplorerJourney } from '@/explorer/controller';
 import { preflightCapabilities, type CapabilityStatus } from './capabilityPreflight';
-import { GeminiKeyDialog } from './GeminiKeyDialog';
 import { useGenui } from '@/genui/store';
 
 const DEFAULT_GOAL = 'Find a nearby café with the shortest verified walk; tell me whether I need a jacket.';
@@ -22,6 +21,7 @@ export function Landing() {
   const cityId = useAtlas((state) => state.cityId);
   const cities = useAtlas((state) => state.cities);
   const apiHealth = useAtlas((state) => state.apiHealth);
+  const setKeyDialogOpen = useAtlas((state) => state.setKeyDialogOpen);
   const [goal, setGoal] = useState(DEFAULT_GOAL);
   const [locationState, setLocationState] = useState<LocationState>('sample');
   const [selectedLocation, setSelectedLocation] = useState<LatLng | null>(null);
@@ -31,7 +31,6 @@ export function Landing() {
     getGeminiCredentialSnapshot,
   );
   const [capabilities, setCapabilities] = useState<CapabilityStatus | null>(null);
-  const [keyOpen, setKeyOpen] = useState(false);
   const [online, setOnline] = useState(() => typeof navigator === 'undefined' || navigator.onLine !== false);
   const originalCityId = useRef(cityId);
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -169,7 +168,7 @@ export function Landing() {
                 ? 'Gemini connected · Personal key'
                 : hostedGemini ? 'Gemini connected · Hosted' : 'Gemini is required for agent reasoning'}
             </span>
-            <button type="button" onClick={() => setKeyOpen(true)}>
+            <button type="button" onClick={() => setKeyDialogOpen(true)}>
               {credential.source === 'byok' ? 'Manage' : hostedGemini ? 'Use my key' : 'Connect key'}
             </button>
           </div>
@@ -209,7 +208,6 @@ export function Landing() {
           </div>
         </section>
       </main>
-      <GeminiKeyDialog open={keyOpen} onClose={() => setKeyOpen(false)} hostedAvailable={hostedGemini} />
     </div>
   );
 }

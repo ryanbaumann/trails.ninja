@@ -141,6 +141,15 @@ export const App = () => {
               <div className="flex-1 text-xs">
                 <p className="font-bold">Error detail</p>
                 <p>{state.errorMessage}</p>
+                {!apiKey && (
+                  <button
+                    type="button"
+                    onClick={() => setIsKeyDialogRequested(true)}
+                    className="mt-2 inline-flex items-center gap-1.5 font-bold text-red-700 underline decoration-red-300 underline-offset-4 hover:decoration-red-700 dark:text-red-300 dark:decoration-red-700 dark:hover:decoration-red-300"
+                  >
+                    Connect your Gemini API key
+                  </button>
+                )}
               </div>
               <button onClick={() => setState(prev => ({ ...prev, errorMessage: null }))} className="text-xs font-bold hover:underline">Dismiss</button>
             </div>

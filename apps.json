@@ -71,17 +71,27 @@
   {
     "name": "infographic-agent",
     "title": "Infographic Agent",
-    "description": "A portable skill that turns source text into researched infographic PNGs using Gemini.",
-    "path": "https://infographic-agent-gajikud3na-uc.a.run.app/",
+    "description": "A portable skill and live studio that turns source text into researched infographic PNGs using Gemini.",
+    "path": "/infographic-agent/",
+    "dev_build_dir": "demos/infographic-agent/dist",
     "source": {
-      "type": "external"
+      "type": "workspace",
+      "package": "demos/infographic-agent",
+      "output": "dist"
     },
     "api": {
-      "type": "none"
+      "type": "gateway",
+      "prefix": "/api/infographic-agent/"
     },
+    "providers": [
+      "gemini"
+    ],
+    "source_url": "https://github.com/ryanbaumann/fieldwork/tree/main/demos/infographic-agent",
+    "source_ref": "722012ca80decbec567ba9a9ccbd8cac515fb523",
     "tags": [
       "gemini-api",
-      "agents"
+      "agents",
+      "image-generation"
     ],
     "preview": "/previews/infographic-agent.webp"
   },

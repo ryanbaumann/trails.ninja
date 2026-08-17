@@ -264,6 +264,7 @@ export class CopilotEngine {
       if (isRateLimitError(err)) {
         s.pushToast('warn', "The shared demo allowance is used up. Add your Gemini API key from AI Studio to continue, or try again later.");
         s.setApiHealth('degraded');
+        s.setKeyDialogOpen(true);
       } else if (isStreamIdleError(err)) {
         s.pushToast('warn', 'Atlas stalled waiting on a response — please try that again.');
         s.setApiHealth('degraded');

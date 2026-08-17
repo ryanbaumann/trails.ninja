@@ -1,3 +1,5 @@
+import { geminiRateLimiter, extractGeminiTokenUsage } from './rateLimit.js';
+
 const ADVERTISING_PATTERNS = Object.freeze([
   /\b(?:seo|aeo) (?:services?|packages?|campaign|audit|analysis|agency|expert|specialist)\b/i,
   /\bsearch engine optimi[sz]ation (?:services?|packages?|audit|agency)\b/i,
@@ -41,9 +43,24 @@ function safeModelDecision(result) {
   return { ...result, decision: 'review' };
 }
 
-export async function classifyContactSubmission({ intent, message, geminiApiKey, fetchImpl = fetch }) {
+export async function classifyContactSubmission({
+  intent,
+  message,
+  geminiApiKey,
+  fetchImpl = fetch,
+  geminiLimiter = geminiRateLimiter,
+  clientKey = 'contact-spam-classifier',
+}) {
   const deterministic = deterministicContactDecision(message);
   if (!geminiApiKey) return deterministic;
+
+  const estimatedTokens = 150;
+  if (geminiLimiter && !geminiLimiter.check(clientKey, { calls: 1, tokens: estimatedTokens })) {
+    return deterministic;
+  }
+  if (geminiLimiter) {
+    geminiLimiter.record(clientKey, { calls: 1, tokens: estimatedTokens });
+  }
 
   try {
     const upstream = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${geminiApiKey}`, {
@@ -64,15 +81,25 @@ export async function classifyContactSubmission({ intent, message, geminiApiKey,
       signal: AbortSignal.timeout(5_000),
     });
     if (!upstream.ok) {
+      if (geminiLimiter) geminiLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens });
       console.error(`Contact classifier unavailable: HTTP ${upstream.status}`);
       return { decision: 'allow', category: 'other', confidence: 0, source: 'model_error' };
     }
     const body = await upstream.json();
+    const actualTokens = extractGeminiTokenUsage(body, 200);
+    if (geminiLimiter) {
+      if (actualTokens > estimatedTokens) {
+        geminiLimiter.record(clientKey, { calls: 0, tokens: actualTokens - estimatedTokens });
+      } else if (actualTokens < estimatedTokens) {
+        geminiLimiter.refund(clientKey, { calls: 0, tokens: estimatedTokens - actualTokens });
+      }
+    }
     const raw = body.candidates?.[0]?.content?.parts?.[0]?.text;
     const parsed = parseContactClassifierOutput(raw);
     if (!parsed) return { decision: 'allow', category: 'other', confidence: 0, source: 'model_error' };
     return safeModelDecision(parsed);
   } catch (error) {
+    if (geminiLimiter) geminiLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens });
     console.error(`Contact classifier unavailable: ${error?.name || 'Error'}`);
     return { decision: 'allow', category: 'other', confidence: 0, source: 'model_error' };
   }

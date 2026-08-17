@@ -19,6 +19,7 @@
  */
 import { genai } from './client';
 import { MODELS, VIDEO_GEN_ENABLED } from '@/lib/config';
+import { useAtlas } from '@/state/store';
 
 export interface VideoGenInput {
   /** Base64-encoded seed frame (no data: prefix), e.g. a Street View still. */
@@ -55,17 +56,28 @@ export async function generateVideo(input: VideoGenInput): Promise<VideoGenResul
     throw new Error('The Interactions API is unavailable in this @google/genai build — cannot run omni video gen.');
   }
 
-  const res = await ai.interactions.create({
-    model: MODELS.omni,
-    input: [
-      { type: 'image', data: input.imageBase64, mime_type: input.imageMimeType ?? 'image/jpeg' },
-      { type: 'text', text: input.prompt },
-    ],
-    generation_config: { video_config: { task: input.task ?? 'image_to_video' } },
-  });
+  try {
+    const res = await ai.interactions.create({
+      model: MODELS.omni,
+      input: [
+        { type: 'image', data: input.imageBase64, mime_type: input.imageMimeType ?? 'image/jpeg' },
+        { type: 'text', text: input.prompt },
+      ],
+      generation_config: { video_config: { task: input.task ?? 'image_to_video' } },
+    });
 
-  const data = res.output_video?.data;
-  if (!data) throw new Error('omni video gen returned no video payload.');
-  const mimeType = res.output_video?.mime_type ?? 'video/mp4';
-  return { dataUrl: `data:${mimeType};base64,${data}`, mimeType };
+    const data = res.output_video?.data;
+    if (!data) throw new Error('omni video gen returned no video payload.');
+    const mimeType = res.output_video?.mime_type ?? 'video/mp4';
+    return { dataUrl: `data:${mimeType};base64,${data}`, mimeType };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const status = (err as { status?: unknown } | null)?.status;
+    if (status === 429 || /\b429\b|too many requests|rate.?limit|\bbusy\b/i.test(msg)) {
+      useAtlas.getState().pushToast('warn', 'Video generation is rate-limited. Add your Gemini API key from AI Studio to continue, or try again later.');
+      useAtlas.getState().setKeyDialogOpen(true);
+      throw new Error('Video generation is rate-limited. Add your Gemini API key from AI Studio to continue.');
+    }
+    throw err;
+  }
 }

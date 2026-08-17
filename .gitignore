@@ -10,16 +10,11 @@ demos/isochrones/.env
 demos/aqi-map/.env
 
 # Ignore build artifacts
+demos/*/dist/
+demos/*/node_modules/
 demos/strava-explorer/build
-demos/strava-explorer/dist
-demos/isochrones/dist/
-demos/isochrones/node_modules
-demos/aqi-map/dist/
-demos/voice-studio/dist/
-demos/voice-studio/node_modules
-demos/vector-studio/dist/
-demos/vector-studio/node_modules
 portfolio/dist/
+portfolio/writer-dist/
 portfolio/node_modules
 gateway/node_modules
 *.log

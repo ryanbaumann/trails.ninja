@@ -17,6 +17,22 @@ All notable changes to this project will be documented in this file.
     - Upgraded research orchestrator to `gemini-3.7-flash` across skill script, CLI runner, package metadata, and documentation.
 
 ### Added
+- Brought **Infographic Agent (`demos/infographic-agent`)** in-house as a first-party workspace demo app:
+  - Deployed alongside portfolio and demo apps in the unified Cloud Run gateway.
+  - Zero-npm-dependency backend handler (`gateway/lib/infographicAgent.js`) mounted at `/api/infographic-agent/*` (`/prepare`, `/render`, `/validate-key`).
+  - Web demo defaults to `gemini-3.7-flash` for structured research analysis and `gemini-3.1-flash-lite-image` for high-throughput image rendering, with tab-memory personal key override for high-res `gemini-3.1-flash-image`.
+  - Skill (`.agents/skills/infographic-agent`) standardized on `gemini-3.7-flash` and `gemini-3.1-flash-image`.
+- Added **Gemini Omni Rate Limiting (`geminiOmniRateLimiter` in `gateway/lib/rateLimit.js`)**:
+  - Enforces strict rolling 24-hour limits on expensive Omni models in Atlas Real-World Reasoning Agent: **2 requests/day per user** and **10 requests/day globally**.
+- Implemented **Automatic "Bring Your Own Key" (BYOK) Triggering** on rate limits across all demos:
+  - `demos/hairstyle-ai-studio`: opens key dialog and displays actionable connect button in error alerts on 429 or quota exhaustion.
+  - `demos/real-world-reasoning-agent`: dispatches global key dialog on 429 across chat engine, image generation, and video generation pipelines.
+  - `demos/infographic-agent`: auto-opens personal key modal on 429 / daily limit exhaustion with seamless key validation and retry.
+- Implemented **Circular Bucket Rate Limiter (`gateway/lib/rateLimit.js`)** for all hosted Gemini API gateway traffic:
+  - Enforced personal user / IP rolling 24-hour caps (**100 calls/day** or **100,000 tokens/day**) and shared global rolling 24-hour caps (**1,000 calls/day** or **1,000,000 tokens/day**).
+  - Designed as a zero-dependency 24-hour ring buffer of 288 five-minute buckets with O(1) mutations and rolling window sum.
+  - Integrated across `/api/hairstyle-ai-studio/*` (generate, refine, analyze), `/api/real-world-reasoning-agent/*` (`/ai/*` interactions, `/ai/validate`, and generateContent/streamGenerateContent routes), `/api/infographic-agent/*` (prepare, render), and `/api/contact` (spam classification).
+  - Added token extraction and reconciliation (`extractGeminiTokenUsage`) handling standard JSON responses (`usageMetadata`), streaming SSE chunk feeds, Interactions API step responses, and text fallbacks with pre-request token reservation and refunding on upstream failure.
 - Fine-tuned and evaluated **Round 6 Gemma 4 31B Dense** adapter (`adapters/gemma-4-31b-ryan-voice-v6`) across the 48-item held-out suite:
   - Lifted clean item pass rate to **35% (17/48 items clean, 95% CI [23%–50%])**, up from 25% on MoE 26B-A4B.
   - Reduced total error-level failures from 56 down to **39** (30% error reduction).

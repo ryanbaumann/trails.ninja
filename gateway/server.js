@@ -18,6 +18,8 @@ import {
   clientIp,
   RATE_LIMIT_POLICIES,
   rateLimitPolicyForPath,
+  geminiRateLimiter,
+  extractGeminiTokenUsage,
 } from './lib/rateLimit.js';
 import { resolveProvider } from './lib/config.js';
 import {
@@ -28,6 +30,7 @@ import {
 import { handleStravaApi } from './lib/strava.js';
 import { handleIsochronesApi } from './lib/isochrones.js';
 import { handleHairstyleAiApi, validateHairstyleApiKey } from './lib/hairstyleAi.js';
+import { handleInfographicAgentApi, validateInfographicApiKey } from './lib/infographicAgent.js';
 import {
   createRealWorldReasoningHandler,
 } from './lib/realWorldReasoning.js';
@@ -92,6 +95,8 @@ const authRateLimiter = routeRateLimiters.auth;
 const upstreamRateLimiter = createRateLimiter({ windowMs: 60_000, max: 60 });
 const hairstyleFreeRateLimiter = createDailyRateLimiter({ max: 5 });
 const hairstyleGlobalFreeRateLimiter = createDailyRateLimiter({ max: 100 });
+const infographicFreeRateLimiter = createDailyRateLimiter({ max: 5 });
+const infographicGlobalFreeRateLimiter = createDailyRateLimiter({ max: 100 });
 const handleRealWorldReasoningApi = createRealWorldReasoningHandler();
 
 function sendJson(request, response, statusCode, payload) {
@@ -694,8 +699,25 @@ async function handleApi(request, response, pathname, searchParams) {
 
     const isImageRequest = pathname === '/api/hairstyle-ai-studio/generate'
       || pathname === '/api/hairstyle-ai-studio/refine';
+    const estimatedTokens = isImageRequest ? 1500 : 1000;
     let freeTierReserved = false;
     let globalFreeTierReserved = false;
+    let geminiReserved = false;
+
+    if (credentialSource === 'hosted') {
+      const geminiCheck = geminiRateLimiter.consume(ip, { calls: 1, tokens: estimatedTokens });
+      if (!geminiCheck.allowed) {
+        response.setHeader('Retry-After', String(geminiCheck.retryAfterSeconds));
+        sendJson(request, response, 429, {
+          error: geminiCheck.message,
+          code: geminiCheck.reason,
+          retryAfter: geminiCheck.retryAfterSeconds,
+        });
+        return;
+      }
+      geminiReserved = true;
+    }
+
     if (isImageRequest && credentialSource === 'byok') {
       const policy = RATE_LIMIT_POLICIES.hairstyleByokImage;
       if (!routeRateLimiters.hairstyleByokImage.check(`hairstyle-byok:${ip}`)) {
@@ -709,6 +731,7 @@ async function handleApi(request, response, pathname, searchParams) {
     } else if (isImageRequest) {
       freeTierReserved = hairstyleFreeRateLimiter.take(freeTierKey);
       if (!freeTierReserved) {
+        if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
         const quota = hairstyleFreeRateLimiter.status(freeTierKey);
         response.setHeader('Retry-After', String(Math.max(1, Math.ceil((Date.parse(quota.resetAt) - Date.now()) / 1000))));
         sendJson(request, response, 429, {
@@ -720,6 +743,7 @@ async function handleApi(request, response, pathname, searchParams) {
       }
       globalFreeTierReserved = hairstyleGlobalFreeRateLimiter.take('hairstyle-global');
       if (!globalFreeTierReserved) {
+        if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
         hairstyleFreeRateLimiter.refund(freeTierKey);
         freeTierReserved = false;
         sendJson(request, response, 429, {
@@ -734,6 +758,7 @@ async function handleApi(request, response, pathname, searchParams) {
     try {
       body = await readJsonBody(request, 12 * 1024 * 1024);
     } catch (err) {
+      if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
       if (freeTierReserved) hairstyleFreeRateLimiter.refund(freeTierKey);
       if (globalFreeTierReserved) hairstyleGlobalFreeRateLimiter.refund('hairstyle-global');
       sendJson(request, response, err.statusCode || 400, { error: err.message });
@@ -753,11 +778,187 @@ async function handleApi(request, response, pathname, searchParams) {
       credentialSource,
       signal: upstreamAbort.signal,
     });
+    if (geminiReserved) {
+      if (result.statusCode < 200 || result.statusCode >= 300) {
+        geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+      } else {
+        const actualTokens = extractGeminiTokenUsage(result.json, JSON.stringify(body || {}).length);
+        if (actualTokens > estimatedTokens) {
+          geminiRateLimiter.record(ip, { calls: 0, tokens: actualTokens - estimatedTokens });
+        } else if (actualTokens < estimatedTokens) {
+          geminiRateLimiter.refund(ip, { calls: 0, tokens: estimatedTokens - actualTokens });
+        }
+      }
+    }
     if (freeTierReserved && (result.statusCode < 200 || result.statusCode >= 300)) {
       hairstyleFreeRateLimiter.refund(freeTierKey);
       hairstyleGlobalFreeRateLimiter.refund('hairstyle-global');
     } else if (freeTierReserved) {
       result.json.freeTier = hairstyleFreeRateLimiter.status(freeTierKey);
+    }
+    if (!response.destroyed && !response.writableEnded) {
+      sendJson(request, response, result.statusCode, result.json);
+    }
+    return;
+  }
+
+  if (pathname.startsWith('/api/infographic-agent/')) {
+    const freeTierKey = `infographic-free:${ip}`;
+    if (pathname === '/api/infographic-agent/quota') {
+      if (request.method !== 'GET') {
+        sendJson(request, response, 405, { error: 'Method not allowed' });
+        return;
+      }
+      sendJson(request, response, 200, {
+        enabled: Boolean(validateInfographicApiKey(process.env.GEMINI_API_KEY)),
+        ...infographicFreeRateLimiter.status(freeTierKey),
+      });
+      return;
+    }
+
+    if (request.method !== 'POST') {
+      sendJson(request, response, 405, { error: 'Method not allowed' });
+      return;
+    }
+    const originHeader = request.headers.origin;
+    if (originHeader) {
+      let originHost;
+      try {
+        originHost = new URL(originHeader).host;
+      } catch {
+        originHost = null;
+      }
+      if (originHost !== request.headers.host) {
+        sendJson(request, response, 403, { error: 'Invalid request origin.' });
+        return;
+      }
+    }
+
+    const hasPersonalKeyHeader = Object.hasOwn(request.headers, 'x-gemini-api-key');
+    const personalApiKey = hasPersonalKeyHeader
+      ? validateInfographicApiKey(request.headers['x-gemini-api-key'])
+      : null;
+    if (hasPersonalKeyHeader && !personalApiKey) {
+      sendJson(request, response, 401, {
+        error: 'Enter a valid Gemini API key to continue.',
+        code: 'INVALID_GEMINI_KEY',
+      });
+      return;
+    }
+    if (pathname === '/api/infographic-agent/validate-key' && !personalApiKey) {
+      sendJson(request, response, 401, {
+        error: 'Enter a Gemini API key to validate.',
+        code: 'INVALID_GEMINI_KEY',
+      });
+      return;
+    }
+    const credentialSource = personalApiKey ? 'byok' : 'hosted';
+    const apiKey = personalApiKey || validateInfographicApiKey(process.env.GEMINI_API_KEY);
+    if (!apiKey) {
+      sendJson(request, response, 503, {
+        error: 'The shared Gemini allowance is not configured. Add your own key to continue.',
+        code: 'FREE_TIER_UNAVAILABLE',
+      });
+      return;
+    }
+
+    const isImageRequest = pathname === '/api/infographic-agent/render';
+    const estimatedTokens = isImageRequest ? 1500 : 1000;
+    let freeTierReserved = false;
+    let globalFreeTierReserved = false;
+    let geminiReserved = false;
+
+    if (credentialSource === 'hosted') {
+      const geminiCheck = geminiRateLimiter.consume(ip, { calls: 1, tokens: estimatedTokens });
+      if (!geminiCheck.allowed) {
+        response.setHeader('Retry-After', String(geminiCheck.retryAfterSeconds));
+        sendJson(request, response, 429, {
+          error: geminiCheck.message,
+          code: geminiCheck.reason,
+          retryAfter: geminiCheck.retryAfterSeconds,
+        });
+        return;
+      }
+      geminiReserved = true;
+    }
+
+    if (isImageRequest && credentialSource === 'byok') {
+      const policy = RATE_LIMIT_POLICIES.hairstyleByokImage;
+      if (!routeRateLimiters.hairstyleByokImage.check(`infographic-byok:${ip}`)) {
+        response.setHeader('Retry-After', String(Math.ceil(policy.windowMs / 1000)));
+        sendJson(request, response, 429, {
+          error: 'Too many generation requests. Please wait a moment and try again.',
+          code: 'SITE_ABUSE_LIMIT',
+        });
+        return;
+      }
+    } else if (isImageRequest) {
+      freeTierReserved = infographicFreeRateLimiter.take(freeTierKey);
+      if (!freeTierReserved) {
+        if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+        const quota = infographicFreeRateLimiter.status(freeTierKey);
+        response.setHeader('Retry-After', String(Math.max(1, Math.ceil((Date.parse(quota.resetAt) - Date.now()) / 1000))));
+        sendJson(request, response, 429, {
+          error: 'You have used today’s 5 free generations. Add your own Gemini API key to continue.',
+          code: 'FREE_TIER_EXHAUSTED',
+          freeTier: quota,
+        });
+        return;
+      }
+      globalFreeTierReserved = infographicGlobalFreeRateLimiter.take('infographic-global');
+      if (!globalFreeTierReserved) {
+        if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+        infographicFreeRateLimiter.refund(freeTierKey);
+        freeTierReserved = false;
+        sendJson(request, response, 429, {
+          error: 'The shared daily generation budget is exhausted. Add your own Gemini API key to continue.',
+          code: 'FREE_TIER_EXHAUSTED',
+        });
+        return;
+      }
+    }
+
+    let body;
+    try {
+      body = await readJsonBody(request, 12 * 1024 * 1024);
+    } catch (err) {
+      if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+      if (freeTierReserved) infographicFreeRateLimiter.refund(freeTierKey);
+      if (globalFreeTierReserved) infographicGlobalFreeRateLimiter.refund('infographic-global');
+      sendJson(request, response, err.statusCode || 400, { error: err.message });
+      return;
+    }
+    const upstreamAbort = new AbortController();
+    const abortUpstream = () => upstreamAbort.abort();
+    request.once('aborted', abortUpstream);
+    response.once('close', () => {
+      if (!response.writableEnded) abortUpstream();
+    });
+    const result = await handleInfographicAgentApi({
+      pathname,
+      method: request.method,
+      body,
+      apiKey,
+      credentialSource,
+      signal: upstreamAbort.signal,
+    });
+    if (geminiReserved) {
+      if (result.statusCode < 200 || result.statusCode >= 300) {
+        geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+      } else {
+        const actualTokens = extractGeminiTokenUsage(result.json, JSON.stringify(body || {}).length);
+        if (actualTokens > estimatedTokens) {
+          geminiRateLimiter.record(ip, { calls: 0, tokens: actualTokens - estimatedTokens });
+        } else if (actualTokens < estimatedTokens) {
+          geminiRateLimiter.refund(ip, { calls: 0, tokens: estimatedTokens - actualTokens });
+        }
+      }
+    }
+    if (freeTierReserved && (result.statusCode < 200 || result.statusCode >= 300)) {
+      infographicFreeRateLimiter.refund(freeTierKey);
+      infographicGlobalFreeRateLimiter.refund('infographic-global');
+    } else if (freeTierReserved) {
+      result.json.freeTier = infographicFreeRateLimiter.status(freeTierKey);
     }
     if (!response.destroyed && !response.writableEnded) {
       sendJson(request, response, result.statusCode, result.json);
@@ -962,5 +1163,7 @@ export {
   routeRateLimiters,
   hairstyleFreeRateLimiter,
   hairstyleGlobalFreeRateLimiter,
+  infographicFreeRateLimiter,
+  infographicGlobalFreeRateLimiter,
   CONTACT_INTENTS,
 };
