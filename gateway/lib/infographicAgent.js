@@ -1,3 +1,5 @@
+import { recordHostedGeminiFailure, recordHostedGeminiSuccess } from './rateLimit.js';
+
 const INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 const MODELS_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 const ORCHESTRATOR_MODEL = 'gemini-3.7-flash';
@@ -221,6 +223,7 @@ Output valid JSON adhering to the schema.`;
         return result(502, { error: 'Failed to parse model research output as JSON.', raw: responseText });
       }
 
+      if (credentialSource === 'hosted') recordHostedGeminiSuccess();
       return result(200, {
         analysis: parsed.analysis || {},
         prompt: parsed.prompt || '',
@@ -233,10 +236,14 @@ Output valid JSON adhering to the schema.`;
       const prompt = cleanText(body?.prompt, 4000);
       const mode = cleanText(body?.mode, 40) || 'data-story';
       const aspect = cleanText(body?.aspect, 20) || '16:9';
-      const requestedModel = cleanText(body?.imageModel, 60);
-      const imageModel = ALLOWED_IMAGE_MODELS.has(requestedModel) ? requestedModel : DEFAULT_IMAGE_MODEL;
-      const previousImage = parseDataUrl(body?.previousImageBase64);
-      const editInstruction = cleanText(body?.editInstruction, 1000);
+      const rawModel = cleanText(body?.model, 60);
+      const imageModel = ALLOWED_IMAGE_MODELS.has(rawModel) ? rawModel : DEFAULT_IMAGE_MODEL;
+      const editInstruction = cleanText(body?.editInstruction, 2000);
+      const previousImage = parseDataUrl(body?.previousImage);
+
+      if (!SUPPORTED_ASPECTS.has(aspect)) {
+        return result(400, { error: `Unsupported aspect ratio: ${aspect}` });
+      }
 
       if (!prompt && !editInstruction) {
         return result(400, { error: 'A prompt or edit instruction is required.' });
@@ -269,6 +276,7 @@ Output valid JSON adhering to the schema.`;
         });
       }
 
+      if (credentialSource === 'hosted') recordHostedGeminiSuccess();
       return result(200, {
         image: `data:${imageBlock.mime_type};base64,${imageBlock.data}`,
         mimeType: imageBlock.mime_type,
@@ -283,12 +291,14 @@ Output valid JSON adhering to the schema.`;
     if (error?.name === 'TimeoutError') return result(504, { error: 'Gemini took too long to respond. Please try again.' });
     if (error?.name === 'AbortError') return result(499, { error: 'Request cancelled.' });
     if (error?.statusCode === 401) {
+      if (credentialSource === 'hosted') recordHostedGeminiFailure('invalid_key');
       return result(401, {
         error: 'Gemini rejected that API key. Check the key and try again.',
         code: 'INVALID_GEMINI_KEY',
       });
     }
     if (error?.statusCode === 429 && credentialSource === 'hosted') {
+      recordHostedGeminiFailure('quota_depleted');
       return result(503, {
         error: 'The shared Gemini allowance is temporarily unavailable. Add your own key to continue.',
         code: 'FREE_TIER_UNAVAILABLE',

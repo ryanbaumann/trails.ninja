@@ -1,3 +1,5 @@
+import { recordHostedGeminiFailure, recordHostedGeminiSuccess } from './rateLimit.js';
+
 const INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 const MODELS_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 const VISION_MODEL = 'gemini-3.7-flash';
@@ -173,6 +175,7 @@ export async function handleHairstyleAiApi({
       });
       const parsed = parseJsonText(outputText(interaction));
       const validIds = new Set(availableStyles.map((style) => style.id));
+      if (credentialSource === 'hosted') recordHostedGeminiSuccess();
       return result(200, {
         recommendedStyleId: validIds.has(parsed?.recommendedStyleId) ? parsed.recommendedStyleId : null,
       });
@@ -215,6 +218,7 @@ export async function handleHairstyleAiApi({
       });
       const image = outputImage(interaction);
       if (!image) return result(502, { error: 'Gemini completed without returning an image.' });
+      if (credentialSource === 'hosted') recordHostedGeminiSuccess();
       return result(200, { image: `data:${image.mime_type};base64,${image.data}` });
     }
 
@@ -253,6 +257,7 @@ export async function handleHairstyleAiApi({
       });
       const image = outputImage(interaction);
       if (!image) return result(502, { error: 'Gemini completed without returning an image.' });
+      if (credentialSource === 'hosted') recordHostedGeminiSuccess();
       return result(200, { image: `data:${image.mime_type};base64,${image.data}` });
     }
 
@@ -261,12 +266,14 @@ export async function handleHairstyleAiApi({
     if (error?.name === 'TimeoutError') return result(504, { error: 'Gemini took too long to respond. Please try again.' });
     if (error?.name === 'AbortError') return result(499, { error: 'Request cancelled.' });
     if (error?.statusCode === 401) {
+      if (credentialSource === 'hosted') recordHostedGeminiFailure('invalid_key');
       return result(401, {
         error: 'Gemini rejected that API key. Check the key and try again.',
         code: 'INVALID_GEMINI_KEY',
       });
     }
     if (error?.statusCode === 429 && credentialSource === 'hosted') {
+      recordHostedGeminiFailure('quota_depleted');
       return result(503, {
         error: 'The shared Gemini allowance is temporarily unavailable. Add your own key to continue.',
         code: 'FREE_TIER_UNAVAILABLE',

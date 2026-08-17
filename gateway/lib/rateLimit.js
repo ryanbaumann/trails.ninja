@@ -571,3 +571,43 @@ export function rateLimitPolicyForPath(pathname) {
   if (pathname.startsWith('/api/strava/')) return 'oauth';
   return null;
 }
+
+let hostedGeminiHealthy = true;
+let hostedGeminiFailureReason = null;
+let hostedGeminiLastFailure = 0;
+const HOSTED_GEMINI_COOLDOWN_MS = 5 * 60 * 1000;
+
+export function recordHostedGeminiFailure(reason = 'quota_depleted') {
+  hostedGeminiHealthy = false;
+  hostedGeminiFailureReason = reason;
+  hostedGeminiLastFailure = Date.now();
+}
+
+export function recordHostedGeminiSuccess() {
+  hostedGeminiHealthy = true;
+  hostedGeminiFailureReason = null;
+  hostedGeminiLastFailure = 0;
+}
+
+export function isHostedGeminiHealthy() {
+  if (hostedGeminiHealthy) return true;
+  if (Date.now() - hostedGeminiLastFailure > HOSTED_GEMINI_COOLDOWN_MS) {
+    return true;
+  }
+  return false;
+}
+
+export function getHostedGeminiHealth() {
+  const healthy = isHostedGeminiHealthy();
+  return {
+    healthy,
+    reason: healthy ? null : hostedGeminiFailureReason,
+    lastFailure: hostedGeminiLastFailure,
+  };
+}
+
+export function resetHostedGeminiHealthForTesting() {
+  hostedGeminiHealthy = true;
+  hostedGeminiFailureReason = null;
+  hostedGeminiLastFailure = 0;
+}

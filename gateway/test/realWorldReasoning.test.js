@@ -10,7 +10,15 @@ import {
   validateRealWorldReasoningMetadata,
 } from '../lib/realWorldReasoning.js';
 import { validateGroundingLiteCall } from '../lib/realWorldReasoningGate.js';
-import { clientIp, createCircularBucketRateLimiter, DEFAULT_GEMINI_OMNI_LIMITS } from '../lib/rateLimit.js';
+import {
+  clientIp,
+  createCircularBucketRateLimiter,
+  DEFAULT_GEMINI_OMNI_LIMITS,
+  resetHostedGeminiHealthForTesting,
+  recordHostedGeminiFailure,
+  recordHostedGeminiSuccess,
+  isHostedGeminiHealthy,
+} from '../lib/rateLimit.js';
 
 const PERSONAL_KEY = 'personal-test-key';
 const HOSTED_KEY = 'hosted-test-key';
@@ -149,6 +157,7 @@ test('handler claims only its namespaced prefix and reports configured capabilit
   assert.deepEqual(JSON.parse(result.response.text), {
     maps: true,
     gemini: true,
+    hostedGemini: true,
     groundingLite: true,
   });
 });
@@ -739,3 +748,91 @@ test('Omni model requests enforce the 2 calls/day Omni rate limiter on hosted cr
   assert.equal(personalCall.response.statusCode, 200);
   assert.equal(upstreamCalls, 3);
 });
+
+test('hosted Gemini health changes capabilities and blocks hosted requests with 503 FREE_TIER_UNAVAILABLE', async () => {
+  resetHostedGeminiHealthForTesting();
+  const env = {
+    ...BASE_ENV,
+    GMP_SERVER_API_KEY: 'maps-test-key',
+    GEMINI_API_KEY: HOSTED_KEY,
+    RWR_GROUNDING_LITE_ENABLED: 'true',
+  };
+  const handler = createRealWorldReasoningHandler({
+    env,
+    fetchImpl: async () => new Response('{"ok":true}', { status: 200 }),
+  });
+
+  // When healthy: gemini is true, hostedGemini is true
+  const healthyCap = await invoke({ handler, env });
+  assert.deepEqual(JSON.parse(healthyCap.response.text), {
+    maps: true,
+    gemini: true,
+    hostedGemini: true,
+    groundingLite: true,
+  });
+
+  // Mark unhealthy
+  recordHostedGeminiFailure('quota_depleted');
+
+  // When unhealthy: gemini is false, hostedGemini is false
+  const degradedCap = await invoke({ handler, env });
+  assert.deepEqual(JSON.parse(degradedCap.response.text), {
+    maps: true,
+    gemini: false,
+    hostedGemini: false,
+    groundingLite: true,
+  });
+
+  // When unhealthy but BYOK key is provided: gemini is true, hostedGemini is false
+  const byokCap = await invoke({
+    handler,
+    env,
+    headers: { 'x-atlas-gemini-key': PERSONAL_KEY },
+  });
+  assert.deepEqual(JSON.parse(byokCap.response.text), {
+    maps: true,
+    gemini: true,
+    hostedGemini: false,
+    groundingLite: true,
+  });
+
+  // Hosted request returns 503 FREE_TIER_UNAVAILABLE immediately without calling upstream
+  let calledUpstream = false;
+  const mockFetch = async () => {
+    calledUpstream = true;
+    return new Response('{}', { status: 200 });
+  };
+  const unhealthyHandler = createRealWorldReasoningHandler({ env, fetchImpl: mockFetch });
+  const hostedCall = await invoke({
+    handler: unhealthyHandler,
+    path: 'ai/v1beta/models/gemini-3.7-flash:generateContent',
+    method: 'POST',
+    headers: { origin: 'https://fieldwork.test', 'content-type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: 'hello' }] }] }),
+    env,
+    fetchImpl: mockFetch,
+  });
+  assert.equal(hostedCall.response.statusCode, 503);
+  assert.equal(calledUpstream, false);
+  assert.match(hostedCall.response.chunks.join(''), /The shared Gemini allowance is temporarily unavailable/);
+
+  // BYOK request still succeeds
+  const personalCall = await invoke({
+    handler: unhealthyHandler,
+    path: 'ai/v1beta/models/gemini-3.7-flash:generateContent',
+    method: 'POST',
+    headers: {
+      origin: 'https://fieldwork.test',
+      'content-type': 'application/json',
+      'x-atlas-gemini-key': PERSONAL_KEY,
+    },
+    body: JSON.stringify({ contents: [{ parts: [{ text: 'hello personal' }] }] }),
+    env,
+    fetchImpl: mockFetch,
+  });
+  assert.equal(personalCall.response.statusCode, 200);
+  assert.equal(calledUpstream, true);
+
+  resetHostedGeminiHealthForTesting();
+});
+

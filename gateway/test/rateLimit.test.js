@@ -12,6 +12,11 @@ import {
   DEFAULT_GEMINI_LIMITS,
   DEFAULT_GEMINI_OMNI_LIMITS,
   geminiOmniRateLimiter,
+  recordHostedGeminiFailure,
+  recordHostedGeminiSuccess,
+  isHostedGeminiHealthy,
+  getHostedGeminiHealth,
+  resetHostedGeminiHealthForTesting,
 } from '../lib/rateLimit.js';
 
 test('createRateLimiter allows up to max requests per window then blocks', () => {
@@ -421,5 +426,25 @@ test('geminiOmniRateLimiter accurately refunds failed calls and reconciles token
   assert.equal(statusAfter.user.tokens, 0);
   assert.equal(statusAfter.user.remainingCalls, 2);
   assert.equal(statusAfter.user.remainingTokens, 100_000);
+});
+
+test('hosted Gemini health tracking records failure, blocks availability, and recovers', () => {
+  resetHostedGeminiHealthForTesting();
+  assert.equal(isHostedGeminiHealthy(), true);
+  assert.equal(getHostedGeminiHealth().healthy, true);
+
+  recordHostedGeminiFailure('quota_depleted');
+  assert.equal(isHostedGeminiHealthy(), false);
+  const health = getHostedGeminiHealth();
+  assert.equal(health.healthy, false);
+  assert.equal(health.reason, 'quota_depleted');
+  assert.equal(typeof health.lastFailure, 'number');
+
+  recordHostedGeminiSuccess();
+  assert.equal(isHostedGeminiHealthy(), true);
+  assert.equal(getHostedGeminiHealth().healthy, true);
+  assert.equal(getHostedGeminiHealth().lastFailure, 0);
+
+  resetHostedGeminiHealthForTesting();
 });
 

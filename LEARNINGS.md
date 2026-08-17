@@ -2,6 +2,13 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-17 - Dynamic hosted health tracking prevents upstream 429 stampedes on depleted server keys and routes directly to BYOK
+
+Context: Handling depleted server-side Gemini prepayment credits / quota across `real-world-reasoning-agent`, `infographic-agent`, and `hairstyle-ai-studio`.
+Learning: When a Google Cloud project with attached billing runs out of prepayment credits, upstream Gemini API calls immediately fail with 429 `RESOURCE_EXHAUSTED` / `prepayment credits are depleted` without falling back to free tier. In an interactive web application, repeatedly forwarding requests to upstream triggers thundering-herd errors, browser abort exceptions, and delayed error rendering. Tracking hosted health in gateway memory with a short cooldown window and proactive failure recording allows `/capabilities` and `/quota` to immediately signal degraded hosted service, short-circuit hosted requests with HTTP 503 `FREE_TIER_UNAVAILABLE` before hitting upstream, and guide users directly into a 1-click BYOK flow with their own free Google AI Studio keys.
+Evidence: Implemented `recordHostedGeminiFailure`, `isHostedGeminiHealthy`, and `recordHostedGeminiSuccess` in `gateway/lib/rateLimit.js`, wired across `realWorldReasoning.js`, `hairstyleAi.js`, and `infographicAgent.js`, with passing unit test suites across `gateway` (162 tests) and `real-world-reasoning-agent` (577 tests).
+Use next time: In multi-tenant or shared-allowance AI gateways, always decouple hosted credential health from server environment presence, track dynamic upstream failure states, and provide frictionless client BYOK paths when shared allowances are exhausted.
+
 ## 2026-08-17 - Fail-fast rate-limit handling prevents streaming retry cascades and aborted transitions in interactive AI apps
  
 Context: Debugging Gemini 429 / prepayment credit depletion errors in `demos/real-world-reasoning-agent` and `demos/infographic-agent`.
