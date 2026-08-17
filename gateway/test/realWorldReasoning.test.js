@@ -10,7 +10,7 @@ import {
   validateRealWorldReasoningMetadata,
 } from '../lib/realWorldReasoning.js';
 import { validateGroundingLiteCall } from '../lib/realWorldReasoningGate.js';
-import { clientIp } from '../lib/rateLimit.js';
+import { clientIp, createCircularBucketRateLimiter, DEFAULT_GEMINI_OMNI_LIMITS } from '../lib/rateLimit.js';
 
 const PERSONAL_KEY = 'personal-test-key';
 const HOSTED_KEY = 'hosted-test-key';
@@ -653,4 +653,89 @@ test('oversize AI bodies fail with 413 before any upstream request', async () =>
   });
   assert.equal(result.response.statusCode, 413);
   assert.equal(calls, 0);
+});
+
+test('Omni model requests enforce the 2 calls/day Omni rate limiter on hosted credentials', async () => {
+  let currentTime = Date.parse('2026-08-17T12:00:00Z');
+  const omniLimiter = createCircularBucketRateLimiter({
+    ...DEFAULT_GEMINI_OMNI_LIMITS,
+    now: () => currentTime,
+  });
+  const handler = createRealWorldReasoningHandler({
+    logger: () => {},
+    geminiOmniLimiter: omniLimiter,
+    now: () => currentTime,
+  });
+
+  const env = {
+    ...BASE_ENV,
+    GEMINI_API_KEY: HOSTED_KEY,
+    RWR_DAILY_VIDEO_CAP: '100',
+  };
+
+  let upstreamCalls = 0;
+  const mockFetch = async () => {
+    upstreamCalls += 1;
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: 'done' }] } }] }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+
+  // Call 1: success
+  const call1 = await invoke({
+    handler,
+    path: 'ai/v1beta/models/gemini-omni-flash-preview:generateContent',
+    method: 'POST',
+    headers: { origin: 'https://fieldwork.test', 'content-type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: 'test 1' }] }] }),
+    env,
+    fetchImpl: mockFetch,
+  });
+  assert.equal(call1.response.statusCode, 200);
+  assert.equal(upstreamCalls, 1);
+
+  // Call 2: success
+  const call2 = await invoke({
+    handler,
+    path: 'ai/v1beta/models/gemini-omni-flash-preview:generateContent',
+    method: 'POST',
+    headers: { origin: 'https://fieldwork.test', 'content-type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: 'test 2' }] }] }),
+    env,
+    fetchImpl: mockFetch,
+  });
+  assert.equal(call2.response.statusCode, 200);
+  assert.equal(upstreamCalls, 2);
+
+  // Call 3: 429 blocked by Omni limiter
+  const call3 = await invoke({
+    handler,
+    path: 'ai/v1beta/models/gemini-omni-flash-preview:generateContent',
+    method: 'POST',
+    headers: { origin: 'https://fieldwork.test', 'content-type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: 'test 3' }] }] }),
+    env,
+    fetchImpl: mockFetch,
+  });
+  assert.equal(call3.response.statusCode, 429);
+  assert.match(call3.response.chunks.join(''), /Daily Gemini Omni request limit reached/);
+  assert.equal(upstreamCalls, 2);
+
+  // Personal key bypasses the hosted Omni limit
+  const personalCall = await invoke({
+    handler,
+    path: 'ai/v1beta/models/gemini-omni-flash-preview:generateContent',
+    method: 'POST',
+    headers: {
+      origin: 'https://fieldwork.test',
+      'content-type': 'application/json',
+      'x-atlas-gemini-key': PERSONAL_KEY,
+    },
+    body: JSON.stringify({ contents: [{ parts: [{ text: 'personal' }] }] }),
+    env,
+    fetchImpl: mockFetch,
+  });
+  assert.equal(personalCall.response.statusCode, 200);
+  assert.equal(upstreamCalls, 3);
 });

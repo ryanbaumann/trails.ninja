@@ -209,10 +209,17 @@ export const useAppFlow = (scrollContainerRef?: React.RefObject<HTMLElement | nu
         step: 'style',
         errorMessage: describeError(error, 'Generation failed. Please check your image inputs and network, then try again.'),
       }));
-      if (error instanceof GeminiApiError && (
-        error.code === 'FREE_TIER_EXHAUSTED'
-        || error.code === 'FREE_TIER_UNAVAILABLE'
-      )) {
+      if (
+        error instanceof RateLimitError ||
+        (error instanceof GeminiApiError && (
+          error.code === 'RATE_LIMITED' ||
+          error.code === 'FREE_TIER_EXHAUSTED' ||
+          error.code === 'FREE_TIER_UNAVAILABLE' ||
+          error.code === 'RESOURCE_EXHAUSTED' ||
+          error.code === 'GEMINI_QUOTA_EXHAUSTED' ||
+          error.code === '429'
+        ))
+      ) {
         setIsKeyDialogRequested(true);
         void refreshFreeTier();
       }
@@ -278,10 +285,17 @@ export const useAppFlow = (scrollContainerRef?: React.RefObject<HTMLElement | nu
         ...prev,
         errorMessage: describeError(error, 'Refinement failed. Try a simpler instruction or a different reference image.'),
       }));
-      if (error instanceof GeminiApiError && (
-        error.code === 'FREE_TIER_EXHAUSTED'
-        || error.code === 'FREE_TIER_UNAVAILABLE'
-      )) {
+      if (
+        error instanceof RateLimitError ||
+        (error instanceof GeminiApiError && (
+          error.code === 'RATE_LIMITED' ||
+          error.code === 'FREE_TIER_EXHAUSTED' ||
+          error.code === 'FREE_TIER_UNAVAILABLE' ||
+          error.code === 'RESOURCE_EXHAUSTED' ||
+          error.code === 'GEMINI_QUOTA_EXHAUSTED' ||
+          error.code === '429'
+        ))
+      ) {
         setIsKeyDialogRequested(true);
         void refreshFreeTier();
       }

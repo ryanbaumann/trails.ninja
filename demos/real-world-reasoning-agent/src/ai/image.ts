@@ -1,6 +1,7 @@
 import { genai } from './client';
 import { MODELS } from '@/lib/config';
 import type { EnvironmentSnapshot, PlaceLite } from '@/lib/types';
+import { useAtlas } from '@/state/store';
 
 const CONDITIONING_IMAGE_FETCH_TIMEOUT_MS = 8_000;
 const CONDITIONED_IMAGE_TIMEOUT_MS = 30_000;
@@ -70,7 +71,12 @@ export async function generateImage(
     // key/region) instead of swallowing it — otherwise a run just shows blank/
     // error cards. The classified kind lets the UI show an accurate message.
     console.error('[generateImage] failed:', err);
-    onError?.(classifyAiFailure(err));
+    const failureKind = classifyAiFailure(err);
+    if (failureKind === 'rate-limited') {
+      useAtlas.getState().pushToast('warn', 'Image generation is rate-limited. Add your Gemini API key from AI Studio to continue, or try again later.');
+      useAtlas.getState().setKeyDialogOpen(true);
+    }
+    onError?.(failureKind);
     return null;
   }
 }
@@ -226,7 +232,12 @@ export async function generateAdImage(
       // so a wall of failed ad creatives is diagnosable instead of opaque, and
       // report the classified kind so the batch toast can be accurate.
       console.error(`[generateAdImage] ${withImage ? 'conditioned' : 'text-only'} attempt failed:`, err);
-      onError?.(classifyAiFailure(err));
+      const failureKind = classifyAiFailure(err);
+      if (failureKind === 'rate-limited') {
+        useAtlas.getState().pushToast('warn', 'Ad image generation is rate-limited. Add your Gemini API key from AI Studio to continue, or try again later.');
+        useAtlas.getState().setKeyDialogOpen(true);
+      }
+      onError?.(failureKind);
       return null;
     }
   };

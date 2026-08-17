@@ -1,6 +1,6 @@
 ---
 title: Can I Build an AI Agent That Doesn't Write Slop?
-summary: I tested prompt engineering and local fine-tuning on my MacBook to see if an AI could act as a faithful copy editor. The 31B Dense model captured my cadence, colon pivots, and number preservation, but human editorial judgment remains the real bar.
+summary: I tested prompt engineering and model fine-tuning to see if an AI could act as a faithful copy editor. It's a step in the right direction but nothing replaces good human judgement.
 date: 2026-08-15
 updated: 2026-08-16
 canonical: https://ryanbaumann.dev/writing/can-i-build-an-ai-agent-that-doesnt-write-slop/
@@ -12,40 +12,36 @@ image: /img/writing/can-i-build-an-ai-agent-that-doesnt-write-slop-header.svg
 imageAlt: "A comparison of editing approaches: in-context prompt skills versus local parameter-efficient fine-tuning on Apple Silicon."
 socialImage: /social/can-i-build-an-ai-agent-that-doesnt-write-slop.jpg
 shareTitle: Can I Build an AI Agent That Doesn't Write Slop?
-shareSummary: We all know raw AI copywriting fails. But can an AI act as a real copy editor? I ran a 3x3 test across base models, prompted skills, and a locally fine-tuned 31B model on my MacBook to find out where weights beat prompts and why human judgment is still the gold standard.
+shareSummary: We all know raw AI copywriting is trash. But can an AI Agent act as a helpful copy editor? I tested various aproaches, and here's what I learned and recommend.
 shareImageAlt: "A share card illustrating the before-and-after results of local fine-tuning versus prompted models for developer copywriting."
 ---
 
-We all know raw AI copywriting is unusable out of the box. It arrives cheerful, generic, and drenched in buzzwords. The standard pitch is that an AI can still serve as a helpful copy editor: hand a model your messy notes, get back a polished draft, spend twenty minutes rewriting every sentence to sound like an actual human, and eventually walk away with a post.
+We all know raw AI copy is bland and predicatable - cheerful, generic, and full of buzzwords. But can an AI Assistant still serve as a drafter and copy editor that I can hand my messy notes, get back a polished draft, and actually ship something that's good? I wanted to take my best stab at the problem; here's what I tried and learned about AI copywriting.
 
-Assuming the output is as good, does that workflow even save time? If you have to rewrite every paragraph an AI touches, you might as well draft it from scratch.
-
-I wanted something different: a fast, private editing agent that understands my cadence, respects my numbers, and critiques my structure, while leaving me firmly in charge of narrative, tone, and judgment. I don't want an AI to write for me, I want a sounding board so I don't have to bug a trusted writer every single time I draft an iteration, helping me get ideas onto the page faster so they don't die (yes, my short term memory needs work too 😅).
-
-So I took that idea from prompt engineering to local fine-tuning a model on my MacBook. Here's what I learned.
+The goal: a fast, private editing agent that understands my cadence, respects my numbers, and critiques my structure, while leaving me firmly in charge of narrative, tone, and judgment. I don't want an AI to write for me, I want a rubber duckie that can keep up with my rambling thoughts and help me get them onto the page before I forget the inspiration.
 
 ## Step 1: In-context prompting hits a mechanical wall
 
-I started where everyone starts: system prompts and voice guidelines. I wrote detailed skill rules forbidding em-dashes, stripping hype, enforcing active voice, and demanding first-person technical grounding.
+I started where everyone starts: system prompts & skills containing personal voice context guidelines. I wrote many detailed skills and AGENTS.md rules forbidding em-dashes, stripping hype, adding few shot examples of my own writing, enforcing active voice, and demanding first-person technical grounding.
 
-Prompted models followed the negative constraints reasonably well: they stopped using announcement clichés and stripped out obvious marketing filler. But as the rule list grew, the output suffered a different failure mode: it became stiff, dry, and repetitive.
+Agents with this context followed the "never do this" negative constraints reasonably well: they stopped using announcement clichés and stripped out obvious marketing filler. But as the rule list grew, the output suffered a different failure mode: it was just stiff, dry, and repetitive. 
 
-Instead of writing with authentic rhythm, the model traded generic marketing fluff for predictable dry and repetitive style. Paragraphs settled into identical lengths. Transitions became predictably uniform. The sentences followed every negative rule while draining all the momentum from the prose. You can prompt a model to avoid specific words; you can't prompt a model out of its own training data.
+Some models are worse than others for sure. I found Claude Opus 5 to be really self-referential. GPT 5.6 Sol was good at technical writing but super robotic. Gemini 3.7 Flash was pretty good in compariosn, but still had many dry AI suggestions like "it's not X, it's Y!". None of them felt like me, even for targeted copy edit suggestions from a draft.  
 
 ## Step 2: The fine-tuning hunch and the MacBook test
 
-Research from the University of Michigan pointed in a different direction. In [Readers Prefer Outputs of AI Trained on Copyrighted Books over Expert Human Writers](https://arxiv.org/abs/2510.13939), Chakrabarty, Ginsburg, and Dhillon tested prompted frontier models against fine-tuned models on authorial style. MFA-trained readers strongly disfavored prompted models (0.16 odds ratio) but favored fine-tuned models (8.16 odds ratio), with AI detectors flagging only 3% of fine-tuned excerpts compared to 97% of prompted ones.
+Research from the University of Michigan pointed me in a different direction. In [Readers Prefer Outputs of AI Trained on Copyrighted Books over Expert Human Writers](https://arxiv.org/abs/2510.13939), Chakrabarty, Ginsburg, and Dhillon tested prompted frontier models against fine-tuned models on authorial style. MFA-trained readers strongly disliked agents prompted to mimic a human author (0.16 odds ratio), *but* they favored a fine-tuned model trained on an author's voice (8.16 odds ratio). Very interesting!
 
-I decided to test whether parameter-efficient fine-tuning (QLoRA) could teach an open-weight model my own editorial style. I ran the entire training and evaluation loop locally on my M4 Pro MacBook (48 GB unified memory). Keeping it local gave me privacy and fast iterations on training, with zero API costs - nice.
+I decided to test whether fine-tuning (using QLoRA) could teach an open-weight model my own editorial style and make it genuniely helpful. I chose Gemma 4 series models for this task because they're some of the best open models available right now and are small enough to run locally. I ran the entire training and evaluation loop locally on my M4 Pro MacBook (48 GB unified memory). Keeping it local gave me privacy and fast iterations on training, with zero API costs - nice added bonus.
 
 Getting fine-tuning to work on a laptop took two key settings:
 
-1. **Mask prompt loss (`--mask-prompt`)**: Standard training calculates loss across both the instruction and the response. On small datasets, the model quickly overfits on prompt markers instead of learning the transform. Masking the prompt forces gradients to update exclusively on the editor's voice tokens.
-2. **Slice paragraphcs (100–250 words)**: Instead of training on full essay drafts, I sliced my corpus into focused pairs. These pairs preserved 70–95% of the original factual content while reshaping passive structure and corporate padding into direct prose.
+1. **Mask prompt loss (`--mask-prompt`)**: Standard training calculates "loss" across both the prompt and the response. On small datasets, this results in overfitting very easily. Masking the prompt forces gradients to update exclusively on the desired output tokens, not on the prompt.
+2. **Slice paragraphs (100–250 words)**: Instead of training on full drafts, I sliced my drafts into focused input/output pairs. These pairs preserved most of the original factual content, while reshaping the grammar and style into my preferred prose.
 
-To see whether this made any practical difference, I designed a direct 3x3 comparison across three models on three distinct copy tasks.
+To see whether this made any practical difference, I designed a direct comparison across three models on three distinct copy tasks.
 
-## Experiment: Base vs Prompted vs Fine-Tuned
+## Side-by-Side Experiments
 
 I tested three distinct setups:
 
@@ -53,30 +49,32 @@ I tested three distinct setups:
 2. **Pipeline B (Prompted Skill)**: Gemini 3.7 Flash equipped with my full in-context voice rules.
 3. **Pipeline C (Fine-Tuned Local Editor)**: Gemma 4 31B Dense fine-tuned on my curated dataset via QLoRA.
 
-I ran them against three representative copy tasks.
-
 ### Task 1: Product Announcement
 
-The input is a typical marketing release loaded with passive framing and self-congratulation:
+The input is a typical corporate announcement loaded with passive framing and self-congratulation:
 
 <!-- lint-ignore -->
 > *"We are thrilled to announce that our platform engineering team has deployed an innovative, cutting-edge caching layer to deliver world-class reliability across our entire fleet. P99 latency was reduced by 62% (from 840ms down to 310ms) and annualized infrastructure spend was reduced by $48,000 across 14 services."*
 
-I gave this to each model, and asked it to rewrite it in a direct builder voice while keeping every metric intact (`62%`, `840ms`, `310ms`, `$48,000`, `14 services`).
+I gave this to each model, and asked it to rewrite it in a direct builder voice while keeping every fact / metric intact.
 
-```markdown
+```
 <!-- Pipeline A: Gemini 3.7 Flash (Base) -->
 We're excited to share that we've rolled out a new caching layer across our fleet! 
 This upgrade delivered massive reliability improvements: P99 latency dropped by 62% 
 (from 840ms to 310ms), and we saved $48,000 annually across 14 services. Kudos to 
 the team for making this game-changing leap happen! 🚀
+```
 
+```
 <!-- Pipeline B: Gemini 3.7 Flash + Voice Skill -->
 Our platform team deployed a caching layer across 14 services last month. The 
 result was immediate: P99 latency dropped 62% from 840ms to 310ms, and annualized 
 infrastructure spend fell by $48,000. Caching is rarely glamorous work, but giving 
 services a fast default eliminated the tail latency that had been burning our error budget.
+```
 
+```
 <!-- Pipeline C: Gemma 4 31B Dense (Fine-Tuned Editor) -->
 We put a caching layer in front of 14 services last quarter. The numbers moved 
 immediately: p99 latency dropped from 840ms to 310ms (a 62% reduction), and annual 

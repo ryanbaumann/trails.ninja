@@ -32,6 +32,7 @@ export interface AtlasState {
   mapMode: '2d' | '3d';
   drawerOpen: boolean;
   landingDismissed: boolean;
+  keyDialogOpen: boolean;
   cityId: string;
   /** Prompt carried in via a replay link (?prompt=), auto-run once on load. */
   pendingPrompt: string | null;
@@ -42,6 +43,7 @@ export interface AtlasState {
   setMapMode: (m: '2d' | '3d') => void;
   setDrawer: (open: boolean) => void;
   toggleDrawer: () => void;
+  setKeyDialogOpen: (open: boolean) => void;
   dockMinimized: boolean;
   toggleDock: () => void;
   setDockMinimized: (minimized: boolean) => void;
@@ -215,6 +217,7 @@ export const useAtlas = create<AtlasState>((set) => ({
   mapMode: initialState.mapMode,
   drawerOpen: initialState.drawerOpen,
   landingDismissed: initialState.landingDismissed,
+  keyDialogOpen: false,
   cityId: initialState.cityId,
   pendingPrompt: initialState.pendingPrompt,
   toasts: [],
@@ -224,6 +227,7 @@ export const useAtlas = create<AtlasState>((set) => ({
   setMapMode: (m) => set({ mapMode: m }),
   setDrawer: (open) => set({ drawerOpen: open }),
   toggleDrawer: () => set((s) => ({ drawerOpen: !s.drawerOpen })),
+  setKeyDialogOpen: (open) => set({ keyDialogOpen: open }),
   dockMinimized: initialState.dockMinimized,
   toggleDock: () => set((s) => ({ dockMinimized: !s.dockMinimized })),
   setDockMinimized: (minimized) => set({ dockMinimized: minimized }),

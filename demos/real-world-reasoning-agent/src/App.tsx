@@ -13,6 +13,7 @@ import { MapErrorNotice } from '@/shell/MapErrorNotice';
 import { AudioPill } from '@/shell/AudioPill';
 import { AdminPanel } from '@/shell/AdminPanel';
 import { Toasts } from '@/shell/Toasts';
+import { GeminiKeyDialog } from '@/shell/GeminiKeyDialog';
 import { stopSpeech } from '@/ai/tts';
 import { abortCopilot, runPendingReplayPrompt } from '@/ai/session';
 import { genui } from '@/genui/store';
@@ -24,6 +25,8 @@ export default function App() {
   const clearMap = useAtlas((s) => s.clearMap);
   const setApiHealth = useAtlas((s) => s.setApiHealth);
   const landingDismissed = useAtlas((s) => s.landingDismissed);
+  const keyDialogOpen = useAtlas((s) => s.keyDialogOpen);
+  const setKeyDialogOpen = useAtlas((s) => s.setKeyDialogOpen);
   const setAccent = useRef<string>('');
   const prev = useRef<ScenarioId | null>(null);
 
@@ -162,6 +165,7 @@ export default function App() {
           <Toasts />
         </> : null}
         <Landing />
+        <GeminiKeyDialog open={keyDialogOpen} onClose={() => setKeyDialogOpen(false)} />
       </div>
     </APIProvider>
   );

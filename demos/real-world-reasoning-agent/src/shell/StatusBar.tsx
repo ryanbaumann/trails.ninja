@@ -6,15 +6,14 @@ import { lib } from '@/services/maps';
 import { placeDetails } from '@/services/places';
 import { SCENARIOS } from '@/scenarios/registry';
 import { HowItsBuilt } from '@/shell/HowItsBuilt';
-import { GeminiKeyDialog } from '@/shell/GeminiKeyDialog';
 
 export function StatusBar() {
   const report = useAtlas((s) => s.cameraReport);
   const health = useAtlas((s) => s.apiHealth);
   const cities = useAtlas((s) => s.cities);
   const cityId = useAtlas((s) => s.cityId);
+  const setKeyDialogOpen = useAtlas((s) => s.setKeyDialogOpen);
   const [howOpen, setHowOpen] = useState(false);
-  const [keyOpen, setKeyOpen] = useState(false);
   const credential = useSyncExternalStore(
     subscribeGeminiCredential,
     getGeminiCredentialSnapshot,
@@ -70,7 +69,7 @@ export function StatusBar() {
       <button
         type="button"
         className="atlas-statusbar__link atlas-statusbar__service"
-        onClick={() => setKeyOpen(true)}
+        onClick={() => setKeyDialogOpen(true)}
         title={credential.source === 'byok' ? 'Personal Gemini key connected for this tab' : 'Connect or manage a Gemini key'}
       >
         <KeyRound size={13} aria-hidden="true" />
@@ -104,7 +103,6 @@ export function StatusBar() {
       <PlaceAutocompleteSearch />
     </div>
     <HowItsBuilt open={howOpen} onClose={() => setHowOpen(false)} />
-    <GeminiKeyDialog open={keyOpen} onClose={() => setKeyOpen(false)} />
     </>
   );
 }

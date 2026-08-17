@@ -1,9 +1,11 @@
 import { validateGroundingLiteCall } from './realWorldReasoningGate.js';
-import { clientIp } from './rateLimit.js';
+import { clientIp, geminiRateLimiter, geminiOmniRateLimiter, extractGeminiTokenUsage } from './rateLimit.js';
 
 export const REAL_WORLD_REASONING_PREFIX = '/api/real-world-reasoning-agent/';
 export const GMP_SOLUTION_ID = 'gmp_git_agentskills_v1';
 export const GEMINI_BYOK_HEADER = 'x-atlas-gemini-key';
+
+const isOmniModel = (m) => typeof m === 'string' && (/omni/i.test(m) || m.includes('gemini-omni'));
 
 const BASE_GEMINI_MODELS = Object.freeze([
   'gemini-3.7-flash',
@@ -404,6 +406,8 @@ const internalPathFor = (pathname) => {
 export function createRealWorldReasoningHandler({
   now = () => Date.now(),
   logger = (line) => console.log(line),
+  geminiLimiter = geminiRateLimiter,
+  geminiOmniLimiter = geminiOmniRateLimiter,
 } = {}) {
   const rateBuckets = new Map();
   const heartbeats = new Map();
@@ -490,6 +494,7 @@ export function createRealWorldReasoningHandler({
     timeoutMs = config.timeoutMs,
     headers,
     rawHeaders,
+    onComplete,
   }) => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -516,10 +521,18 @@ export function createRealWorldReasoningHandler({
       });
       response.writeHead(upstream.status, upstreamResponseHeaders(upstream.headers));
       if (endpoint) logProxy(endpoint, upstream.status, config.heartbeatMs);
+      const chunks = [];
       if (upstream.body) {
-        for await (const chunk of upstream.body) response.write(chunk);
+        for await (const chunk of upstream.body) {
+          response.write(chunk);
+          if (onComplete) chunks.push(chunk);
+        }
       }
       response.end();
+      if (onComplete) {
+        const fullBody = Buffer.concat(chunks).toString('utf8');
+        onComplete({ status: upstream.status, bodyText: fullBody });
+      }
     } catch (error) {
       const status = error?.statusCode === 413 || error?.message === 'body_too_large' ? 413 : 502;
       if (response.headersSent) {
@@ -528,6 +541,9 @@ export function createRealWorldReasoningHandler({
         sendText(response, status, 'Upstream request failed');
       }
       if (endpoint) logProxy(endpoint, status, config.heartbeatMs);
+      if (onComplete) {
+        onComplete({ status, error });
+      }
     } finally {
       clearTimeout(timer);
       request.removeListener?.('aborted', abort);
@@ -760,7 +776,22 @@ export function createRealWorldReasoningHandler({
       }
 
       if (path === '/ai/validate') {
+        const clientKey = clientIp(request);
+        let reserved = false;
+        if (credential.source === 'hosted') {
+          const check = geminiLimiter.consume(clientKey, { calls: 1, tokens: 50, timestamp: now() });
+          if (!check.allowed) {
+            sendProxy(response, 'ai', 429, check.message, config);
+            return true;
+          }
+          reserved = true;
+        }
         const result = await validateGeminiCredential(credential.key, fetchImpl);
+        if (reserved) {
+          if (!result.ok) {
+            geminiLimiter.refund(clientKey, { calls: 1, tokens: 50, timestamp: now() });
+          }
+        }
         const status = result.ok ? 200
           : result.reason === 'invalid' ? 401
             : result.reason === 'quota' ? 429
@@ -818,7 +849,43 @@ export function createRealWorldReasoningHandler({
           );
           return true;
         }
+        const clientKey = clientIp(request);
+        const estimatedTokens = Math.max(10, Math.ceil((body?.length || 100) / 4));
+        const isOmni = isOmniModel(model);
         if (credential.source === 'hosted') {
+          if (isOmni) {
+            const omniCheck = geminiOmniLimiter.consume(clientKey, {
+              calls: 1,
+              tokens: estimatedTokens,
+              timestamp: now(),
+            });
+            if (!omniCheck.allowed) {
+              sendProxy(
+                response,
+                'ai',
+                429,
+                omniCheck.message || 'Gemini Omni daily limit reached (2 requests/day per user, 10 globally). Connect your personal Gemini API key to continue.',
+                config,
+              );
+              return true;
+            }
+          }
+          const check = geminiLimiter.consume(clientKey, {
+            calls: 1,
+            tokens: estimatedTokens,
+            timestamp: now(),
+          });
+          if (!check.allowed) {
+            if (isOmni) {
+              geminiOmniLimiter.refund(clientKey, {
+                calls: 1,
+                tokens: estimatedTokens,
+                timestamp: now(),
+              });
+            }
+            sendProxy(response, 'ai', 429, check.message, config);
+            return true;
+          }
           daily.ai += 1;
           daily.video += 1;
           daily.inputBytes += body.length;
@@ -833,6 +900,31 @@ export function createRealWorldReasoningHandler({
           buffer: body,
           timeoutMs: config.videoTimeoutMs,
           headers: { 'x-goog-api-key': credential.key },
+          onComplete: ({ status: upstreamStatus, bodyText, error }) => {
+            if (credential.source === 'hosted') {
+              if (error || upstreamStatus < 200 || upstreamStatus >= 300) {
+                geminiLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, timestamp: now() });
+                if (isOmni) {
+                  geminiOmniLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, timestamp: now() });
+                }
+              } else {
+                const actualTokens = extractGeminiTokenUsage(bodyText, body.length);
+                if (actualTokens > estimatedTokens) {
+                  const delta = actualTokens - estimatedTokens;
+                  geminiLimiter.record(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                  if (isOmni) {
+                    geminiOmniLimiter.record(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                  }
+                } else if (actualTokens < estimatedTokens) {
+                  const delta = estimatedTokens - actualTokens;
+                  geminiLimiter.refund(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                  if (isOmni) {
+                    geminiOmniLimiter.refund(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                  }
+                }
+              }
+            }
+          },
         });
         return true;
       }
@@ -842,6 +934,7 @@ export function createRealWorldReasoningHandler({
         sendProxy(response, 'ai', 403, 'AI model or method is not allowed', config);
         return true;
       }
+      const targetModel = path.match(/models\/([^/:]+)/)?.[1] || '';
       let body;
       try {
         body = await readBody(request, config.bodyCap);
@@ -866,6 +959,44 @@ export function createRealWorldReasoningHandler({
           sendProxy(response, 'ai', 400, 'Invalid Gemini request body', config);
           return true;
         }
+      }
+      const clientKey = clientIp(request);
+      const estimatedTokens = Math.max(10, Math.ceil((body?.length || 100) / 4));
+      const isOmni = isOmniModel(targetModel);
+      if (credential.source === 'hosted') {
+        if (isOmni) {
+          const omniCheck = geminiOmniLimiter.consume(clientKey, {
+            calls: 1,
+            tokens: estimatedTokens,
+            timestamp: now(),
+          });
+          if (!omniCheck.allowed) {
+            sendProxy(
+              response,
+              'ai',
+              429,
+              omniCheck.message || 'Gemini Omni daily limit reached (2 requests/day per user, 10 globally). Connect your personal Gemini API key to continue.',
+              config,
+            );
+            return true;
+          }
+        }
+        const check = geminiLimiter.consume(clientKey, {
+          calls: 1,
+          tokens: estimatedTokens,
+          timestamp: now(),
+        });
+        if (!check.allowed) {
+          if (isOmni) {
+            geminiOmniLimiter.refund(clientKey, {
+              calls: 1,
+              tokens: estimatedTokens,
+              timestamp: now(),
+            });
+          }
+          sendProxy(response, 'ai', 429, check.message, config);
+          return true;
+        }
         daily.ai += 1;
         daily.inputBytes += body.length;
       }
@@ -878,6 +1009,31 @@ export function createRealWorldReasoningHandler({
         endpoint: 'ai',
         buffer: body,
         headers: { 'x-goog-api-key': credential.key },
+        onComplete: ({ status: upstreamStatus, bodyText, error }) => {
+          if (credential.source === 'hosted') {
+            if (error || upstreamStatus < 200 || upstreamStatus >= 300) {
+              geminiLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, timestamp: now() });
+              if (isOmni) {
+                geminiOmniLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, timestamp: now() });
+              }
+            } else {
+              const actualTokens = extractGeminiTokenUsage(bodyText, body.length);
+              if (actualTokens > estimatedTokens) {
+                const delta = actualTokens - estimatedTokens;
+                geminiLimiter.record(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                if (isOmni) {
+                  geminiOmniLimiter.record(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                }
+              } else if (actualTokens < estimatedTokens) {
+                const delta = estimatedTokens - actualTokens;
+                geminiLimiter.refund(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                if (isOmni) {
+                  geminiOmniLimiter.refund(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                }
+              }
+            }
+          }
+        },
       });
       return true;
     }

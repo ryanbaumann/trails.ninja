@@ -2,6 +2,20 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-17 - Dual-tier BYOK architecture with automatic modal triggering prevents rate-limit dead ends
+
+Context: Integrating multi-app Gemini demos (`hairstyle-ai-studio`, `real-world-reasoning-agent`, `infographic-agent`) behind a shared Node gateway with strict 24-hour circular bucket rate limits.
+Learning: When users hit hosted daily limits (429 or quota exhaustion), static error alerts cause dead ends and bounce rates. Centralizing BYOK trigger state in app-level stores/hooks to automatically open the personal API key modal (while preserving pending user inputs) transforms a rate-limit error into an immediate onboarding path. Validating keys client-side via a zero-generating proxy route ensures bad keys are caught before retrying work.
+Evidence: All demo apps (`demos/hairstyle-ai-studio`, `demos/real-world-reasoning-agent`, `demos/infographic-agent`) automatically open the key dialog on 429 status codes with 100% test coverage and zero build regressions.
+Use next time: For any rate-limited hosted AI demo, always pair 429 responses with an automatic, non-destructive BYOK modal popup and key-validation check.
+
+## 2026-08-17 - Sliding window rate limiting with circular bucket ring buffers for multi-dimensional token and call quotas
+ 
+Context: Implementing strict 24-hour rolling call and token limits (100 calls / 100k tokens per user, 1,000 calls / 1M tokens globally) for all hosted Gemini API endpoints behind the Node gateway without adding npm dependencies.
+Learning: Fixed-window rate limiters reset abruptly at boundaries, enabling 2x burst abuse across window edges. A circular ring buffer (288 x 5-minute buckets) computes exact rolling 24-hour totals in O(1) operations with zero garbage collection overhead and minimal memory footprint. Pre-request token reservation combined with post-response token reconciliation via `extractGeminiTokenUsage` accurately meters actual prompt/completion token counts across both unary and streaming SSE responses.
+Evidence: Unit test suite (`gateway/test/rateLimit.test.js`) and end-to-end smoke tests (`scripts/smoke.mjs`) verified per-user call/token limits, global call/token limits, rolling 24-hour sliding window expiration, token refunds on upstream failure, and token reconciliation across standard JSON and SSE streams with 148 passing tests.
+Use next time: Use `CircularBucketRateLimiter` and `extractGeminiTokenUsage` when metering external AI APIs that require multi-metric (call + token count), dual-tiered (user + global), rolling-window enforcement.
+
 ## 2026-08-17 - Calibrating Gemini 3.7 Flash thinking levels across orchestration vs bounded task workers
 
 Context: Upgrading demo agent architectures across the repository from `gemini-3.6-flash` and `gemini-3.5-flash-lite` to `gemini-3.7-flash`.
