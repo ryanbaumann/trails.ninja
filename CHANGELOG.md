@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Changed
+- Refined editorial essay rendering and stripped HTML comment cruft in `portfolio/build.mjs`:
+  - Updated `markdownToHtml` and `writeMarkdownMirror` to cleanly strip HTML comments (`<!-- ... -->`) such as `<!-- lint-ignore -->` from rendered HTML output and markdown mirrors.
+  - Enhanced blockquote parser to support multiline quote formatting separated by empty `>` lines.
+  - Refined model comparison outputs in `can-i-build-an-ai-agent-that-doesnt-write-slop.md` with styled typography, bold pipeline headers, and high-contrast SVG figures.
 - Upgraded agent-driven demo models and thinking level configurations across the repository to `gemini-3.7-flash`:
   - **Atlas Real-World Reasoning Agent (`demos/real-world-reasoning-agent`)**:
     - Upgraded primary orchestration model to `gemini-3.7-flash` with **HIGH** thinking (`ThinkingLevel.HIGH`).

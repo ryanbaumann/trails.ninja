@@ -1,53 +1,190 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Code passes through a compiler, a type checker, tests, and a runtime, so machines grade it in seconds. Prose passes through none of them and goes straight to a person, so the only grader is taste.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" role="img" aria-label="Code passes through automated compilers, type checkers, tests, and runtimes for instant machine grading. Prose bypasses all automated verifiers and goes directly to a human reader, where taste is the only grader.">
   <style>
-    :root { --bg: #faf9f6; --surface: #ffffff; --ink: #111827; --faint: #5f6875; --line: #d9dde5; --accent: #3b82f6; --accent-ink: #2563eb; --pass: #047857; --none: #7c8698; }
-    @media (prefers-color-scheme: dark) { :root { --bg: #030712; --surface: #111827; --ink: #f9fafb; --faint: #aeb7c4; --line: #334155; --accent: #60a5fa; --accent-ink: #93c5fd; --pass: #34d399; --none: #94a3b8; } }
-    .eyebrow { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 28px; font-weight: 700; letter-spacing: 1.6px; }
-    .deck { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 40px; font-weight: 720; letter-spacing: -0.6px; fill: var(--ink); }
-    .lane { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 28px; font-weight: 700; letter-spacing: 1.5px; }
-    .step { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 30px; font-weight: 620; fill: var(--ink); }
-    .verdict { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 28px; font-weight: 700; }
-    .note { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 26px; fill: var(--faint); }
+    :root {
+      --bg: #faf9f6;
+      --surface: #ffffff;
+      --surface-raised: #f1f5f9;
+      --ink: #0f172a;
+      --muted: #334155;
+      --faint: #526175;
+      --line: #e2e8f0;
+      --line-strong: #cbd5e1;
+      --accent: #2563eb;
+      --accent-ink: #1d4ed8;
+      --accent-subtle: #eff6ff;
+      --pass: #059669;
+      --pass-ink: #047857;
+      --pass-subtle: #ecfdf5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #030712;
+        --surface: #0f172a;
+        --surface-raised: #1e293b;
+        --ink: #f8fafc;
+        --muted: #cbd5e1;
+        --faint: #94a3b8;
+        --line: #1e293b;
+        --line-strong: #334155;
+        --accent: #3b82f6;
+        --accent-ink: #60a5fa;
+        --accent-subtle: #172554;
+        --pass: #10b981;
+        --pass-ink: #34d399;
+        --pass-subtle: #064e3b;
+      }
+    }
+    .font-mono { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+    .font-sans { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
   </style>
+
   <defs>
-    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.28"/></pattern>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--faint)"/></marker>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.4"/>
+    </pattern>
+    <marker id="arrow-faint" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--faint)"/>
+    </marker>
+    <marker id="arrow-pass" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--pass)"/>
+    </marker>
+    <marker id="arrow-accent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--accent)"/>
+    </marker>
   </defs>
+
+  <!-- Background -->
   <rect width="1200" height="675" fill="var(--bg)"/>
   <rect width="1200" height="675" fill="url(#grid)"/>
+
+  <!-- Top Accent Strip & Border -->
   <rect width="1200" height="8" fill="var(--accent)"/>
   <rect x="1" y="1" width="1198" height="673" fill="none" stroke="var(--line)" stroke-width="2"/>
 
-  <text x="70" y="84" class="eyebrow" fill="var(--accent-ink)">WRITING IS THE HARDER CASE</text>
-  <text x="70" y="140" class="deck">Code has graders. Prose has only a reader.</text>
+  <!-- Header -->
+  <g transform="translate(64, 0)">
+    <text x="0" y="74" class="font-mono" font-size="22" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">THE EVALUATION GAP</text>
+    <text x="0" y="126" class="font-sans" font-size="38" font-weight="750" letter-spacing="-0.8" fill="var(--ink)">Code has graders. Prose has only a reader.</text>
+  </g>
 
-  <!-- Code lane -->
-  <text x="70" y="214" class="lane" fill="var(--faint)">CODE</text>
-  <rect x="70" y="234" width="164" height="84" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
-  <text x="152" y="286" class="step" text-anchor="middle">compiler</text>
-  <line x1="244" y1="276" x2="272" y2="276" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow)"/>
-  <rect x="282" y="234" width="164" height="84" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
-  <text x="364" y="286" class="step" text-anchor="middle">types</text>
-  <line x1="456" y1="276" x2="484" y2="276" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow)"/>
-  <rect x="494" y="234" width="164" height="84" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
-  <text x="576" y="286" class="step" text-anchor="middle">tests</text>
-  <line x1="668" y1="276" x2="696" y2="276" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow)"/>
-  <rect x="706" y="234" width="164" height="84" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
-  <text x="788" y="286" class="step" text-anchor="middle">runtime</text>
-  <line x1="880" y1="276" x2="908" y2="276" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="920" y="286" class="verdict" fill="var(--pass)">graded fast</text>
+  <!-- CODE TRACK (Top Lane) -->
+  <g>
+    <!-- Container Card -->
+    <rect x="64" y="166" width="1072" height="194" rx="16" fill="var(--surface)" stroke="var(--line)" stroke-width="1.5"/>
 
-  <line x1="70" y1="378" x2="1130" y2="378" stroke="var(--line)" stroke-width="1" stroke-dasharray="5 7"/>
+    <!-- Track Header -->
+    <text x="96" y="234" class="font-mono" font-size="22" font-weight="700" letter-spacing="1.5" fill="var(--ink)">CODE</text>
+    <text x="96" y="264" class="font-sans" font-size="16" font-weight="600" fill="var(--pass-ink)">AUTOMATED</text>
+    <text x="96" y="288" class="font-sans" font-size="14" font-weight="500" fill="var(--faint)">deterministic loop</text>
 
-  <!-- Prose lane -->
-  <text x="70" y="438" class="lane" fill="var(--accent-ink)">PROSE</text>
-  <rect x="70" y="458" width="800" height="84" rx="10" fill="none" stroke="var(--none)" stroke-width="2" stroke-dasharray="9 8"/>
-  <text x="470" y="510" class="step" text-anchor="middle" style="fill: var(--faint)">nothing compiles, nothing runs</text>
-  <line x1="880" y1="500" x2="908" y2="500" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="920" y="510" class="verdict" fill="var(--accent-ink)">a person</text>
+    <!-- Divider -->
+    <line x1="222" y1="190" x2="222" y2="336" stroke="var(--line)" stroke-width="1.5"/>
 
-  <!-- Payoff -->
-  <rect x="70" y="586" width="6" height="62" rx="3" fill="var(--accent)"/>
-  <text x="104" y="612" class="note" fill="var(--ink)" font-weight="650">The only grader for copy is taste.</text>
-  <text x="104" y="646" class="note">So a human stays in the loop by construction.</text>
+    <!-- Step 1: Compiler -->
+    <rect x="246" y="215" width="132" height="96" rx="12" fill="var(--surface-raised)" stroke="var(--line-strong)" stroke-width="1.5"/>
+    <text x="262" y="240" class="font-mono" font-size="13" font-weight="700" fill="var(--faint)">01</text>
+    <circle cx="362" cy="236" r="4.5" fill="var(--pass)"/>
+    <text x="312" y="274" text-anchor="middle" class="font-sans" font-size="20" font-weight="700" fill="var(--ink)">Compiler</text>
+    <text x="312" y="296" text-anchor="middle" class="font-sans" font-size="13" font-weight="500" fill="var(--faint)">syntax &amp; AST</text>
+
+    <!-- Connector 1 -> 2 -->
+    <line x1="384" y1="263" x2="410" y2="263" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow-faint)"/>
+
+    <!-- Step 2: Types -->
+    <rect x="416" y="215" width="132" height="96" rx="12" fill="var(--surface-raised)" stroke="var(--line-strong)" stroke-width="1.5"/>
+    <text x="432" y="240" class="font-mono" font-size="13" font-weight="700" fill="var(--faint)">02</text>
+    <circle cx="532" cy="236" r="4.5" fill="var(--pass)"/>
+    <text x="482" y="274" text-anchor="middle" class="font-sans" font-size="20" font-weight="700" fill="var(--ink)">Types</text>
+    <text x="482" y="296" text-anchor="middle" class="font-sans" font-size="13" font-weight="500" fill="var(--faint)">static contracts</text>
+
+    <!-- Connector 2 -> 3 -->
+    <line x1="554" y1="263" x2="580" y2="263" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow-faint)"/>
+
+    <!-- Step 3: Tests -->
+    <rect x="586" y="215" width="132" height="96" rx="12" fill="var(--surface-raised)" stroke="var(--line-strong)" stroke-width="1.5"/>
+    <text x="602" y="240" class="font-mono" font-size="13" font-weight="700" fill="var(--faint)">03</text>
+    <circle cx="702" cy="236" r="4.5" fill="var(--pass)"/>
+    <text x="652" y="274" text-anchor="middle" class="font-sans" font-size="20" font-weight="700" fill="var(--ink)">Tests</text>
+    <text x="652" y="296" text-anchor="middle" class="font-sans" font-size="13" font-weight="500" fill="var(--faint)">assertions</text>
+
+    <!-- Connector 3 -> 4 -->
+    <line x1="724" y1="263" x2="750" y2="263" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrow-faint)"/>
+
+    <!-- Step 4: Runtime -->
+    <rect x="756" y="215" width="132" height="96" rx="12" fill="var(--surface-raised)" stroke="var(--line-strong)" stroke-width="1.5"/>
+    <text x="772" y="240" class="font-mono" font-size="13" font-weight="700" fill="var(--faint)">04</text>
+    <circle cx="872" cy="236" r="4.5" fill="var(--pass)"/>
+    <text x="822" y="274" text-anchor="middle" class="font-sans" font-size="20" font-weight="700" fill="var(--ink)">Runtime</text>
+    <text x="822" y="296" text-anchor="middle" class="font-sans" font-size="13" font-weight="500" fill="var(--faint)">exit codes</text>
+
+    <!-- Connector 4 -> Outcome -->
+    <line x1="894" y1="263" x2="920" y2="263" stroke="var(--pass)" stroke-width="2.5" marker-end="url(#arrow-pass)"/>
+
+    <!-- Outcome: Machine Graded -->
+    <rect x="928" y="209" width="186" height="108" rx="12" fill="var(--pass-subtle)" stroke="var(--pass)" stroke-width="2"/>
+    <rect x="944" y="223" width="58" height="20" rx="4" fill="var(--pass)"/>
+    <text x="973" y="237" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="0.5">PASS</text>
+    <text x="1021" y="275" text-anchor="middle" class="font-sans" font-size="20" font-weight="750" fill="var(--pass-ink)">Machine Graded</text>
+    <text x="1021" y="298" text-anchor="middle" class="font-sans" font-size="13" font-weight="600" fill="var(--faint)">instant verification</text>
+  </g>
+
+  <!-- PROSE TRACK (Bottom Lane) -->
+  <g>
+    <!-- Container Card -->
+    <rect x="64" y="386" width="1072" height="194" rx="16" fill="var(--surface)" stroke="var(--line)" stroke-width="1.5"/>
+
+    <!-- Track Header -->
+    <text x="96" y="454" class="font-mono" font-size="22" font-weight="700" letter-spacing="1.5" fill="var(--accent-ink)">PROSE</text>
+    <text x="96" y="484" class="font-sans" font-size="16" font-weight="600" fill="var(--accent-ink)">HUMAN LOOP</text>
+    <text x="96" y="508" class="font-sans" font-size="14" font-weight="500" fill="var(--faint)">subjective eval</text>
+
+    <!-- Divider -->
+    <line x1="222" y1="410" x2="222" y2="556" stroke="var(--line)" stroke-width="1.5"/>
+
+    <!-- Ghost 1: No Compiler -->
+    <rect x="246" y="435" width="132" height="96" rx="12" fill="none" stroke="var(--line-strong)" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="262" y="460" class="font-mono" font-size="15" font-weight="700" fill="var(--faint)">⊘</text>
+    <text x="312" y="490" text-anchor="middle" class="font-sans" font-size="18" font-weight="600" fill="var(--faint)">No Compiler</text>
+    <text x="312" y="512" text-anchor="middle" class="font-sans" font-size="13" font-weight="500" fill="var(--faint)">no syntax check</text>
+
+    <!-- Connector 1 -> 2 -->
+    <line x1="384" y1="483" x2="410" y2="483" stroke="var(--line-strong)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow-faint)"/>
+
+    <!-- Ghost 2: No Types -->
+    <rect x="416" y="435" width="132" height="96" rx="12" fill="none" stroke="var(--line-strong)" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="432" y="460" class="font-mono" font-size="15" font-weight="700" fill="var(--faint)">⊘</text>
+    <text x="482" y="490" text-anchor="middle" class="font-sans" font-size="18" font-weight="600" fill="var(--faint)">No Types</text>
+    <text x="482" y="512" text-anchor="middle" class="font-sans" font-size="13" font-weight="500" fill="var(--faint)">no schema check</text>
+
+    <!-- Connector 2 -> 3 -->
+    <line x1="554" y1="483" x2="580" y2="483" stroke="var(--line-strong)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow-faint)"/>
+
+    <!-- Ghost 3: No Tests -->
+    <rect x="586" y="435" width="132" height="96" rx="12" fill="none" stroke="var(--line-strong)" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="602" y="460" class="font-mono" font-size="15" font-weight="700" fill="var(--faint)">⊘</text>
+    <text x="652" y="490" text-anchor="middle" class="font-sans" font-size="18" font-weight="600" fill="var(--faint)">No Tests</text>
+    <text x="652" y="512" text-anchor="middle" class="font-sans" font-size="13" font-weight="500" fill="var(--faint)">no test harness</text>
+
+    <!-- Connector 3 -> 4 -->
+    <line x1="724" y1="483" x2="750" y2="483" stroke="var(--line-strong)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow-faint)"/>
+
+    <!-- Ghost 4: No Runtime -->
+    <rect x="756" y="435" width="132" height="96" rx="12" fill="none" stroke="var(--line-strong)" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="772" y="460" class="font-mono" font-size="15" font-weight="700" fill="var(--faint)">⊘</text>
+    <text x="822" y="490" text-anchor="middle" class="font-sans" font-size="18" font-weight="600" fill="var(--faint)">No Runtime</text>
+    <text x="822" y="512" text-anchor="middle" class="font-sans" font-size="13" font-weight="500" fill="var(--faint)">no execution log</text>
+
+    <!-- Connector 4 -> Outcome -->
+    <line x1="894" y1="483" x2="920" y2="483" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#arrow-accent)"/>
+
+    <!-- Outcome: Human Reader -->
+    <rect x="928" y="429" width="186" height="108" rx="12" fill="var(--accent-subtle)" stroke="var(--accent)" stroke-width="2.5"/>
+    <rect x="944" y="443" width="76" height="20" rx="4" fill="var(--accent)"/>
+    <text x="982" y="457" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="0.5">JUDGMENT</text>
+    <text x="1021" y="495" text-anchor="middle" class="font-sans" font-size="20" font-weight="750" fill="var(--accent-ink)">Human Reader</text>
+    <text x="1021" y="518" text-anchor="middle" class="font-sans" font-size="13" font-weight="600" fill="var(--faint)">taste &amp; resonance</text>
+  </g>
+
+  <!-- Payoff Footer -->
+  <text x="600" y="632" text-anchor="middle" class="font-mono" font-size="24" font-weight="600" fill="var(--faint)" letter-spacing="0.8">automated pipelines grade code · human taste grades copy</text>
 </svg>

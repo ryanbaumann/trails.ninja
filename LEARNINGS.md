@@ -2,6 +2,13 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-17 - HTML comment stripping in static site generator prevents internal linter annotation leaks
+
+Context: Using `<!-- lint-ignore -->` annotations in markdown source files to satisfy repository voice linters when quoting flawed copy, AI slop examples, or citations.
+Learning: Zero-dependency markdown-to-HTML parsers that treat block elements naively will wrap standalone HTML comments in `<p>` tags, leaking internal linter annotations into reader-facing HTML and markdown mirrors. Pre-processing markdown lines to skip HTML comment blocks (`<!-- ... -->`) before paragraph and blockquote tokenization guarantees clean public HTML output while retaining developer-facing linter directives in source markdown.
+Evidence: `markdownToHtml` and `writeMarkdownMirror` in `portfolio/build.mjs` updated with unit test coverage in `portfolio/test/build.test.mjs` (45 passing tests). Verified zero `lint-ignore` leaks across all 32 generated pages.
+Use next time: In custom SSG pipelines, always strip HTML comment delimiters before paragraph aggregation, or explicitly ignore them in AST tokenizers.
+
 ## 2026-08-17 - Dual-tier BYOK architecture with automatic modal triggering prevents rate-limit dead ends
 
 Context: Integrating multi-app Gemini demos (`hairstyle-ai-studio`, `real-world-reasoning-agent`, `infographic-agent`) behind a shared Node gateway with strict 24-hour circular bucket rate limits.
