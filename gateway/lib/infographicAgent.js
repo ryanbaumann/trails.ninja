@@ -128,7 +128,7 @@ async function createInteraction({ apiKey, model, input, responseFormat, thinkin
       input,
       store: false,
       ...(responseFormat ? { response_format: responseFormat } : {}),
-      ...(thinkingConfig ? { thinking_config: thinkingConfig } : {}),
+      ...(thinkingConfig ? { generation_config: { thinking_level: (thinkingConfig.thinking_level || 'low').toLowerCase() } } : {}),
       ...(tools ? { tools } : {}),
     }),
     signal: signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal,
