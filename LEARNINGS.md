@@ -2,7 +2,12 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
-## 2026-08-16 - Local ML inference and subagent concurrency limits on Apple Silicon unified memory
+## 2026-08-17 - Calibrating Gemini 3.7 Flash thinking levels across orchestration vs bounded task workers
+
+Context: Upgrading demo agent architectures across the repository from `gemini-3.6-flash` and `gemini-3.5-flash-lite` to `gemini-3.7-flash`.
+Learning: A single model family (`gemini-3.7-flash`) can efficiently serve as both orchestrator and low-latency utility worker when thinking levels are explicitly calibrated: `HIGH` thinking for multi-step tool orchestration and copilot planning, `LOW` thinking for multimodal evidence and vision analysis, and `MINIMAL` thinking for latency-critical formatting, suggestions, and voice STT transcription. Replacing Flash Lite with Flash at minimal thinking eliminates model fragmentation without sacrificing turnaround latency.
+Evidence: All unit and proxy tests passed across `demos/real-world-reasoning-agent` (573 tests) and `gateway` (141 tests), with valid model allowlisting and thinking level parameters verified in both JS SDK (`ThinkingLevel`) and raw REST JSON bodies (`thinking_config: { thinking_level: 'LOW' }`).
+Use next time: When configuring `gemini-3.7-flash`, explicitly route thinking level based on task complexity rather than maintaining separate model IDs for simple tasks vs orchestrators.
 
 Context: Running parallel local model inference (Gemma 4 31B Dense and Gemma 4 26B-A4B MoE) for background editorial review, critique, and copyediting subagents across multiple Field Notes.
 Learning: While model training must remain strictly sequential due to gradient state and backward-pass memory footprint, local inference can run concurrently within calibrated memory budgets on Apple Silicon unified memory: up to 4 concurrent processes for the smaller / MoE model (26B-A4B / ~4B active) and up to 2 concurrent processes for the dense model (31B Dense). Exceeding these bounds risks Metal context thrashing and unified memory eviction.

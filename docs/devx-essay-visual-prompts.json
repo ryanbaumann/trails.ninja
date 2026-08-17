@@ -1,6 +1,6 @@
 {
   "generator": "Gemini API generateContent",
-  "researchModel": "gemini-3.6-flash",
+  "researchModel": "gemini-3.7-flash",
   "iterationModel": "gemini-3.1-flash-lite-image",
   "finalModel": "gemini-3.1-flash-image",
   "finalConfig": {

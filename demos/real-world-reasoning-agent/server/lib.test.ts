@@ -20,6 +20,7 @@ import {
 describe('Gemini credential routing', () => {
   it('allowlists the orchestrator and worker defaults', () => {
     const models = allowedGeminiModels();
+    expect(models.has('gemini-3.7-flash')).toBe(true);
     expect(models.has('gemini-3.6-flash')).toBe(true);
     expect(models.has('gemini-3.5-flash-lite')).toBe(true);
   });
@@ -40,7 +41,7 @@ describe('Gemini credential routing', () => {
       return new Response('{}', { status: 200 });
     });
     expect(result).toEqual({ ok: true });
-    expect(calls).toHaveLength(2);
+    expect(calls).toHaveLength(1);
     expect(calls.every(({ url }) => !String(url).includes('personal-test-key'))).toBe(true);
     expect(calls.every(({ init }) => init.headers['x-goog-api-key'] === 'personal-test-key')).toBe(true);
   });

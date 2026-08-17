@@ -21,7 +21,7 @@ commit `9ea2c0f31e5e1d252220ede6731b655bf2fb8fba`.
 
 | Task | Model |
 | --- | --- |
-| Optional, user-triggered style recommendation | `gemini-3.5-flash-lite` |
+| Optional, user-triggered style recommendation | `gemini-3.7-flash` (low thinking) |
 | Image generation and refinement | `gemini-3.1-flash-lite-image` |
 
 The newer Flash text models do not generate images, so image work stays on the current image-capable model. Titles are derived locally to keep a normal makeover to one model call.

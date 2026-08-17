@@ -1,6 +1,6 @@
 const INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 const MODELS_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
-const VISION_MODEL = 'gemini-3.5-flash-lite';
+const VISION_MODEL = 'gemini-3.7-flash';
 const IMAGE_MODEL = 'gemini-3.1-flash-lite-image';
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const MAX_IMAGE_DATA_CHARS = 8 * 1024 * 1024;
@@ -47,7 +47,7 @@ function parseJsonText(text) {
   return JSON.parse(normalized);
 }
 
-async function createInteraction({ apiKey, model, input, responseFormat, fetchImpl, signal }) {
+async function createInteraction({ apiKey, model, input, responseFormat, thinkingConfig, fetchImpl, signal }) {
   const timeoutSignal = AbortSignal.timeout(120_000);
   const response = await fetchImpl(INTERACTIONS_URL, {
     method: 'POST',
@@ -61,6 +61,7 @@ async function createInteraction({ apiKey, model, input, responseFormat, fetchIm
       input,
       store: false,
       ...(responseFormat ? { response_format: responseFormat } : {}),
+      ...(thinkingConfig ? { thinking_config: thinkingConfig } : {}),
     }),
     signal: signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal,
   });
@@ -166,6 +167,7 @@ export async function handleHairstyleAiApi({
             text: `Recommend one suitable hairstyle from this exact catalog: ${JSON.stringify(availableStyles)}. Return only JSON with "recommendedStyleId" (an exact catalog id or null). Do not infer or classify gender.`,
           },
         ],
+        thinkingConfig: { thinking_level: 'LOW' },
         fetchImpl,
         signal,
       });

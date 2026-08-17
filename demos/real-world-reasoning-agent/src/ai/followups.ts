@@ -1,7 +1,7 @@
 /**
  * Follow-up suggestions: after every copilot turn, propose 2–3 short next actions
  * the user can click to keep the conversation moving. Runs as a SEPARATE, cheap
- * task-agent call (gemini-3.5-flash-lite at MINIMAL thinking) off the main
+ * task-agent call (gemini-3.7-flash at MINIMAL thinking) off the main
  * function-calling chat, so it never blocks or slows the streamed answer. Best
  * effort — any failure returns an empty list and the chips simply don't show.
  */

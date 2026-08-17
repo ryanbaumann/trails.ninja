@@ -4,6 +4,12 @@ All notable changes to the **Atlas — AI-Native Map** demo project.
 
 ## [Unreleased]
 
+- **Model upgrade to Gemini 3.7**: Upgraded default model routing across the app and gateway to `gemini-3.7-flash`:
+  - **Atlas Copilot Orchestration**: `gemini-3.7-flash` configured with **HIGH** thinking (`ThinkingLevel.HIGH`) for multi-step map-native reasoning and tool planning.
+  - **Task Agents & Fast Workers**: `gemini-3.7-flash` with **MINIMAL** thinking (`ThinkingLevel.MINIMAL`) for latency-critical paths (formatting, followup suggestion chips, voice STT transcription).
+  - **Multimodal Evidence Analysis**: `gemini-3.7-flash` with **LOW** thinking (`ThinkingLevel.LOW`) for evidence analysis, vision comparisons, and multimodal scoring.
+  - Updated server and gateway proxy allowlists, Admin panel model switcher, and unit tests.
+
 - **Model upgrade to 3.6 series**: Upgraded default model routing to `gemini-3.5-flash-lite` for Flash Lite tasks and added `gemini-3.6-flash` for primary Flash tasks across default routing, server proxy allowlists, admin tuner options, and documentation.
 
 - **Explorer flow & UX improvements**:

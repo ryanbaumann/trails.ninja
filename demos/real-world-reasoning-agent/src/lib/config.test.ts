@@ -10,25 +10,25 @@ import {
 } from './config';
 
 describe('default Gemini routing', () => {
-  it('routes orchestration to 3.6 Flash and task agents to 3.5 Flash-Lite', () => {
-    expect(MODELS.orchestrator).toBe('gemini-3.6-flash');
+  it('routes orchestration and task agents to gemini-3.7-flash with tuned thinking levels', () => {
+    expect(MODELS.orchestrator).toBe('gemini-3.7-flash');
     expect(MODELS.chat).toBe(MODELS.orchestrator);
-    expect(MODELS.worker).toBe('gemini-3.5-flash-lite');
+    expect(MODELS.worker).toBe('gemini-3.7-flash');
     expect(MODELS.utility).toBe(MODELS.worker);
     expect(MODELS.vision).toBe(MODELS.worker);
     expect(AGENT_PROFILES).toEqual({
-      orchestrator: { model: 'gemini-3.6-flash', thinking: 'medium' },
-      fastWorker: { model: 'gemini-3.5-flash-lite', thinking: 'minimal' },
-      analysisWorker: { model: 'gemini-3.5-flash-lite', thinking: 'medium' },
+      orchestrator: { model: 'gemini-3.7-flash', thinking: 'high' },
+      fastWorker: { model: 'gemini-3.7-flash', thinking: 'minimal' },
+      analysisWorker: { model: 'gemini-3.7-flash', thinking: 'low' },
     });
   });
 
-  it('uses medium thinking for orchestration and evidence analysis', () => {
+  it('uses high thinking for orchestration and low thinking for evidence analysis', () => {
     expect(getThinkingConfig(MODELS.vision, 'other')).toEqual({
-      thinkingLevel: ThinkingLevel.MEDIUM,
+      thinkingLevel: ThinkingLevel.LOW,
     });
     expect(getChatThinkingConfig(MODELS.orchestrator, 'orchestration')).toEqual({
-      thinkingLevel: ThinkingLevel.MEDIUM,
+      thinkingLevel: ThinkingLevel.HIGH,
     });
   });
 
@@ -38,9 +38,12 @@ describe('default Gemini routing', () => {
     });
   });
 
-  it('allows the orchestrator to be tuned down to low', () => {
+  it('allows the orchestrator to be tuned down to low or medium', () => {
     expect(getChatThinkingConfig(MODELS.orchestrator, 'orchestration', 'low')).toEqual({
       thinkingLevel: ThinkingLevel.LOW,
+    });
+    expect(getChatThinkingConfig(MODELS.orchestrator, 'orchestration', 'medium')).toEqual({
+      thinkingLevel: ThinkingLevel.MEDIUM,
     });
   });
 });

@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Upgraded agent-driven demo models and thinking level configurations across the repository to `gemini-3.7-flash`:
+  - **Atlas Real-World Reasoning Agent (`demos/real-world-reasoning-agent`)**:
+    - Upgraded primary orchestration model to `gemini-3.7-flash` with **HIGH** thinking (`ThinkingLevel.HIGH`).
+    - Routed latency-critical bounded task agents (formatting, dynamic follow-up chips, voice transcription) to `gemini-3.7-flash` with **MINIMAL** thinking (`ThinkingLevel.MINIMAL`).
+    - Routed multimodal reasoning and vision analysis to `gemini-3.7-flash` with **LOW** thinking (`ThinkingLevel.LOW`).
+    - Updated gateway and demo server proxy allowlists, Admin panel model switcher, and validation suites.
+  - **Hairstyle AI Studio (`demos/hairstyle-ai-studio`)**:
+    - Upgraded opt-in hairstyle recommendation analysis in gateway (`gateway/lib/hairstyleAi.js`) to `gemini-3.7-flash` with **LOW** thinking (`{ thinking_level: 'LOW' }`).
+  - **Infographic Agent (`.agents/skills/infographic-agent`)**:
+    - Upgraded research orchestrator to `gemini-3.7-flash` across skill script, CLI runner, package metadata, and documentation.
+
 ### Added
 - Fine-tuned and evaluated **Round 6 Gemma 4 31B Dense** adapter (`adapters/gemma-4-31b-ryan-voice-v6`) across the 48-item held-out suite:
   - Lifted clean item pass rate to **35% (17/48 items clean, 95% CI [23%–50%])**, up from 25% on MoE 26B-A4B.
