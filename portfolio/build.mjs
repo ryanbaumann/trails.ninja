@@ -337,6 +337,14 @@ function markdownToHtml(markdown) {
   while (index < lines.length) {
     const line = lines[index];
 
+    if (line.trim().startsWith('<!--')) {
+      while (index < lines.length && !lines[index].includes('-->')) {
+        index += 1;
+      }
+      index += 1;
+      continue;
+    }
+
     if (line.startsWith('```')) {
       const language = line.slice(3).trim().replace(/[^a-z0-9_-]/gi, '');
       const code = [];
@@ -398,10 +406,10 @@ function markdownToHtml(markdown) {
       continue;
     }
 
-    if (line.startsWith('> ')) {
+    if (line.startsWith('> ') || line === '>') {
       const quote = [];
-      while (index < lines.length && lines[index].startsWith('> ')) {
-        quote.push(inlineMd(lines[index].slice(2)));
+      while (index < lines.length && (lines[index].startsWith('> ') || lines[index] === '>')) {
+        quote.push(inlineMd(lines[index].startsWith('> ') ? lines[index].slice(2) : ''));
         index += 1;
       }
       out.push(`<blockquote><p>${quote.join('<br />')}</p></blockquote>`);
@@ -414,7 +422,7 @@ function markdownToHtml(markdown) {
     }
 
     const paragraph = [];
-    while (index < lines.length && lines[index].trim() !== '' && !/^(#{1,4}\s|```|>\s|\s*[-*]\s|\s*\d+\.\s)/.test(lines[index])) {
+    while (index < lines.length && lines[index].trim() !== '' && !/^(#{1,4}\s|```|>\s|>\s*$|\s*[-*]\s|\s*\d+\.\s|\s*<!--)/.test(lines[index])) {
       paragraph.push(lines[index]);
       index += 1;
     }
@@ -1664,6 +1672,10 @@ function sitemapXml(collections) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${entries}\n</urlset>`;
 }
 
+function stripHtmlComments(markdown) {
+  return markdown.replace(/<!--[\s\S]*?-->\n?/g, '');
+}
+
 // Rewrites root-relative markdown link/image targets to absolute URLs so a
 // markdown mirror still reads correctly off-site (agents, RSS readers).
 function rewriteRelativeLinks(markdown) {
@@ -1683,7 +1695,7 @@ function writeMarkdownMirror(entry) {
   const parts = [`# ${meta.title}`];
   if (longDate) parts.push(longDate);
   if (meta.summary) parts.push(meta.summary);
-  parts.push(rewriteRelativeLinks(entry.body));
+  parts.push(stripHtmlComments(rewriteRelativeLinks(entry.body)));
   writePage(join('writing', entry.slug, 'index.md'), `${parts.join('\n\n')}\n`);
 }
 

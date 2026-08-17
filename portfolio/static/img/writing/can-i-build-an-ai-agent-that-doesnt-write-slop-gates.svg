@@ -1,49 +1,149 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Four mechanical checks run first in CI: em-dashes, announcement phrasing, hype adjectives, and stock phrases. Everything they cannot decide stays with a person: whether the opening lands on real friction, whether the number is real, whether the credit is honest, and whether the piece should exist. The two are never blended into a score.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" role="img" aria-label="Three-stage editorial pipeline: Mechanical gates in CI catch em-dashes and banned hype deterministically in milliseconds; Structural flow with prompted models polishes sentence variety and momentum in seconds; Human judgment remains essential to decide real developer friction, honest credit, verifiable citations, and editorial taste.">
   <style>
-    :root { --bg: #faf9f6; --surface: #ffffff; --ink: #111827; --faint: #5f6875; --line: #d9dde5; --accent: #3b82f6; --accent-ink: #2563eb; --block: #2563eb; --warn: #7c8698; }
-    @media (prefers-color-scheme: dark) { :root { --bg: #030712; --surface: #111827; --ink: #f9fafb; --faint: #aeb7c4; --line: #334155; --accent: #60a5fa; --accent-ink: #93c5fd; --block: #60a5fa; --warn: #94a3b8; } }
-    .eyebrow { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 28px; font-weight: 700; letter-spacing: 1.6px; }
-    .deck { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 40px; font-weight: 720; letter-spacing: -0.6px; fill: var(--ink); }
-    .col { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 28px; font-weight: 700; letter-spacing: 1.5px; }
-    .gate { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 28px; font-weight: 700; fill: var(--block); }
-    .ask { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 29px; fill: var(--ink); }
-    .note { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 28px; fill: var(--faint); }
+    :root {
+      --bg: #faf9f6;
+      --surface: #ffffff;
+      --ink: #111827;
+      --muted: #4b5563;
+      --faint: #6b7280;
+      --line: #d9dde5;
+      --accent: #2563eb;
+      --accent-ink: #1d4ed8;
+      --accent-soft: #eff6ff;
+      --accent-border: #93c5fd;
+      --badge-bg: #f3f4f6;
+      --badge-ink: #374151;
+      --human-bg: #eff6ff;
+      --human-ink: #1d4ed8;
+      --human-border: #2563eb;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #030712;
+        --surface: #111827;
+        --ink: #f9fafb;
+        --muted: #9ca3af;
+        --faint: #94a3b8;
+        --line: #334155;
+        --accent: #3b82f6;
+        --accent-ink: #60a5fa;
+        --accent-soft: #1e293b;
+        --accent-border: #3b82f6;
+        --badge-bg: #1e293b;
+        --badge-ink: #cbd5e1;
+        --human-bg: #172554;
+        --human-ink: #93c5fd;
+        --human-border: #60a5fa;
+      }
+    }
+    .sans { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    .mono { font-family: ui-monospace, "SF Mono", Monaco, "Cascadia Code", Consolas, "Liberation Mono", monospace; }
   </style>
+
   <defs>
-    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.28"/></pattern>
-    <marker id="arrowg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--faint)"/></marker>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.28"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 1 1.5 L 8 5 L 1 8.5 z" fill="var(--accent)"/>
+    </marker>
   </defs>
+
+  <!-- Background Canvas -->
   <rect width="1200" height="675" fill="var(--bg)"/>
   <rect width="1200" height="675" fill="url(#grid)"/>
   <rect width="1200" height="8" fill="var(--accent)"/>
   <rect x="1" y="1" width="1198" height="673" fill="none" stroke="var(--line)" stroke-width="2"/>
 
-  <text x="70" y="84" class="eyebrow" fill="var(--accent-ink)">WHAT A REGEX DECIDES, AND WHAT DOES NOT</text>
-  <text x="70" y="140" class="deck">Gates in front of judgment, never blended in.</text>
+  <!-- Header -->
+  <text x="70" y="66" class="mono" font-size="22" font-weight="700" letter-spacing="2" fill="var(--accent-ink)">THE EDITORIAL PIPELINE</text>
+  <text x="70" y="112" class="sans" font-size="38" font-weight="750" letter-spacing="-0.8" fill="var(--ink)">Automate mechanics. Keep the judgment.</text>
 
-  <!-- Left: gates -->
-  <text x="70" y="212" class="col" fill="var(--faint)">GATES · IN CI</text>
-  <rect x="70" y="234" width="386" height="66" rx="9" fill="var(--surface)" stroke="var(--block)" stroke-width="3"/>
-  <text x="98" y="277" class="gate">W-EMDASH</text>
-  <rect x="70" y="316" width="386" height="66" rx="9" fill="var(--surface)" stroke="var(--block)" stroke-width="3"/>
-  <text x="98" y="359" class="gate">W-ANNOUNCE</text>
-  <rect x="70" y="398" width="386" height="66" rx="9" fill="var(--surface)" stroke="var(--block)" stroke-width="3"/>
-  <text x="98" y="441" class="gate">W-HYPE</text>
-  <rect x="70" y="480" width="386" height="66" rx="9" fill="var(--surface)" stroke="var(--warn)" stroke-width="2" stroke-dasharray="7 6"/>
-  <text x="98" y="523" class="gate" style="fill: var(--warn)">W-STOCK-PHRASE</text>
+  <!-- Top Grouping Categorization -->
+  <rect x="70" y="146" width="692" height="28" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.5"/>
+  <text x="416" y="165" text-anchor="middle" class="mono" font-size="14" font-weight="700" letter-spacing="1.2" fill="var(--faint)">WHAT MACHINES AUTOMATE · FAST DETERMINISTIC &amp; PROMPTED CHECKS</text>
 
-  <!-- Divider -->
-  <rect x="530" y="212" width="6" height="334" rx="3" fill="var(--accent)"/>
+  <rect x="806" y="146" width="324" height="28" rx="6" fill="var(--human-bg)" stroke="var(--human-border)" stroke-width="1.5"/>
+  <text x="968" y="165" text-anchor="middle" class="mono" font-size="14" font-weight="700" letter-spacing="1.2" fill="var(--human-ink)">WHAT REQUIRES A PERSON</text>
 
-  <!-- Right: judgment -->
-  <text x="588" y="212" class="col" fill="var(--accent-ink)">JUDGMENT · A PERSON</text>
-  <rect x="588" y="234" width="542" height="312" rx="12" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
-  <text x="620" y="292" class="ask">Does it land on real friction?</text>
-  <text x="620" y="356" class="ask">Is the number real?</text>
-  <text x="620" y="420" class="ask">Is the credit honest?</text>
-  <text x="620" y="484" class="ask">Should this exist at all?</text>
+  <!-- Card 1: Mechanical Gates -->
+  <g>
+    <rect x="70" y="188" width="324" height="376" rx="16" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+    <rect x="94" y="210" width="108" height="28" rx="6" fill="var(--badge-bg)"/>
+    <text x="148" y="229" text-anchor="middle" class="mono" font-size="14" font-weight="700" letter-spacing="0.8" fill="var(--badge-ink)">REGEX / CI</text>
 
-  <!-- Flow -->
-  <line x1="70" y1="600" x2="556" y2="600" stroke="var(--faint)" stroke-width="2" marker-end="url(#arrowg)"/>
-  <text x="588" y="610" class="note">pass all four, then a person reads it</text>
+    <text x="94" y="270" class="sans" font-size="27" font-weight="750" fill="var(--ink)">Mechanical Gates</text>
+    <text x="94" y="296" class="sans" font-size="18" fill="var(--muted)">Deterministic pass / fail</text>
+    <line x1="94" y1="314" x2="370" y2="314" stroke="var(--line)" stroke-width="1.5"/>
+
+    <circle cx="102" cy="350" r="3.5" fill="var(--accent)"/>
+    <text x="118" y="356" class="sans" font-size="20" font-weight="600" fill="var(--ink)">Banned jargon &amp; hype</text>
+
+    <circle cx="102" cy="392" r="3.5" fill="var(--accent)"/>
+    <text x="118" y="398" class="sans" font-size="20" font-weight="600" fill="var(--ink)">Em-dashes &amp; AI clichés</text>
+
+    <circle cx="102" cy="434" r="3.5" fill="var(--accent)"/>
+    <text x="118" y="440" class="sans" font-size="20" font-weight="600" fill="var(--ink)">Asset &amp; citation syntax</text>
+
+    <rect x="94" y="496" width="276" height="44" rx="8" fill="var(--badge-bg)"/>
+    <text x="232" y="524" text-anchor="middle" class="mono" font-size="16" font-weight="700" letter-spacing="0.5" fill="var(--faint)">0 ms · ZERO TOLERANCE</text>
+  </g>
+
+  <!-- Flow Connector 1 -> 2 -->
+  <path d="M 400 376 H 430" fill="none" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round" marker-end="url(#arrow)"/>
+
+  <!-- Card 2: Structural Flow -->
+  <g>
+    <rect x="438" y="188" width="324" height="376" rx="16" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+    <rect x="462" y="210" width="134" height="28" rx="6" fill="var(--badge-bg)"/>
+    <text x="529" y="229" text-anchor="middle" class="mono" font-size="14" font-weight="700" letter-spacing="0.8" fill="var(--badge-ink)">PROMPTED LLM</text>
+
+    <text x="462" y="270" class="sans" font-size="27" font-weight="750" fill="var(--ink)">Structural Flow</text>
+    <text x="462" y="296" class="sans" font-size="18" fill="var(--muted)">Cadence &amp; rhythm polish</text>
+    <line x1="462" y1="314" x2="738" y2="314" stroke="var(--line)" stroke-width="1.5"/>
+
+    <circle cx="470" cy="350" r="3.5" fill="var(--accent)"/>
+    <text x="486" y="356" class="sans" font-size="20" font-weight="600" fill="var(--ink)">Varied sentence cadence</text>
+
+    <circle cx="470" cy="392" r="3.5" fill="var(--accent)"/>
+    <text x="486" y="398" class="sans" font-size="20" font-weight="600" fill="var(--ink)">Argument momentum</text>
+
+    <circle cx="470" cy="434" r="3.5" fill="var(--accent)"/>
+    <text x="486" y="440" class="sans" font-size="20" font-weight="600" fill="var(--ink)">Preserves exact numbers</text>
+
+    <rect x="462" y="496" width="276" height="44" rx="8" fill="var(--badge-bg)"/>
+    <text x="600" y="524" text-anchor="middle" class="mono" font-size="16" font-weight="700" letter-spacing="0.5" fill="var(--faint)">~2 s · CADENCE &amp; FLOW</text>
+  </g>
+
+  <!-- Flow Connector 2 -> 3 -->
+  <path d="M 768 376 H 798" fill="none" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round" marker-end="url(#arrow)"/>
+
+  <!-- Card 3: Human Judgment -->
+  <g>
+    <rect x="806" y="188" width="324" height="376" rx="16" fill="var(--surface)" stroke="var(--accent)" stroke-width="3"/>
+    <rect x="830" y="210" width="126" height="28" rx="6" fill="var(--human-bg)" stroke="var(--human-border)" stroke-width="1.2"/>
+    <text x="893" y="229" text-anchor="middle" class="mono" font-size="14" font-weight="700" letter-spacing="0.8" fill="var(--human-ink)">THE AUTHOR</text>
+
+    <text x="830" y="270" class="sans" font-size="27" font-weight="750" fill="var(--ink)">Human Judgment</text>
+    <text x="830" y="296" class="sans" font-size="18" fill="var(--accent-ink)">Truth, friction &amp; taste</text>
+    <line x1="830" y1="314" x2="1106" y2="314" stroke="var(--accent-border)" stroke-width="1.5"/>
+
+    <circle cx="838" cy="350" r="3.5" fill="var(--accent)"/>
+    <text x="854" y="356" class="sans" font-size="20" font-weight="650" fill="var(--ink)">Real developer friction</text>
+
+    <circle cx="838" cy="392" r="3.5" fill="var(--accent)"/>
+    <text x="854" y="398" class="sans" font-size="20" font-weight="650" fill="var(--ink)">Verifiable facts &amp; citations</text>
+
+    <circle cx="838" cy="434" r="3.5" fill="var(--accent)"/>
+    <text x="854" y="440" class="sans" font-size="20" font-weight="650" fill="var(--ink)">Honest team credit</text>
+
+    <rect x="830" y="496" width="276" height="44" rx="8" fill="var(--human-bg)" stroke="var(--human-border)" stroke-width="1.2"/>
+    <text x="968" y="524" text-anchor="middle" class="mono" font-size="16" font-weight="700" letter-spacing="0.5" fill="var(--human-ink)">THE GOLD STANDARD</text>
+  </g>
+
+  <!-- Bottom Payoff Card -->
+  <rect x="70" y="584" width="1060" height="66" rx="12" fill="var(--surface)" stroke="var(--line)" stroke-width="1.5"/>
+  <rect x="70" y="584" width="6" height="66" rx="3" fill="var(--accent)"/>
+  <text x="96" y="612" class="sans" font-size="21" font-weight="700" fill="var(--ink)">Linters and model checks strip noise and improve flow in seconds.</text>
+  <text x="96" y="636" class="sans" font-size="18" font-weight="450" fill="var(--muted)">Only the author can verify real friction, honest credit, and whether a piece should exist.</text>
 </svg>

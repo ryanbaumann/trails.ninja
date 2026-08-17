@@ -275,7 +275,7 @@ const CARDS = [
     file: 'can-i-build-an-ai-agent-that-doesnt-write-slop.png',
     eyebrow: 'FIELD NOTES · WRITING WITH AI',
     title: "Can I Build an AI Agent That Doesn't Write Slop?",
-    summary: 'I tuned a 26B model on my own writing. Register transferred. Judgment did not.',
+    summary: 'I fine-tuned a model on my own writing. Tone transferred. Judgment did not.',
     source: 'portfolio/static/img/writing/can-i-build-an-ai-agent-that-doesnt-write-slop-header.svg',
     layout: 'artifact',
   },

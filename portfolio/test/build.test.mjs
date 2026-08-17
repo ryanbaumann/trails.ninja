@@ -158,13 +158,14 @@ test('build rejects aliases on external and bodyless entries', () => {
 
 test('markdown headings get stable deep-link ids and explicit ids are preserved', () => {
   const paths = fixture();
-  write(join(paths.content, 'writing', 'anchors.md'), `---\ntitle: Anchors\nsummary: Heading links\ndate: 2026-07-13\n---\n## Hello, World!\n\n## Custom heading {#chosen-id}\n\n| Option | Result |\n| --- | --- |\n| A | Works |`);
+  write(join(paths.content, 'writing', 'anchors.md'), `---\ntitle: Anchors\nsummary: Heading links\ndate: 2026-07-13\n---\n<!-- lint-ignore -->\n## Hello, World!\n\n## Custom heading {#chosen-id}\n\n| Option | Result |\n| --- | --- |\n| A | Works |`);
   const result = build(paths);
   assert.equal(result.status, 0, result.stderr);
   const html = readFileSync(join(paths.dist, 'writing', 'anchors', 'index.html'), 'utf8');
   assert.match(html, /<h2 id="hello-world"><a class="heading-anchor" href="#hello-world"/);
   assert.match(html, /<h2 id="chosen-id"><a class="heading-anchor" href="#chosen-id"/);
   assert.match(html, /<table><thead><tr><th>Option<\/th><th>Result<\/th>/);
+  assert.doesNotMatch(html, /lint-ignore/);
 });
 
 test('build lists public demos without disclosing private demos', () => {
