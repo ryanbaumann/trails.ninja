@@ -1,5 +1,13 @@
 import { validateGroundingLiteCall } from './realWorldReasoningGate.js';
-import { clientIp, geminiRateLimiter, geminiOmniRateLimiter, extractGeminiTokenUsage } from './rateLimit.js';
+import {
+  clientIp,
+  geminiRateLimiter,
+  geminiOmniRateLimiter,
+  extractGeminiTokenUsage,
+  recordHostedGeminiFailure,
+  recordHostedGeminiSuccess,
+  isHostedGeminiHealthy,
+} from './rateLimit.js';
 
 export const REAL_WORLD_REASONING_PREFIX = '/api/real-world-reasoning-agent/';
 export const GMP_SOLUTION_ID = 'gmp_git_agentskills_v1';
@@ -574,9 +582,14 @@ export function createRealWorldReasoningHandler({
       if (request.method !== 'GET') {
         sendText(response, 405, 'Capabilities only accepts GET');
       } else {
+        const byokHeader = headerValue(request.headers, GEMINI_BYOK_HEADER);
+        const hasPersonalKey = Boolean(byokHeader && isPlausibleGeminiKey(byokHeader));
+        const hostedHealthy = isHostedGeminiHealthy();
+        const hostedAvailable = Boolean(hostedGeminiKey && hostedHealthy);
         sendJson(response, 200, {
           maps: Boolean(gmpKey),
-          gemini: Boolean(hostedGeminiKey),
+          gemini: hasPersonalKey || hostedAvailable,
+          hostedGemini: hostedAvailable,
           groundingLite: Boolean(gmpMcpKey) && config.groundingLiteEnabled,
         });
       }
@@ -774,6 +787,16 @@ export function createRealWorldReasoningHandler({
         sendProxy(response, 'ai', 503, 'Gemini key is not configured', config);
         return true;
       }
+      if (credential.source === 'hosted' && !isHostedGeminiHealthy()) {
+        sendProxy(
+          response,
+          'ai',
+          503,
+          'The shared Gemini allowance is temporarily unavailable. Add your own key to continue.',
+          config,
+        );
+        return true;
+      }
 
       if (path === '/ai/validate') {
         const clientKey = clientIp(request);
@@ -787,6 +810,13 @@ export function createRealWorldReasoningHandler({
           reserved = true;
         }
         const result = await validateGeminiCredential(credential.key, fetchImpl);
+        if (credential.source === 'hosted') {
+          if (result.ok) {
+            recordHostedGeminiSuccess();
+          } else if (result.reason === 'quota' || result.reason === 'invalid') {
+            recordHostedGeminiFailure(result.reason === 'quota' ? 'quota_depleted' : 'invalid_key');
+          }
+        }
         if (reserved) {
           if (!result.ok) {
             geminiLimiter.refund(clientKey, { calls: 1, tokens: 50, timestamp: now() });
@@ -903,11 +933,19 @@ export function createRealWorldReasoningHandler({
           onComplete: ({ status: upstreamStatus, bodyText, error }) => {
             if (credential.source === 'hosted') {
               if (error || upstreamStatus < 200 || upstreamStatus >= 300) {
+                if (
+                  upstreamStatus === 429 ||
+                  upstreamStatus === 401 ||
+                  (bodyText && (bodyText.includes('RESOURCE_EXHAUSTED') || bodyText.includes('prepayment credits are depleted')))
+                ) {
+                  recordHostedGeminiFailure('quota_depleted');
+                }
                 geminiLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, timestamp: now() });
                 if (isOmni) {
                   geminiOmniLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, timestamp: now() });
                 }
               } else {
+                recordHostedGeminiSuccess();
                 const actualTokens = extractGeminiTokenUsage(bodyText, body.length);
                 if (actualTokens > estimatedTokens) {
                   const delta = actualTokens - estimatedTokens;
@@ -1012,11 +1050,19 @@ export function createRealWorldReasoningHandler({
         onComplete: ({ status: upstreamStatus, bodyText, error }) => {
           if (credential.source === 'hosted') {
             if (error || upstreamStatus < 200 || upstreamStatus >= 300) {
+              if (
+                upstreamStatus === 429 ||
+                upstreamStatus === 401 ||
+                (bodyText && (bodyText.includes('RESOURCE_EXHAUSTED') || bodyText.includes('prepayment credits are depleted')))
+              ) {
+                recordHostedGeminiFailure('quota_depleted');
+              }
               geminiLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, timestamp: now() });
               if (isOmni) {
                 geminiOmniLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, timestamp: now() });
               }
             } else {
+              recordHostedGeminiSuccess();
               const actualTokens = extractGeminiTokenUsage(bodyText, body.length);
               if (actualTokens > estimatedTokens) {
                 const delta = actualTokens - estimatedTokens;

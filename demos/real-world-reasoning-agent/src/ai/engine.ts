@@ -260,9 +260,9 @@ export class CopilotEngine {
       }
       if (!stale()) markHopLimitPartial(userText);
     } catch (err) {
-      if (stale()) return; // aborted mid-flight — not a real error
+      if (stale() || (err instanceof Error && (err.name === 'AbortError' || err.message?.includes('Transition was skipped')))) return; // aborted mid-flight — not a real error
       if (isRateLimitError(err)) {
-        s.pushToast('warn', "The shared demo allowance is used up. Add your Gemini API key from AI Studio to continue, or try again later.");
+        s.pushToast('warn', "The shared demo allowance is temporarily unavailable. Add your Gemini API key from AI Studio to continue.");
         s.setApiHealth('degraded');
         s.setKeyDialogOpen(true);
       } else if (isStreamIdleError(err)) {

@@ -264,6 +264,7 @@ test('Hairstyle AI gives each IP five successful daily image generations while p
     assert.equal(quota.res.statusCode, 200);
     assert.deepEqual(JSON.parse(quota.body), {
       enabled: true,
+      hostedAvailable: true,
       limit: 5,
       remaining: 0,
       resetAt: JSON.parse(exhausted.body).freeTier.resetAt,
@@ -294,6 +295,7 @@ test('Real World Reasoning capability preflight is mounted under its Fieldwork A
     assert.deepEqual(JSON.parse(response.body), {
       maps: true,
       gemini: true,
+      hostedGemini: true,
       groundingLite: true,
     });
     assert.match(response.res.headers['content-security-policy'], /default-src 'self'/);

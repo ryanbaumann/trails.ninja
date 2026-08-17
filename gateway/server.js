@@ -20,6 +20,7 @@ import {
   rateLimitPolicyForPath,
   geminiRateLimiter,
   extractGeminiTokenUsage,
+  isHostedGeminiHealthy,
 } from './lib/rateLimit.js';
 import { resolveProvider } from './lib/config.js';
 import {
@@ -644,8 +645,16 @@ async function handleApi(request, response, pathname, searchParams) {
         sendJson(request, response, 405, { error: 'Method not allowed' });
         return;
       }
+      const hasPersonalKeyHeader = Object.hasOwn(request.headers, 'x-gemini-api-key');
+      const personalApiKey = hasPersonalKeyHeader
+        ? validateHairstyleApiKey(request.headers['x-gemini-api-key'])
+        : null;
+      const hostedHealthy = isHostedGeminiHealthy();
+      const hostedConfigured = Boolean(validateHairstyleApiKey(process.env.GEMINI_API_KEY));
+      const hostedAvailable = hostedConfigured && hostedHealthy;
       sendJson(request, response, 200, {
-        enabled: Boolean(validateHairstyleApiKey(process.env.GEMINI_API_KEY)),
+        enabled: Boolean(personalApiKey || hostedAvailable),
+        hostedAvailable,
         ...hairstyleFreeRateLimiter.status(freeTierKey),
       });
       return;
@@ -688,10 +697,12 @@ async function handleApi(request, response, pathname, searchParams) {
       return;
     }
     const credentialSource = personalApiKey ? 'byok' : 'hosted';
-    const apiKey = personalApiKey || validateHairstyleApiKey(process.env.GEMINI_API_KEY);
+    const hostedKey = validateHairstyleApiKey(process.env.GEMINI_API_KEY);
+    const hostedHealthy = isHostedGeminiHealthy();
+    const apiKey = personalApiKey || (hostedHealthy ? hostedKey : null);
     if (!apiKey) {
       sendJson(request, response, 503, {
-        error: 'The shared Gemini allowance is not configured. Add your own key to continue.',
+        error: 'The shared Gemini allowance is temporarily unavailable. Add your own key to continue.',
         code: 'FREE_TIER_UNAVAILABLE',
       });
       return;
@@ -809,8 +820,16 @@ async function handleApi(request, response, pathname, searchParams) {
         sendJson(request, response, 405, { error: 'Method not allowed' });
         return;
       }
+      const hasPersonalKeyHeader = Object.hasOwn(request.headers, 'x-gemini-api-key');
+      const personalApiKey = hasPersonalKeyHeader
+        ? validateInfographicApiKey(request.headers['x-gemini-api-key'])
+        : null;
+      const hostedHealthy = isHostedGeminiHealthy();
+      const hostedConfigured = Boolean(validateInfographicApiKey(process.env.GEMINI_API_KEY));
+      const hostedAvailable = hostedConfigured && hostedHealthy;
       sendJson(request, response, 200, {
-        enabled: Boolean(validateInfographicApiKey(process.env.GEMINI_API_KEY)),
+        enabled: Boolean(personalApiKey || hostedAvailable),
+        hostedAvailable,
         ...infographicFreeRateLimiter.status(freeTierKey),
       });
       return;
@@ -853,10 +872,12 @@ async function handleApi(request, response, pathname, searchParams) {
       return;
     }
     const credentialSource = personalApiKey ? 'byok' : 'hosted';
-    const apiKey = personalApiKey || validateInfographicApiKey(process.env.GEMINI_API_KEY);
+    const hostedKey = validateInfographicApiKey(process.env.GEMINI_API_KEY);
+    const hostedHealthy = isHostedGeminiHealthy();
+    const apiKey = personalApiKey || (hostedHealthy ? hostedKey : null);
     if (!apiKey) {
       sendJson(request, response, 503, {
-        error: 'The shared Gemini allowance is not configured. Add your own key to continue.',
+        error: 'The shared Gemini allowance is temporarily unavailable. Add your own key to continue.',
         code: 'FREE_TIER_UNAVAILABLE',
       });
       return;

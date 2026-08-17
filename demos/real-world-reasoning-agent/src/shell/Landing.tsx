@@ -178,12 +178,12 @@ export function Landing() {
               type="button"
               className="mission-launch"
               style={{ flex: 1 }}
-              onClick={start}
-              disabled={liveStatus !== 'ready'}
+              onClick={needsGemini ? () => setKeyDialogOpen(true) : start}
+              disabled={liveStatus !== 'ready' && !needsGemini}
             >
               {liveStatus === 'ready'
                 ? <>Find with live evidence <ArrowRight size={18} aria-hidden="true" /></>
-                : liveStatus === 'checking' ? 'Checking services…' : needsGemini ? 'Connect Gemini to continue' : 'Live services unavailable'}
+                : liveStatus === 'checking' ? 'Checking services…' : needsGemini ? <>Connect Gemini to continue <KeyRound size={16} aria-hidden="true" style={{ marginLeft: 6, display: 'inline-block', verticalAlign: 'middle' }} /></> : 'Live services unavailable'}
             </button>
             <button
               type="button"
