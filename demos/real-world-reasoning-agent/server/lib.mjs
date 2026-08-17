@@ -24,6 +24,7 @@ export const GEMINI_BYOK_HEADER = 'x-atlas-gemini-key';
 
 /** Production proxy allowlist. Keep in sync with src/lib/config.ts. */
 export const BASE_GEMINI_MODELS = Object.freeze([
+  'gemini-3.7-flash',
   'gemini-3.6-flash',
   'gemini-3.5-flash-lite',
   'gemini-3.5-flash',
@@ -35,8 +36,7 @@ export const BASE_GEMINI_MODELS = Object.freeze([
 
 /** Models a key must be able to see before Atlas reports it as connected. */
 export const REQUIRED_GEMINI_MODELS = Object.freeze([
-  'gemini-3.6-flash',
-  'gemini-3.5-flash-lite',
+  'gemini-3.7-flash',
 ]);
 
 export function allowedGeminiModels(extra = '') {

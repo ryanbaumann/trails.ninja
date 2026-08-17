@@ -6,8 +6,8 @@ import { validateSanitized } from '@/diagnostics/telemetry';
 type SendState = { kind: 'idle' | 'sending' | 'ok' | 'error'; msg?: string };
 
 /** Production orchestrator models known to be on the server allowlist. */
-const CHAT_MODELS = ['gemini-3.6-flash'];
-const THINKING: ThinkingChoice[] = ['default', 'low', 'medium'];
+const CHAT_MODELS = ['gemini-3.7-flash'];
+const THINKING: ThinkingChoice[] = ['default', 'low', 'medium', 'high'];
 
 /**
  * Hidden admin panel for live A/B testing of the copilot chat model + thinking
@@ -136,8 +136,8 @@ export function AdminPanel() {
       </label>
 
       <p className="admin-panel__hint">
-        Applies to your next message. <code>default</code> = medium. Task agents use
-        <code>gemini-3.5-flash-lite</code> at minimal or medium thinking. Switching
+        Applies to your next message. <code>default</code> = high. Task agents use
+        <code>gemini-3.7-flash</code> at minimal or low thinking. Switching
         starts fresh model context.
       </p>
 

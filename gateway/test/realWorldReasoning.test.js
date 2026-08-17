@@ -580,7 +580,7 @@ test('Gemini validation checks required models with header-only authentication',
     },
   });
   assert.equal(result.response.statusCode, 200);
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 1);
   assert.equal(calls.every(({ url }) => !url.includes(PERSONAL_KEY)), true);
   assert.equal(calls.every(({ init }) => init.headers['x-goog-api-key'] === PERSONAL_KEY), true);
 });

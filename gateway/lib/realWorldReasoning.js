@@ -6,6 +6,7 @@ export const GMP_SOLUTION_ID = 'gmp_git_agentskills_v1';
 export const GEMINI_BYOK_HEADER = 'x-atlas-gemini-key';
 
 const BASE_GEMINI_MODELS = Object.freeze([
+  'gemini-3.7-flash',
   'gemini-3.6-flash',
   'gemini-3.5-flash-lite',
   'gemini-3.5-flash',
@@ -15,8 +16,7 @@ const BASE_GEMINI_MODELS = Object.freeze([
   'gemini-omni-flash-preview',
 ]);
 const REQUIRED_GEMINI_MODELS = Object.freeze([
-  'gemini-3.6-flash',
-  'gemini-3.5-flash-lite',
+  'gemini-3.7-flash',
 ]);
 const METADATA_MAX_RECORDS = 500;
 const MAX_RATE_BUCKETS = 10_000;

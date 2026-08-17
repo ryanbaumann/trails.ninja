@@ -32,18 +32,18 @@ export const USAGE_ATTRIBUTION_ID = 'gmp_git_agentskills_v1';
  * GENAI_EXTRA_MODELS) or the /ai proxy will reject it with 403.
  *
  * Default routing: the main copilot is the orchestration agent and uses
- * `gemini-3.6-flash` at MEDIUM thinking. Bounded task agents use
- * `gemini-3.5-flash-lite`: MINIMAL for classification/formatting/voice and
- * MEDIUM for multimodal evidence analysis. Where flash-lite emits JSON
- * (e.g. follow-up suggestions), we constrain it with a Gemini structured-output
- * `responseJsonSchema` so the small model stays reliable without paying for a
+ * `gemini-3.7-flash` at HIGH thinking. Bounded task agents use
+ * `gemini-3.7-flash`: MINIMAL for classification/formatting/voice and
+ * LOW for multimodal evidence analysis. Where task agents emit JSON
+ * (e.g. follow-up suggestions), we constrain them with a Gemini structured-output
+ * `responseJsonSchema` so the model stays reliable without paying for a
  * bigger one.
  *
  * - `vision` grounds Scout's imagery reasoning (Street View + aerial). Defaults
- *   to the worker model at MEDIUM thinking; override with
+ *   to the worker model at LOW thinking; override with
  *   VITE_GEMINI_VISION_MODEL.
  * - `stt` transcribes microphone audio for the copilot's voice input. Defaults
- *   to the low-latency flash-lite tier (already allowlisted); override with
+ *   to the low-latency worker tier (already allowlisted); override with
  *   VITE_GEMINI_STT_MODEL. Runs with MINIMAL thinking for the fastest turnaround.
  * - `omni` targets the Gemini "omni" model, which is a VIDEO generation model
  *   driven through the Interactions API (see src/ai/video.ts) — NOT an
@@ -54,11 +54,11 @@ export const USAGE_ATTRIBUTION_ID = 'gmp_git_agentskills_v1';
 const ORCHESTRATOR_MODEL =
   import.meta.env.VITE_GEMINI_ORCHESTRATOR_MODEL ||
   import.meta.env.VITE_GEMINI_CHAT_MODEL ||
-  'gemini-3.6-flash';
+  'gemini-3.7-flash';
 const WORKER_MODEL =
   import.meta.env.VITE_GEMINI_WORKER_MODEL ||
   import.meta.env.VITE_GEMINI_UTILITY_MODEL ||
-  'gemini-3.5-flash-lite';
+  'gemini-3.7-flash';
 
 export const MODELS = {
   /** Plans each copilot turn and coordinates deterministic journey tools. */
@@ -87,26 +87,27 @@ export const MODELS = {
 export const VIDEO_GEN_ENABLED = import.meta.env.VITE_VIDEO_GEN_ENABLED !== 'false';
 
 /** Thinking level configurations based on the type of task:
- *  - 'minimal' for immediate simple ui/ux (Grounding, Cinema Narration, Insight Briefs)
- *  - 'other' uses low for primary text and vision reasoning
+ *  - 'orchestration' for max orchestration (Copilot multi-turn tool calling) -> HIGH
+ *  - 'simpleUi' for immediate simple ui/ux (Grounding, Cinema Narration, Voice, Suggestions) -> MINIMAL
+ *  - 'other' for primary text and vision reasoning -> LOW
  */
 export const THINKING_CONFIGS = {
   orchestration: {
-    thinkingLevel: ThinkingLevel.MEDIUM,
+    thinkingLevel: ThinkingLevel.HIGH,
   },
   simpleUi: {
     thinkingLevel: ThinkingLevel.MINIMAL,
   },
   other: {
-    thinkingLevel: ThinkingLevel.MEDIUM,
+    thinkingLevel: ThinkingLevel.LOW,
   },
 } as const;
 
 /** Public, inspectable routing contract used by the settings UI and tests. */
 export const AGENT_PROFILES = {
-  orchestrator: { model: MODELS.orchestrator, thinking: 'medium' },
+  orchestrator: { model: MODELS.orchestrator, thinking: 'high' },
   fastWorker: { model: MODELS.worker, thinking: 'minimal' },
-  analysisWorker: { model: MODELS.vision, thinking: 'medium' },
+  analysisWorker: { model: MODELS.vision, thinking: 'low' },
 } as const;
 
 /**
@@ -134,11 +135,11 @@ export function getThinkingConfig(
   // Gemini 3.x supports named thinking levels.
   if (/^gemini-3/i.test(model)) {
     if (level === 'orchestration') {
-      return { thinkingLevel: ThinkingLevel.MEDIUM };
+      return { thinkingLevel: ThinkingLevel.HIGH };
     } else if (level === 'simpleUi') {
       return { thinkingLevel: ThinkingLevel.MINIMAL };
     } else {
-      return { thinkingLevel: ThinkingLevel.MEDIUM };
+      return { thinkingLevel: ThinkingLevel.LOW };
     }
   }
 

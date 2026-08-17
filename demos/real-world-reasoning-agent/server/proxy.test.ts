@@ -19,7 +19,7 @@ import { dirname, join } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVER = join(here, 'index.mjs');
 const DISALLOWED = '/ai/v1beta/models/not-a-real-model:generateContent';
-const ALLOWED = '/ai/v1beta/models/gemini-3.6-flash:generateContent';
+const ALLOWED = '/ai/v1beta/models/gemini-3.7-flash:generateContent';
 
 let child: ChildProcess | null = null;
 // Cumulative stdout+stderr of the most recently started child, so tests can
