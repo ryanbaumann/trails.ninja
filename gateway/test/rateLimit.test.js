@@ -9,6 +9,8 @@ import {
   CircularBucketRateLimiter,
   createCircularBucketRateLimiter,
   extractGeminiTokenUsage,
+  extractGeminiUsageAndCost,
+  calculateGeminiCostMicros,
   DEFAULT_GEMINI_LIMITS,
   DEFAULT_GEMINI_OMNI_LIMITS,
   geminiOmniRateLimiter,
@@ -448,3 +450,155 @@ test('hosted Gemini health tracking records failure, blocks availability, and re
   resetHostedGeminiHealthForTesting();
 });
 
+test('DEFAULT_GEMINI_LIMITS exports $0.60 user and $5.00 global cost limits', () => {
+  assert.equal(DEFAULT_GEMINI_LIMITS.userDailyCalls, 500);
+  assert.equal(DEFAULT_GEMINI_LIMITS.userDailyCostMicros, 600_000); // $0.60 / day
+  assert.equal(DEFAULT_GEMINI_LIMITS.globalDailyCalls, 5_000);
+  assert.equal(DEFAULT_GEMINI_LIMITS.globalDailyCostMicros, 5_000_000); // $5.00 / day
+});
+
+test('calculateGeminiCostMicros applies accurate pricing and context caching discount', () => {
+  // 1,000 uncached prompt tokens ($0.10 / 1M = 0.000100 -> 100 micro-dollars)
+  const uncachedCost = calculateGeminiCostMicros({ promptTokens: 1000, cachedTokens: 0, candidateTokens: 0 });
+  assert.equal(uncachedCost, 100);
+
+  // 1,000 cached prompt tokens ($0.025 / 1M = 0.000025 -> 25 micro-dollars; 75% discount!)
+  const cachedCost = calculateGeminiCostMicros({ promptTokens: 1000, cachedTokens: 1000, candidateTokens: 0 });
+  assert.equal(cachedCost, 25);
+
+  // 1,000 candidate tokens ($0.40 / 1M = 0.000400 -> 400 micro-dollars)
+  const candidateCost = calculateGeminiCostMicros({ promptTokens: 0, cachedTokens: 0, candidateTokens: 1000 });
+  assert.equal(candidateCost, 400);
+
+  // Multi-turn turn with 10,000 total prompt tokens (8,000 cached + 2,000 new uncached), 500 candidate tokens:
+  // Cached: 8000 * 0.025 = 200 micro-dollars
+  // Uncached: (10000 - 8000) * 0.10 = 200 micro-dollars
+  // Candidates: 500 * 0.40 = 200 micro-dollars
+  // Total = 600 micro-dollars ($0.0006)
+  const multiTurnCost = calculateGeminiCostMicros({ promptTokens: 10_000, cachedTokens: 8000, candidateTokens: 500 });
+  assert.equal(multiTurnCost, 600);
+
+  // Image generation ($0.03 = 30,000 micro-dollars)
+  assert.equal(calculateGeminiCostMicros({ isImage: true }), 30_000);
+
+  // Video generation ($0.20 = 200,000 micro-dollars)
+  assert.equal(calculateGeminiCostMicros({ isVideo: true }), 200_000);
+});
+
+test('extractGeminiUsageAndCost accurately parses usageMetadata including cache counts', () => {
+  const jsonResp = {
+    candidates: [{ content: { parts: [{ text: 'Answer' }] } }],
+    usageMetadata: {
+      promptTokenCount: 10_000,
+      cachedContentTokenCount: 8_000,
+      candidatesTokenCount: 500,
+      totalTokenCount: 10_500,
+    },
+  };
+  const usage = extractGeminiUsageAndCost(jsonResp);
+  assert.equal(usage.promptTokens, 10_000);
+  assert.equal(usage.cachedTokens, 8000);
+  assert.equal(usage.candidateTokens, 500);
+  assert.equal(usage.totalTokens, 10_500);
+  // Cost: ((10000 - 8000) * 0.10) + (8000 * 0.025) + (500 * 0.40) = 200 + 200 + 200 = 600 micro-dollars
+  assert.equal(usage.costMicros, 600);
+
+  // SSE Stream parsing
+  const sseChunk = `
+data: {"candidates":[{"content":{"parts":[{"text":"Part 1"}]}}],"usageMetadata":{"promptTokenCount":5000,"cachedContentTokenCount":4000,"candidatesTokenCount":100,"totalTokenCount":5100}}
+
+data: {"candidates":[{"content":{"parts":[{"text":"Part 2"}]}}],"usageMetadata":{"promptTokenCount":5000,"cachedContentTokenCount":4000,"candidatesTokenCount":300,"totalTokenCount":5300}}
+`;
+  const sseUsage = extractGeminiUsageAndCost(sseChunk);
+  assert.equal(sseUsage.promptTokens, 5000);
+  assert.equal(sseUsage.cachedTokens, 4000);
+  assert.equal(sseUsage.candidateTokens, 300);
+  assert.equal(sseUsage.totalTokens, 5300);
+  // Cost: ((5000 - 4000) * 0.10) + (4000 * 0.025) + (300 * 0.40) = 100 + 100 + 120 = 320 micro-dollars
+  assert.equal(sseUsage.costMicros, 320);
+});
+
+test('CircularBucketRateLimiter enforces user cost limit ($0.60/day)', () => {
+  let currentTime = Date.parse('2026-08-17T12:00:00Z');
+  const limiter = createCircularBucketRateLimiter({
+    userDailyCalls: 100,
+    userDailyCostMicros: 600_000, // $0.60
+    globalDailyCalls: 1_000,
+    globalDailyCostMicros: 5_000_000, // $5.00
+    now: () => currentTime,
+  });
+
+  // User consumes $0.50 (500,000 micro-dollars)
+  const res1 = limiter.consume('cost-user-1', { calls: 1, costMicros: 500_000 });
+  assert.equal(res1.allowed, true);
+  assert.equal(res1.user.remainingCostMicros, 100_000);
+
+  // User attempts to consume another $0.20 (200,000 micro-dollars) -> exceeds $0.60 cap
+  const res2 = limiter.consume('cost-user-1', { calls: 1, costMicros: 200_000 });
+  assert.equal(res2.allowed, false);
+  assert.equal(res2.reason, 'USER_COST_LIMIT');
+  assert.ok(res2.message.includes('Daily Gemini shared allowance reached ($0.60/day)'));
+
+  // Another user can still make requests
+  const otherUser = limiter.consume('cost-user-2', { calls: 1, costMicros: 200_000 });
+  assert.equal(otherUser.allowed, true);
+});
+
+test('CircularBucketRateLimiter enforces global cost limit ($5.00/day)', () => {
+  let currentTime = Date.parse('2026-08-17T12:00:00Z');
+  const limiter = createCircularBucketRateLimiter({
+    userDailyCalls: 100,
+    userDailyCostMicros: 600_000, // $0.60
+    globalDailyCalls: 1_000,
+    globalDailyCostMicros: 5_000_000, // $5.00
+    now: () => currentTime,
+  });
+
+  // 9 users each consume $0.50 -> 9 * $0.50 = $4.50 (4,500,000 micro-dollars)
+  for (let i = 1; i <= 9; i++) {
+    const res = limiter.consume(`user-global-${i}`, { calls: 1, costMicros: 500_000 });
+    assert.equal(res.allowed, true);
+  }
+
+  // 10th user consumes $0.40 -> total $4.90
+  const res10 = limiter.consume('user-global-10', { calls: 1, costMicros: 400_000 });
+  assert.equal(res10.allowed, true);
+
+  // 11th user attempts to consume $0.20 -> exceeds $5.00 global budget
+  const blocked = limiter.consume('user-global-11', { calls: 1, costMicros: 200_000 });
+  assert.equal(blocked.allowed, false);
+  assert.equal(blocked.reason, 'GLOBAL_COST_LIMIT');
+  assert.ok(blocked.message.includes('The shared Gemini daily budget is exhausted ($5.00/day)'));
+});
+
+test('CircularBucketRateLimiter refunds and reconciles cost deltas accurately', () => {
+  let currentTime = Date.parse('2026-08-17T12:00:00Z');
+  const limiter = createCircularBucketRateLimiter({
+    userDailyCalls: 100,
+    userDailyCostMicros: 600_000,
+    globalDailyCalls: 1_000,
+    globalDailyCostMicros: 5_000_000,
+    now: () => currentTime,
+  });
+
+  // Consume estimated cost: $0.05 (50,000 micro-dollars)
+  const pre = limiter.consume('ip-cost-recon', { calls: 1, costMicros: 50_000 });
+  assert.equal(pre.allowed, true);
+  assert.equal(pre.user.remainingCostMicros, 550_000);
+
+  // Actual cost was $0.08 (80,000 micro-dollars) -> record extra $0.03 (30,000 micro-dollars)
+  limiter.record('ip-cost-recon', { calls: 0, costMicros: 30_000 });
+  assert.equal(limiter.status('ip-cost-recon').user.costMicros, 80_000);
+  assert.equal(limiter.status('ip-cost-recon').user.remainingCostMicros, 520_000);
+
+  // Upstream consumed less: refund $0.02 (20,000 micro-dollars)
+  limiter.refund('ip-cost-recon', { calls: 0, costMicros: 20_000 });
+  assert.equal(limiter.status('ip-cost-recon').user.costMicros, 60_000);
+  assert.equal(limiter.status('ip-cost-recon').user.remainingCostMicros, 540_000);
+
+  // Refund entire call and cost on error
+  limiter.refund('ip-cost-recon', { calls: 1, costMicros: 60_000 });
+  assert.equal(limiter.status('ip-cost-recon').user.calls, 0);
+  assert.equal(limiter.status('ip-cost-recon').user.costMicros, 0);
+  assert.equal(limiter.status('ip-cost-recon').user.remainingCostMicros, 600_000);
+});

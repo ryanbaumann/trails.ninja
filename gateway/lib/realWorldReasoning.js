@@ -4,6 +4,7 @@ import {
   geminiRateLimiter,
   geminiOmniRateLimiter,
   extractGeminiTokenUsage,
+  extractGeminiUsageAndCost,
   recordHostedGeminiFailure,
   recordHostedGeminiSuccess,
   isHostedGeminiHealthy,
@@ -882,11 +883,13 @@ export function createRealWorldReasoningHandler({
         const clientKey = clientIp(request);
         const estimatedTokens = Math.max(10, Math.ceil((body?.length || 100) / 4));
         const isOmni = isOmniModel(model);
+        const estimatedCostMicros = isOmni ? 200_000 : Math.ceil(estimatedTokens * 0.15);
         if (credential.source === 'hosted') {
           if (isOmni) {
             const omniCheck = geminiOmniLimiter.consume(clientKey, {
               calls: 1,
               tokens: estimatedTokens,
+              costMicros: 200_000,
               timestamp: now(),
             });
             if (!omniCheck.allowed) {
@@ -903,6 +906,7 @@ export function createRealWorldReasoningHandler({
           const check = geminiLimiter.consume(clientKey, {
             calls: 1,
             tokens: estimatedTokens,
+            costMicros: estimatedCostMicros,
             timestamp: now(),
           });
           if (!check.allowed) {
@@ -910,6 +914,7 @@ export function createRealWorldReasoningHandler({
               geminiOmniLimiter.refund(clientKey, {
                 calls: 1,
                 tokens: estimatedTokens,
+                costMicros: 200_000,
                 timestamp: now(),
               });
             }
@@ -940,24 +945,44 @@ export function createRealWorldReasoningHandler({
                 ) {
                   recordHostedGeminiFailure('quota_depleted');
                 }
-                geminiLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, timestamp: now() });
+                geminiLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros, timestamp: now() });
                 if (isOmni) {
-                  geminiOmniLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, timestamp: now() });
+                  geminiOmniLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, costMicros: 200_000, timestamp: now() });
                 }
               } else {
                 recordHostedGeminiSuccess();
-                const actualTokens = extractGeminiTokenUsage(bodyText, body.length);
-                if (actualTokens > estimatedTokens) {
-                  const delta = actualTokens - estimatedTokens;
-                  geminiLimiter.record(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                const usage = extractGeminiUsageAndCost(bodyText, body.length, { isVideo: isOmni });
+                const deltaTokens = usage.totalTokens - estimatedTokens;
+                const deltaCostMicros = usage.costMicros - estimatedCostMicros;
+                if (deltaTokens > 0 || deltaCostMicros > 0) {
+                  geminiLimiter.record(clientKey, {
+                    calls: 0,
+                    tokens: Math.max(0, deltaTokens),
+                    costMicros: Math.max(0, deltaCostMicros),
+                    timestamp: now(),
+                  });
                   if (isOmni) {
-                    geminiOmniLimiter.record(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                    geminiOmniLimiter.record(clientKey, {
+                      calls: 0,
+                      tokens: Math.max(0, deltaTokens),
+                      costMicros: Math.max(0, deltaCostMicros),
+                      timestamp: now(),
+                    });
                   }
-                } else if (actualTokens < estimatedTokens) {
-                  const delta = estimatedTokens - actualTokens;
-                  geminiLimiter.refund(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                } else if (deltaTokens < 0 || deltaCostMicros < 0) {
+                  geminiLimiter.refund(clientKey, {
+                    calls: 0,
+                    tokens: Math.max(0, -deltaTokens),
+                    costMicros: Math.max(0, -deltaCostMicros),
+                    timestamp: now(),
+                  });
                   if (isOmni) {
-                    geminiOmniLimiter.refund(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                    geminiOmniLimiter.refund(clientKey, {
+                      calls: 0,
+                      tokens: Math.max(0, -deltaTokens),
+                      costMicros: Math.max(0, -deltaCostMicros),
+                      timestamp: now(),
+                    });
                   }
                 }
               }
@@ -1001,11 +1026,13 @@ export function createRealWorldReasoningHandler({
       const clientKey = clientIp(request);
       const estimatedTokens = Math.max(10, Math.ceil((body?.length || 100) / 4));
       const isOmni = isOmniModel(targetModel);
+      const estimatedCostMicros = isOmni ? 200_000 : Math.ceil(estimatedTokens * 0.15);
       if (credential.source === 'hosted') {
         if (isOmni) {
           const omniCheck = geminiOmniLimiter.consume(clientKey, {
             calls: 1,
             tokens: estimatedTokens,
+            costMicros: 200_000,
             timestamp: now(),
           });
           if (!omniCheck.allowed) {
@@ -1022,6 +1049,7 @@ export function createRealWorldReasoningHandler({
         const check = geminiLimiter.consume(clientKey, {
           calls: 1,
           tokens: estimatedTokens,
+          costMicros: estimatedCostMicros,
           timestamp: now(),
         });
         if (!check.allowed) {
@@ -1029,6 +1057,7 @@ export function createRealWorldReasoningHandler({
             geminiOmniLimiter.refund(clientKey, {
               calls: 1,
               tokens: estimatedTokens,
+              costMicros: 200_000,
               timestamp: now(),
             });
           }
@@ -1057,24 +1086,44 @@ export function createRealWorldReasoningHandler({
               ) {
                 recordHostedGeminiFailure('quota_depleted');
               }
-              geminiLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, timestamp: now() });
+              geminiLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros, timestamp: now() });
               if (isOmni) {
-                geminiOmniLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, timestamp: now() });
+                geminiOmniLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, costMicros: 200_000, timestamp: now() });
               }
             } else {
               recordHostedGeminiSuccess();
-              const actualTokens = extractGeminiTokenUsage(bodyText, body.length);
-              if (actualTokens > estimatedTokens) {
-                const delta = actualTokens - estimatedTokens;
-                geminiLimiter.record(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+              const usage = extractGeminiUsageAndCost(bodyText, body.length, { isVideo: isOmni });
+              const deltaTokens = usage.totalTokens - estimatedTokens;
+              const deltaCostMicros = usage.costMicros - estimatedCostMicros;
+              if (deltaTokens > 0 || deltaCostMicros > 0) {
+                geminiLimiter.record(clientKey, {
+                  calls: 0,
+                  tokens: Math.max(0, deltaTokens),
+                  costMicros: Math.max(0, deltaCostMicros),
+                  timestamp: now(),
+                });
                 if (isOmni) {
-                  geminiOmniLimiter.record(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                  geminiOmniLimiter.record(clientKey, {
+                    calls: 0,
+                    tokens: Math.max(0, deltaTokens),
+                    costMicros: Math.max(0, deltaCostMicros),
+                    timestamp: now(),
+                  });
                 }
-              } else if (actualTokens < estimatedTokens) {
-                const delta = estimatedTokens - actualTokens;
-                geminiLimiter.refund(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+              } else if (deltaTokens < 0 || deltaCostMicros < 0) {
+                geminiLimiter.refund(clientKey, {
+                  calls: 0,
+                  tokens: Math.max(0, -deltaTokens),
+                  costMicros: Math.max(0, -deltaCostMicros),
+                  timestamp: now(),
+                });
                 if (isOmni) {
-                  geminiOmniLimiter.refund(clientKey, { calls: 0, tokens: delta, timestamp: now() });
+                  geminiOmniLimiter.refund(clientKey, {
+                    calls: 0,
+                    tokens: Math.max(0, -deltaTokens),
+                    costMicros: Math.max(0, -deltaCostMicros),
+                    timestamp: now(),
+                  });
                 }
               }
             }

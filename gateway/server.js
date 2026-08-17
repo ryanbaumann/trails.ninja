@@ -20,6 +20,7 @@ import {
   rateLimitPolicyForPath,
   geminiRateLimiter,
   extractGeminiTokenUsage,
+  extractGeminiUsageAndCost,
   isHostedGeminiHealthy,
 } from './lib/rateLimit.js';
 import { resolveProvider } from './lib/config.js';
@@ -711,12 +712,13 @@ async function handleApi(request, response, pathname, searchParams) {
     const isImageRequest = pathname === '/api/hairstyle-ai-studio/generate'
       || pathname === '/api/hairstyle-ai-studio/refine';
     const estimatedTokens = isImageRequest ? 1500 : 1000;
+    const estimatedCostMicros = isImageRequest ? 30_000 : 150;
     let freeTierReserved = false;
     let globalFreeTierReserved = false;
     let geminiReserved = false;
 
     if (credentialSource === 'hosted') {
-      const geminiCheck = geminiRateLimiter.consume(ip, { calls: 1, tokens: estimatedTokens });
+      const geminiCheck = geminiRateLimiter.consume(ip, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros });
       if (!geminiCheck.allowed) {
         response.setHeader('Retry-After', String(geminiCheck.retryAfterSeconds));
         sendJson(request, response, 429, {
@@ -742,7 +744,7 @@ async function handleApi(request, response, pathname, searchParams) {
     } else if (isImageRequest) {
       freeTierReserved = hairstyleFreeRateLimiter.take(freeTierKey);
       if (!freeTierReserved) {
-        if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+        if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros });
         const quota = hairstyleFreeRateLimiter.status(freeTierKey);
         response.setHeader('Retry-After', String(Math.max(1, Math.ceil((Date.parse(quota.resetAt) - Date.now()) / 1000))));
         sendJson(request, response, 429, {
@@ -754,7 +756,7 @@ async function handleApi(request, response, pathname, searchParams) {
       }
       globalFreeTierReserved = hairstyleGlobalFreeRateLimiter.take('hairstyle-global');
       if (!globalFreeTierReserved) {
-        if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+        if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros });
         hairstyleFreeRateLimiter.refund(freeTierKey);
         freeTierReserved = false;
         sendJson(request, response, 429, {
@@ -769,7 +771,7 @@ async function handleApi(request, response, pathname, searchParams) {
     try {
       body = await readJsonBody(request, 12 * 1024 * 1024);
     } catch (err) {
-      if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+      if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros });
       if (freeTierReserved) hairstyleFreeRateLimiter.refund(freeTierKey);
       if (globalFreeTierReserved) hairstyleGlobalFreeRateLimiter.refund('hairstyle-global');
       sendJson(request, response, err.statusCode || 400, { error: err.message });
@@ -791,13 +793,15 @@ async function handleApi(request, response, pathname, searchParams) {
     });
     if (geminiReserved) {
       if (result.statusCode < 200 || result.statusCode >= 300) {
-        geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+        geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros });
       } else {
-        const actualTokens = extractGeminiTokenUsage(result.json, JSON.stringify(body || {}).length);
-        if (actualTokens > estimatedTokens) {
-          geminiRateLimiter.record(ip, { calls: 0, tokens: actualTokens - estimatedTokens });
-        } else if (actualTokens < estimatedTokens) {
-          geminiRateLimiter.refund(ip, { calls: 0, tokens: estimatedTokens - actualTokens });
+        const usage = extractGeminiUsageAndCost(result.json, JSON.stringify(body || {}).length, { isImage: isImageRequest });
+        const deltaTokens = usage.totalTokens - estimatedTokens;
+        const deltaCostMicros = usage.costMicros - estimatedCostMicros;
+        if (deltaTokens > 0 || deltaCostMicros > 0) {
+          geminiRateLimiter.record(ip, { calls: 0, tokens: Math.max(0, deltaTokens), costMicros: Math.max(0, deltaCostMicros) });
+        } else if (deltaTokens < 0 || deltaCostMicros < 0) {
+          geminiRateLimiter.refund(ip, { calls: 0, tokens: Math.max(0, -deltaTokens), costMicros: Math.max(0, -deltaCostMicros) });
         }
       }
     }
@@ -885,12 +889,13 @@ async function handleApi(request, response, pathname, searchParams) {
 
     const isImageRequest = pathname === '/api/infographic-agent/render';
     const estimatedTokens = isImageRequest ? 1500 : 1000;
+    const estimatedCostMicros = isImageRequest ? 30_000 : 150;
     let freeTierReserved = false;
     let globalFreeTierReserved = false;
     let geminiReserved = false;
 
     if (credentialSource === 'hosted') {
-      const geminiCheck = geminiRateLimiter.consume(ip, { calls: 1, tokens: estimatedTokens });
+      const geminiCheck = geminiRateLimiter.consume(ip, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros });
       if (!geminiCheck.allowed) {
         response.setHeader('Retry-After', String(geminiCheck.retryAfterSeconds));
         sendJson(request, response, 429, {
@@ -916,7 +921,7 @@ async function handleApi(request, response, pathname, searchParams) {
     } else if (isImageRequest) {
       freeTierReserved = infographicFreeRateLimiter.take(freeTierKey);
       if (!freeTierReserved) {
-        if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+        if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros });
         const quota = infographicFreeRateLimiter.status(freeTierKey);
         response.setHeader('Retry-After', String(Math.max(1, Math.ceil((Date.parse(quota.resetAt) - Date.now()) / 1000))));
         sendJson(request, response, 429, {
@@ -928,7 +933,7 @@ async function handleApi(request, response, pathname, searchParams) {
       }
       globalFreeTierReserved = infographicGlobalFreeRateLimiter.take('infographic-global');
       if (!globalFreeTierReserved) {
-        if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+        if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros });
         infographicFreeRateLimiter.refund(freeTierKey);
         freeTierReserved = false;
         sendJson(request, response, 429, {
@@ -943,7 +948,7 @@ async function handleApi(request, response, pathname, searchParams) {
     try {
       body = await readJsonBody(request, 12 * 1024 * 1024);
     } catch (err) {
-      if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+      if (geminiReserved) geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros });
       if (freeTierReserved) infographicFreeRateLimiter.refund(freeTierKey);
       if (globalFreeTierReserved) infographicGlobalFreeRateLimiter.refund('infographic-global');
       sendJson(request, response, err.statusCode || 400, { error: err.message });
@@ -965,13 +970,15 @@ async function handleApi(request, response, pathname, searchParams) {
     });
     if (geminiReserved) {
       if (result.statusCode < 200 || result.statusCode >= 300) {
-        geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens });
+        geminiRateLimiter.refund(ip, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros });
       } else {
-        const actualTokens = extractGeminiTokenUsage(result.json, JSON.stringify(body || {}).length);
-        if (actualTokens > estimatedTokens) {
-          geminiRateLimiter.record(ip, { calls: 0, tokens: actualTokens - estimatedTokens });
-        } else if (actualTokens < estimatedTokens) {
-          geminiRateLimiter.refund(ip, { calls: 0, tokens: estimatedTokens - actualTokens });
+        const usage = extractGeminiUsageAndCost(result.json, JSON.stringify(body || {}).length, { isImage: isImageRequest });
+        const deltaTokens = usage.totalTokens - estimatedTokens;
+        const deltaCostMicros = usage.costMicros - estimatedCostMicros;
+        if (deltaTokens > 0 || deltaCostMicros > 0) {
+          geminiRateLimiter.record(ip, { calls: 0, tokens: Math.max(0, deltaTokens), costMicros: Math.max(0, deltaCostMicros) });
+        } else if (deltaTokens < 0 || deltaCostMicros < 0) {
+          geminiRateLimiter.refund(ip, { calls: 0, tokens: Math.max(0, -deltaTokens), costMicros: Math.max(0, -deltaCostMicros) });
         }
       }
     }

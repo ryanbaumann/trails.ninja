@@ -1,4 +1,4 @@
-import { geminiRateLimiter, extractGeminiTokenUsage } from './rateLimit.js';
+import { geminiRateLimiter, extractGeminiTokenUsage, extractGeminiUsageAndCost } from './rateLimit.js';
 
 const ADVERTISING_PATTERNS = Object.freeze([
   /\b(?:seo|aeo) (?:services?|packages?|campaign|audit|analysis|agency|expert|specialist)\b/i,
@@ -55,11 +55,12 @@ export async function classifyContactSubmission({
   if (!geminiApiKey) return deterministic;
 
   const estimatedTokens = 150;
-  if (geminiLimiter && !geminiLimiter.check(clientKey, { calls: 1, tokens: estimatedTokens })) {
+  const estimatedCostMicros = 15;
+  if (geminiLimiter && !geminiLimiter.check(clientKey, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros })) {
     return deterministic;
   }
   if (geminiLimiter) {
-    geminiLimiter.record(clientKey, { calls: 1, tokens: estimatedTokens });
+    geminiLimiter.record(clientKey, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros });
   }
 
   try {
@@ -81,17 +82,19 @@ export async function classifyContactSubmission({
       signal: AbortSignal.timeout(5_000),
     });
     if (!upstream.ok) {
-      if (geminiLimiter) geminiLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens });
+      if (geminiLimiter) geminiLimiter.refund(clientKey, { calls: 1, tokens: estimatedTokens, costMicros: estimatedCostMicros });
       console.error(`Contact classifier unavailable: HTTP ${upstream.status}`);
       return { decision: 'allow', category: 'other', confidence: 0, source: 'model_error' };
     }
     const body = await upstream.json();
-    const actualTokens = extractGeminiTokenUsage(body, 200);
+    const usage = extractGeminiUsageAndCost(body, 200);
     if (geminiLimiter) {
-      if (actualTokens > estimatedTokens) {
-        geminiLimiter.record(clientKey, { calls: 0, tokens: actualTokens - estimatedTokens });
-      } else if (actualTokens < estimatedTokens) {
-        geminiLimiter.refund(clientKey, { calls: 0, tokens: estimatedTokens - actualTokens });
+      const deltaTokens = usage.totalTokens - estimatedTokens;
+      const deltaCostMicros = usage.costMicros - estimatedCostMicros;
+      if (deltaTokens > 0 || deltaCostMicros > 0) {
+        geminiLimiter.record(clientKey, { calls: 0, tokens: Math.max(0, deltaTokens), costMicros: Math.max(0, deltaCostMicros) });
+      } else if (deltaTokens < 0 || deltaCostMicros < 0) {
+        geminiLimiter.refund(clientKey, { calls: 0, tokens: Math.max(0, -deltaTokens), costMicros: Math.max(0, -deltaCostMicros) });
       }
     }
     const raw = body.candidates?.[0]?.content?.parts?.[0]?.text;

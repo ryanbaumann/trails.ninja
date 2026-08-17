@@ -2,6 +2,13 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-17 - Cost-based daily rate limiting with context caching discount preserves multi-turn allowances and caps spend accurately
+
+Context: Transitioning the gateway from naive call/token caps to exact cost-based daily spending ceilings ($0.60/user/day, $5.00/global/day) for Gemini demo apps.
+Learning: Naive token counting penalizes multi-turn interactive agents because each turn re-sends prior turns as prompt tokens. In reality, Gemini provides context caching discounts (~75% off cached input tokens: $0.025/M vs $0.10/M tokens), making multi-turn chat 4x cheaper than fresh prompts. Tracking spending in micro-dollars ($\mu\$$) with pricing tiers for uncached input ($0.10/M), cached input ($0.025/M), output/reasoning ($0.40/M), images ($0.03/image), and video ($0.20/video) enables generous multi-turn usage without increasing server operating cost. Post-request delta reconciliation accurately refunds over-estimated reservations and charges true API cost based on `usageMetadata.cachedContentTokenCount`.
+Evidence: Implemented `calculateGeminiCostMicros` and `extractGeminiUsageAndCost` in `gateway/lib/rateLimit.js`, integrated across `realWorldReasoning.js`, `hairstyleAi.js`, `infographicAgent.js`, and `contactSpam.js`, verified with unit test suites (169 passing gateway tests).
+Use next time: In LLM gateways, always dimension quotas around real API cost and incorporate caching discounts so multi-turn agent interactions are not prematurely throttled by unweighted token sums.
+
 ## 2026-08-17 - Dynamic hosted health tracking prevents upstream 429 stampedes on depleted server keys and routes directly to BYOK
 
 Context: Handling depleted server-side Gemini prepayment credits / quota across `real-world-reasoning-agent`, `infographic-agent`, and `hairstyle-ai-studio`.
