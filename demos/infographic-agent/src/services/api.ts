@@ -33,7 +33,14 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
   if (!res.ok) {
     const message = data.error || data.message || `Request failed with status ${res.status}`;
-    if (res.status === 429 || data.code === 'RATE_LIMITED' || data.code === 'FREE_TIER_EXHAUSTED') {
+    if (
+      res.status === 429 ||
+      res.status === 503 ||
+      data.code === 'RATE_LIMITED' ||
+      data.code === 'FREE_TIER_EXHAUSTED' ||
+      data.code === 'FREE_TIER_UNAVAILABLE' ||
+      data.code === 'GEMINI_QUOTA_EXHAUSTED'
+    ) {
       throw new RateLimitError(message, data.details);
     }
     throw new GeminiApiError(message, res.status, data.code, data.details);

@@ -2,6 +2,13 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-17 - Fail-fast rate-limit handling prevents streaming retry cascades and aborted transitions in interactive AI apps
+ 
+Context: Debugging Gemini 429 / prepayment credit depletion errors in `demos/real-world-reasoning-agent` and `demos/infographic-agent`.
+Learning: Treating rate-limit (429), quota exhaustion, or prepayment credit depletion errors as transient stream errors causes retry loops with exponential backoff (>24s), leading to aborted React transition promises (`AbortError: Transition was skipped`) and frozen UI states. Checking for rate limits before retrying and immediately failing fast allows the UI to instantly display actionable feedback and pop the BYOK modal. On the gateway proxy layer, hosted 429 responses should be normalized to HTTP 503 `FREE_TIER_UNAVAILABLE` so clients can unambiguously distinguish shared allowance depletion from personal key quota issues.
+Evidence: Unit tests in `demos/real-world-reasoning-agent` (`src/ai/engine.loop.test.ts`, 577 tests) and `gateway` (`gateway/test/infographicAgent.test.js`, 161 tests) verified zero retries and immediate BYOK modal triggers on rate limits.
+Use next time: In client streaming engines, always explicitly exclude rate limits, quota exhaustion, and credit depletion from retry loops (`isRetryableStreamError(err) { if (isRateLimitError(err)) return false; ... }`).
+
 ## 2026-08-17 - Gemini Interactions REST API requires generation_config.thinking_level and demo app CSP alignment
 
 Context: Serving `infographic-agent` and `hairstyle-ai-studio` behind the gateway with Gemini 3.7 Flash thinking levels and Google Fonts typography.

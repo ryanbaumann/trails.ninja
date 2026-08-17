@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- Fixed Gemini rate limiting, quota exhaustion, and prepayment credit depletion handling across demo apps:
+  - `demos/real-world-reasoning-agent`: Excluded rate limit and credit exhaustion errors from stream retry loops to eliminate 24+ second hangs and unhandled transition rejections (`AbortError: Transition was skipped`); expanded error matcher to detect `RESOURCE_EXHAUSTED`, `prepayment credit`, `status: 429`, and gateway error codes to instantly trigger the BYOK key dialog and set degraded state.
+  - `gateway/lib/infographicAgent.js`: Mapped upstream 429 errors under hosted credentials to HTTP 503 `FREE_TIER_UNAVAILABLE` (matching `hairstyleAi.js`) and personal key 429 to `GEMINI_QUOTA_EXHAUSTED`.
+  - `demos/infographic-agent`: Updated response error handler to recognize HTTP 503 and unavailable/exhausted codes as rate limits and automatically pop the BYOK modal.
+  - `gateway/lib/realWorldReasoning.js`: Corrected default `dailyAiCap` in `configFromEnv` to 1,000 (matching `DEFAULT_GEMINI_LIMITS.globalMaxCalls`).
 - Fixed CSP violation in `infographic-agent` by configuring `"csp": "maps"` in `apps.json`, allowing Google Fonts stylesheets and font files.
 - Fixed Gemini Interactions API 400 Bad Request errors in `gateway/lib/infographicAgent.js` and `gateway/lib/hairstyleAi.js` by structuring `generation_config: { thinking_level: 'low' }` according to REST API specification instead of top-level `thinking_config`.
 - Added canonical URL and OpenGraph / Twitter social metadata tags to `demos/infographic-agent/index.html` to pass production smoke test deployment assertions.
