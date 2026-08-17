@@ -48,3 +48,51 @@ test('handleInfographicAgentApi /render rejects missing prompt', async () => {
   assert.equal(result.statusCode, 400);
   assert.match(result.json.error, /A prompt or edit instruction is required/);
 });
+
+test('handleInfographicAgentApi /prepare formats Interactions API request correctly with generation_config', async () => {
+  let upstreamUrl;
+  let upstreamInit;
+  const result = await handleInfographicAgentApi({
+    pathname: '/api/infographic-agent/prepare',
+    method: 'POST',
+    body: {
+      topic: 'Global solar capacity 2024',
+      mode: 'data-story',
+      aspect: '16:9',
+    },
+    apiKey: 'AIzaSyValidGeminiKey123',
+    credentialSource: 'hosted',
+    fetchImpl: async (url, init) => {
+      upstreamUrl = url;
+      upstreamInit = init;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          steps: [{
+            type: 'model_output',
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                analysis: { title: 'Solar Boom', dataPointsCount: 5 },
+                prompt: 'Infographic about solar power...',
+              }),
+            }],
+          }],
+        }),
+      };
+    },
+  });
+
+  assert.equal(result.statusCode, 200);
+  assert.equal(upstreamUrl, 'https://generativelanguage.googleapis.com/v1beta/interactions');
+  assert.equal(upstreamInit.headers['Api-Revision'], '2026-05-20');
+  assert.equal(upstreamInit.headers['x-goog-api-key'], 'AIzaSyValidGeminiKey123');
+  const payload = JSON.parse(upstreamInit.body);
+  assert.equal(payload.model, 'gemini-3.7-flash');
+  assert.equal(payload.store, false);
+  assert.deepEqual(payload.generation_config, { thinking_level: 'low' });
+  assert.equal(result.json.analysis.title, 'Solar Boom');
+  assert.equal(result.json.prompt, 'Infographic about solar power...');
+});
+

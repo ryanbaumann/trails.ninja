@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Fixed CSP violation in `infographic-agent` by configuring `"csp": "maps"` in `apps.json`, allowing Google Fonts stylesheets and font files.
+- Fixed Gemini Interactions API 400 Bad Request errors in `gateway/lib/infographicAgent.js` and `gateway/lib/hairstyleAi.js` by structuring `generation_config: { thinking_level: 'low' }` according to REST API specification instead of top-level `thinking_config`.
+- Added canonical URL and OpenGraph / Twitter social metadata tags to `demos/infographic-agent/index.html` to pass production smoke test deployment assertions.
+
 ### Changed
 - Refined editorial essay rendering and stripped HTML comment cruft in `portfolio/build.mjs`:
   - Updated `markdownToHtml` and `writeMarkdownMirror` to cleanly strip HTML comments (`<!-- ... -->`) such as `<!-- lint-ignore -->` from rendered HTML output and markdown mirrors.

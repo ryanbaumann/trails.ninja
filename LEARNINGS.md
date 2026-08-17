@@ -2,6 +2,13 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-17 - Gemini Interactions REST API requires generation_config.thinking_level and demo app CSP alignment
+
+Context: Serving `infographic-agent` and `hairstyle-ai-studio` behind the gateway with Gemini 3.7 Flash thinking levels and Google Fonts typography.
+Learning: The Gemini Interactions REST API (`Api-Revision: 2026-05-20`) expects thinking levels in `generation_config: { thinking_level: 'low' }` (with lowercase value string), not a top-level `thinking_config` property. Sending `thinking_config` at the root payload results in HTTP 400 `Unknown name "thinking_config"`. In addition, workspace demo apps loading external fonts or stylesheets require `"csp": "maps"` in `apps.json` so the gateway issues the permissive `CSP_MAPS_DEMO_DIRECTIVES` header rather than the strict default CSP.
+Evidence: Updated `gateway/lib/infographicAgent.js` and `gateway/lib/hairstyleAi.js` with passing unit tests (`gateway/test/infographicAgent.test.js`, `gateway/test/hairstyleAi.test.js`), and verified clean local builds and smoke tests across all apps.
+Use next time: When constructing REST payloads for the Gemini Interactions API, nest thinking level inside `generation_config` as lowercase string (`'low'`, `'high'`, `'minimal'`), and configure `"csp": "maps"` in `apps.json` whenever a demo loads Google Fonts or Google Maps Platform assets.
+
 ## 2026-08-17 - HTML comment stripping in static site generator prevents internal linter annotation leaks
 
 Context: Using `<!-- lint-ignore -->` annotations in markdown source files to satisfy repository voice linters when quoting flawed copy, AI slop examples, or citations.

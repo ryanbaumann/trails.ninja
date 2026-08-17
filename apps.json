@@ -83,6 +83,7 @@
       "type": "gateway",
       "prefix": "/api/infographic-agent/"
     },
+    "csp": "maps",
     "providers": [
       "gemini"
     ],
