@@ -65,6 +65,7 @@ This upgrade delivered massive reliability improvements: P99 latency dropped by 
 (from 840ms to 310ms), and we saved $48,000 annually across 14 services. Kudos to 
 the team for making this game-changing leap happen! 🚀
 ```
+
 ```
 <!-- Pipeline B: Gemini 3.7 Flash + Voice Skill -->
 Our platform team deployed a caching layer across 14 services last month. The 
