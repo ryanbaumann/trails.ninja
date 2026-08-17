@@ -16,6 +16,10 @@ All notable changes to this project will be documented in this file.
   - `gateway/lib/infographicAgent.js`: Mapped upstream 429 errors under hosted credentials to HTTP 503 `FREE_TIER_UNAVAILABLE` (matching `hairstyleAi.js`) and personal key 429 to `GEMINI_QUOTA_EXHAUSTED`.
   - `demos/infographic-agent`: Updated response error handler to recognize HTTP 503 and unavailable/exhausted codes as rate limits and automatically pop the BYOK modal.
   - `gateway/lib/realWorldReasoning.js`: Corrected default `dailyAiCap` in `configFromEnv` to 1,000 (matching `DEFAULT_GEMINI_LIMITS.globalMaxCalls`).
+- Fixed Google Maps 3D camera transition promise rejections (`AbortError: Transition was skipped`) in `demos/real-world-reasoning-agent` by wrapping `map3d.flyCameraTo` and `map3d.flyCameraAround` calls to cleanly catch superseded animation aborts.
+- Fixed `gemini-3.7-flash:generateContent` HTTP 400 Bad Request errors by removing unsupported `minimal` thinking level on `gemini-3.7-flash` (and `gemini-3.1-pro`) and standardizing on **LOW** thinking (`ThinkingLevel.LOW`) for simple UI, utility, voice STT, and fast workers across `demos/real-world-reasoning-agent`.
+- Fixed Places UI Kit console warnings (`<gmp-internal-use-place-details-compact>: Ignoring <gmp-place-details-place-request> with no place.`) across `MarkerPlaceCard.tsx`, `PlaceCard.tsx`, and `ClaimLens.tsx` by validating non-empty place IDs and assigning both property and attribute on custom elements.
+- Configured real dark styled Map ID (`9e6b48a5b3653026f9d7556d`) as `DEFAULT_MAP_ID` in `demos/real-world-reasoning-agent/src/lib/config.ts` matching other portfolio Maps demos.
 - Fixed CSP violation in `infographic-agent` by configuring `"csp": "maps"` in `apps.json`, allowing Google Fonts stylesheets and font files.
 - Fixed Gemini Interactions API 400 Bad Request errors in `gateway/lib/infographicAgent.js` and `gateway/lib/hairstyleAi.js` by structuring `generation_config: { thinking_level: 'low' }` according to REST API specification instead of top-level `thinking_config`.
 - Added canonical URL and OpenGraph / Twitter social metadata tags to `demos/infographic-agent/index.html` to pass production smoke test deployment assertions.
@@ -27,8 +31,8 @@ All notable changes to this project will be documented in this file.
   - Refined model comparison outputs in `can-i-build-an-ai-agent-that-doesnt-write-slop.md` with styled typography, bold pipeline headers, and high-contrast SVG figures.
 - Upgraded agent-driven demo models and thinking level configurations across the repository to `gemini-3.7-flash`:
   - **Atlas Real-World Reasoning Agent (`demos/real-world-reasoning-agent`)**:
-    - Upgraded primary orchestration model to `gemini-3.7-flash` with **HIGH** thinking (`ThinkingLevel.HIGH`).
-    - Routed latency-critical bounded task agents (formatting, dynamic follow-up chips, voice transcription) to `gemini-3.7-flash` with **MINIMAL** thinking (`ThinkingLevel.MINIMAL`).
+    - Upgraded primary orchestration model to `gemini-3.7-flash` with **HIGH** thinking (`ThinkingLevel.HIGH`, tunable to `MEDIUM`/`LOW`).
+    - Routed bounded task agents (formatting, dynamic follow-up chips, grounded briefs, voice STT transcription) to `gemini-3.7-flash` with **LOW** thinking (`ThinkingLevel.LOW`), guarding against unsupported `minimal` thinking.
     - Routed multimodal reasoning and vision analysis to `gemini-3.7-flash` with **LOW** thinking (`ThinkingLevel.LOW`).
     - Updated gateway and demo server proxy allowlists, Admin panel model switcher, and validation suites.
   - **Hairstyle AI Studio (`demos/hairstyle-ai-studio`)**:

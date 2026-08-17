@@ -128,6 +128,12 @@ function PlaceUiKitMount({ placeId }: { placeId: string }) {
   useEffect(() => {
     let disposed = false;
     let element: HTMLElement | null = null;
+    const cleanPlaceId = placeId?.trim();
+    if (!cleanPlaceId) {
+      setStatus('unavailable');
+      return;
+    }
+
     void (async () => {
       const places = await lib('places').catch(() => undefined);
       if (disposed || !hostRef.current) return;
@@ -143,9 +149,12 @@ function PlaceUiKitMount({ placeId }: { placeId: string }) {
       element = new (ctor as CustomElementConstructor)();
       element.className = 'claim-lens__ui-kit';
       element.setAttribute('orientation', 'horizontal');
+      (element as any).place = cleanPlaceId;
+      element.setAttribute('place', cleanPlaceId);
 
       const requestEl = document.createElement('gmp-place-details-place-request');
-      requestEl.setAttribute('place', placeId);
+      (requestEl as any).place = cleanPlaceId;
+      requestEl.setAttribute('place', cleanPlaceId);
       element.appendChild(requestEl);
 
       const contentEl = document.createElement('gmp-place-all-content');

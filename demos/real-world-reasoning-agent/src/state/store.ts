@@ -19,7 +19,7 @@ import { NO_PADDING, type CameraOwner, type ViewportPadding } from '@/shell/came
 type ApiHealth = 'ok' | 'degraded' | 'down';
 
 /** Copilot chat-model thinking choice for the admin panel. 'default' = env / per-scenario. */
-export type ThinkingChoice = 'default' | 'minimal' | 'low' | 'medium' | 'high';
+export type ThinkingChoice = 'default' | 'low' | 'medium' | 'high';
 
 const SCENARIOS: ScenarioId[] = ['concierge', 'insight', 'fleet', 'cinema', 'adstudio', 'scout'];
 

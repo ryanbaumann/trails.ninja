@@ -107,6 +107,12 @@ function PlaceUiKitMount({ placeId, accent }: { placeId: string; accent: string 
   useEffect(() => {
     let disposed = false;
     let element: HTMLElement | null = null;
+    const cleanPlaceId = placeId?.trim();
+    if (!cleanPlaceId) {
+      hostRef.current?.replaceChildren();
+      return;
+    }
+
     void (async () => {
       await lib('places').catch(() => undefined);
       if (disposed || !hostRef.current) return;
@@ -116,9 +122,12 @@ function PlaceUiKitMount({ placeId, accent }: { placeId: string; accent: string 
       element.className = 'place-popover__ui-kit';
       element.setAttribute('orientation', 'horizontal');
       element.style.setProperty('--gmp-mat-color-primary', accent);
+      (element as any).place = cleanPlaceId;
+      element.setAttribute('place', cleanPlaceId);
 
       const requestEl = document.createElement('gmp-place-details-place-request');
-      requestEl.setAttribute('place', placeId);
+      (requestEl as any).place = cleanPlaceId;
+      requestEl.setAttribute('place', cleanPlaceId);
       element.appendChild(requestEl);
 
       const contentEl = document.createElement('gmp-place-all-content');

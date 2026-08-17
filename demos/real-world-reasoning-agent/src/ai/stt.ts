@@ -1,15 +1,15 @@
 /**
  * Voice input: capture microphone audio in the browser and transcribe it with a
  * low-latency Gemini model. No UI coupling — the CopilotDock drives it through
- * `useVoiceInput`. Transcription runs with MINIMAL thinking (see config) because
- * the model is transcribing, not reasoning, so any thinking is pure added latency.
+ * `useVoiceInput`. Transcription runs with LOW thinking (see config) because
+ * the model is transcribing, not reasoning, so unnecessary thinking is pure added latency.
  *
  * Compliance/privacy: audio is captured only after the user taps the mic, sent
  * once (inline, base64) through the same-origin /ai proxy, and the microphone
  * track is stopped the moment recording ends — nothing is retained client-side.
  */
 import { genai } from './client';
-import { MINIMAL_THINKING_CONFIG, MODELS } from '@/lib/config';
+import { getThinkingConfig, MODELS } from '@/lib/config';
 
 /** MediaRecorder container/codecs to try, best first. Opus in WebM/OGG is the
  *  most broadly supported low-bitrate option; mp4/aac covers Safari. We fall back
@@ -186,13 +186,16 @@ function blobToBase64(blob: Blob): Promise<string> {
 export async function transcribe(blob: Blob): Promise<string> {
   if (!blob.size) return '';
   const data = await blobToBase64(blob);
+  const thinkingConfig = getThinkingConfig(MODELS.stt, 'simpleUi');
   const resp = await genai().models.generateContent({
     model: MODELS.stt,
     contents: [
       { inlineData: { mimeType: normalizeAudioMime(blob.type), data } },
       { text: TRANSCRIBE_INSTRUCTION },
     ],
-    config: { thinkingConfig: MINIMAL_THINKING_CONFIG },
+    config: {
+      ...(thinkingConfig ? { thinkingConfig } : {}),
+    },
   });
   return (resp.text ?? '').trim();
 }

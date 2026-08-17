@@ -18,7 +18,7 @@ describe('default Gemini routing', () => {
     expect(MODELS.vision).toBe(MODELS.worker);
     expect(AGENT_PROFILES).toEqual({
       orchestrator: { model: 'gemini-3.7-flash', thinking: 'high' },
-      fastWorker: { model: 'gemini-3.7-flash', thinking: 'minimal' },
+      fastWorker: { model: 'gemini-3.7-flash', thinking: 'low' },
       analysisWorker: { model: 'gemini-3.7-flash', thinking: 'low' },
     });
   });
@@ -32,18 +32,21 @@ describe('default Gemini routing', () => {
     });
   });
 
-  it('keeps explicitly latency-sensitive task agents minimal', () => {
+  it('uses low thinking for gemini-3.7-flash simpleUi tasks to prevent 400 errors', () => {
     expect(getThinkingConfig(MODELS.utility, 'simpleUi')).toEqual({
-      thinkingLevel: ThinkingLevel.MINIMAL,
+      thinkingLevel: ThinkingLevel.LOW,
     });
   });
 
-  it('allows the orchestrator to be tuned down to low or medium', () => {
+  it('allows the orchestrator to be tuned down to low or medium, guarding against minimal on 3.7', () => {
     expect(getChatThinkingConfig(MODELS.orchestrator, 'orchestration', 'low')).toEqual({
       thinkingLevel: ThinkingLevel.LOW,
     });
     expect(getChatThinkingConfig(MODELS.orchestrator, 'orchestration', 'medium')).toEqual({
       thinkingLevel: ThinkingLevel.MEDIUM,
+    });
+    expect(getChatThinkingConfig(MODELS.orchestrator, 'orchestration', 'minimal')).toEqual({
+      thinkingLevel: ThinkingLevel.LOW,
     });
   });
 });
