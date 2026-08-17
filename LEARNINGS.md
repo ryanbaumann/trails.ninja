@@ -2,6 +2,22 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-17 - Gemini 3.7 Flash rejects minimal thinking level (requires low/medium/high) and Places UI Kit requires DOM property assignment
+
+Context: Investigating HTTP 400 Bad Request on `gemini-3.7-flash:generateContent` (e.g. clicking "What's it like to live here?") and `<gmp-internal-use-place-details-compact>: Ignoring <gmp-place-details-place-request> with no place.` in `demos/real-world-reasoning-agent`.
+Learning: 
+1. In the Google Gemini API specification, `gemini-3.7-flash` (and `gemini-3.1-pro`) only supports `thinkingLevel`: `"low"`, `"medium"` (default), and `"high"`. Setting `thinkingLevel: "minimal"` (or `ThinkingLevel.MINIMAL`) is unsupported on 3.7 Flash and immediately returns HTTP 400 Bad Request (`Not supported (error)`). For 3.7 Flash, low-latency task agents (simple UI, voice STT transcription, followup suggestions, grounded briefs) must use `ThinkingLevel.LOW`, while orchestration uses `ThinkingLevel.HIGH` (or `MEDIUM`).
+2. Google Places UI Kit web components (`<gmp-place-details-compact>` and `<gmp-place-details-place-request>`) require the `place` property to be assigned directly on the DOM element (`(element as any).place = cleanPlaceId`) in addition to the HTML attribute (`setAttribute('place', cleanPlaceId)`), and must only be mounted when `placeId` is a validated non-empty string to avoid `<gmp-internal-use-place-details-compact>: Ignoring <gmp-place-details-place-request> with no place.` warnings.
+Evidence: Updated `getThinkingConfig`, `AGENT_PROFILES`, `THINKING_CONFIGS`, and `stt.ts` in `demos/real-world-reasoning-agent`, along with `MarkerPlaceCard.tsx`, `PlaceCard.tsx`, and `ClaimLens.tsx`. 70 passing test suites (577 tests), 169 passing gateway tests, clean build and smoke tests.
+Use next time: When routing to Gemini 3.7 Flash, never configure `"minimal"` thinking level—always use `"low"` as the floor for bounded utility calls and `"high"`/`"medium"` for orchestration. When mounting Places UI Kit web components, always assign `.place` property on the custom element instances.
+
+## 2026-08-17 - Catching Google Maps 3D camera animation promise rejections prevents uncaught AbortErrors on rapid interactions
+
+Context: Investigating `Uncaught (in promise) AbortError: Transition was skipped` errors when launching and interacting with 3D map views in `demos/real-world-reasoning-agent`.
+Learning: In the Google Maps 3D JavaScript API (`<gmp-map-3d>`), camera transition methods (`flyCameraTo` and `flyCameraAround`) return promises that resolve upon completion and reject with `DOMException: AbortError: Transition was skipped` when superseded by user gestures (drag/tilt/zoom) or subsequent camera commands. Calling these methods without handling their returned promises causes Chrome to log uncaught promise rejections. Wrapping the calls in `Promise.resolve(map3d.flyCameraTo(...)).catch(err => { if (err instanceof Error && (err.name === 'AbortError' || err.message?.includes('Transition was skipped'))) return; })` cleanly swallows expected user-interrupted cancellations without hiding real runtime faults. In addition, setting `DEFAULT_MAP_ID = '9e6b48a5b3653026f9d7556d'` ensures that fallback map instances without `VITE_GMP_MAP_ID` env overrides render with the shared cloud-styled dark map theme.
+Evidence: Updated `demos/real-world-reasoning-agent/src/shell/MapCanvas.tsx` and `src/lib/config.ts`, verified 70 passing test suites (577 tests), clean build and gateway smoke test.
+Use next time: Always attach `.catch()` handlers to `gmp-map-3d` camera animations to prevent noisy browser console rejections when users pan or trigger new map transitions mid-flight.
+
 ## 2026-08-17 - Cost-based daily rate limiting with context caching discount preserves multi-turn allowances and caps spend accurately
 
 Context: Transitioning the gateway from naive call/token caps to exact cost-based daily spending ceilings ($0.60/user/day, $5.00/global/day) for Gemini demo apps.

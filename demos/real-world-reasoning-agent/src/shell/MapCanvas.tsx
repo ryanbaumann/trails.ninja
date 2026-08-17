@@ -568,32 +568,42 @@ function Camera3D() {
     const command = resolveCamera(intent, { owner: cameraOwner, mode: '3d' });
 
     if (command.kind === 'fly3d') {
-      map3d.flyCameraTo({
-        endCamera: {
-          center: {
-            lat: command.center.lat,
-            lng: command.center.lng,
-            altitude: command.center.altitude ?? 120,
+      Promise.resolve(
+        map3d.flyCameraTo({
+          endCamera: {
+            center: {
+              lat: command.center.lat,
+              lng: command.center.lng,
+              altitude: command.center.altitude ?? 120,
+            },
+            tilt: command.tilt ?? 60,
+            heading: command.heading ?? 0,
+            range: command.range ?? 1500,
           },
-          tilt: command.tilt ?? 60,
-          heading: command.heading ?? 0,
-          range: command.range ?? 1500,
-        },
-        durationMillis: command.durationMs ?? 3500,
+          durationMillis: command.durationMs ?? 3500,
+        }),
+      ).catch((err: unknown) => {
+        // Interrupted or superseded by user gesture or another camera transition.
+        if (err instanceof Error && (err.name === 'AbortError' || err.message?.includes('Transition was skipped'))) return;
       });
     } else if (command.kind === 'orbit3d') {
-      map3d.flyCameraAround({
-        camera: {
-          center: {
-            lat: command.center.lat,
-            lng: command.center.lng,
-            altitude: command.center.altitude ?? 120,
+      Promise.resolve(
+        map3d.flyCameraAround({
+          camera: {
+            center: {
+              lat: command.center.lat,
+              lng: command.center.lng,
+              altitude: command.center.altitude ?? 120,
+            },
+            tilt: command.tilt ?? 55,
+            range: command.range ?? 900,
           },
-          tilt: command.tilt ?? 55,
-          range: command.range ?? 900,
-        },
-        durationMillis: command.durationMs ?? 20000,
-        repeatCount: command.repeatCount ?? 1,
+          durationMillis: command.durationMs ?? 20000,
+          repeatCount: command.repeatCount ?? 1,
+        }),
+      ).catch((err: unknown) => {
+        // Interrupted or superseded by user gesture or another camera transition.
+        if (err instanceof Error && (err.name === 'AbortError' || err.message?.includes('Transition was skipped'))) return;
       });
     } else if (command.kind === 'stop3d') {
       map3d.stopCameraAnimation();

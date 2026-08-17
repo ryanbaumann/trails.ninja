@@ -5,10 +5,12 @@ All notable changes to the **Atlas — AI-Native Map** demo project.
 ## [Unreleased]
 
 - **Model upgrade to Gemini 3.7**: Upgraded default model routing across the app and gateway to `gemini-3.7-flash`:
-  - **Atlas Copilot Orchestration**: `gemini-3.7-flash` configured with **HIGH** thinking (`ThinkingLevel.HIGH`) for multi-step map-native reasoning and tool planning.
-  - **Task Agents & Fast Workers**: `gemini-3.7-flash` with **MINIMAL** thinking (`ThinkingLevel.MINIMAL`) for latency-critical paths (formatting, followup suggestion chips, voice STT transcription).
+  - **Atlas Copilot Orchestration**: `gemini-3.7-flash` configured with **HIGH** thinking (`ThinkingLevel.HIGH`, tunable to `MEDIUM`/`LOW`) for multi-step map-native reasoning and tool planning.
+  - **Task Agents & Fast Workers**: `gemini-3.7-flash` with **LOW** thinking (`ThinkingLevel.LOW`) for latency-critical paths (formatting, followup suggestion chips, grounded briefs, voice STT transcription), eliminating HTTP 400 Bad Request errors caused by unsupported `minimal` thinking on 3.7 Flash.
   - **Multimodal Evidence Analysis**: `gemini-3.7-flash` with **LOW** thinking (`ThinkingLevel.LOW`) for evidence analysis, vision comparisons, and multimodal scoring.
   - Updated server and gateway proxy allowlists, Admin panel model switcher, and unit tests.
+
+- **Places UI Kit Web Component Property Assignment**: Fixed `<gmp-internal-use-place-details-compact>: Ignoring <gmp-place-details-place-request> with no place.` by assigning `.place` directly as a DOM property on custom element instances alongside attributes and validating non-empty place IDs.
 
 - **Model upgrade to 3.6 series**: Upgraded default model routing to `gemini-3.5-flash-lite` for Flash Lite tasks and added `gemini-3.6-flash` for primary Flash tasks across default routing, server proxy allowlists, admin tuner options, and documentation.
 
@@ -19,6 +21,8 @@ All notable changes to the **Atlas — AI-Native Map** demo project.
 - **Smart scrolling in Copilot Dock**: Implemented user-interaction-aware scroll behavior. Auto-scrolling to the bottom of the transcript is suppressed if the user has manually scrolled up to read history, while auto-scrolling is preserved for streaming tokens and new user messages.
 - **Model routing default changes**: Switched default model to `gemini-3.1-flash-lite` on `MEDIUM` thinking by default for standard orchestration/chat tasks, and `MINIMAL` thinking for latency-sensitive tasks like followups and speech-to-text.
 - **Bug Fixes**:
+  - Configured real dark styled Map ID (`9e6b48a5b3653026f9d7556d`) as `DEFAULT_MAP_ID` in `src/lib/config.ts` so dark mode vector map tiles render out-of-the-box.
+  - Handled promise rejections on 3D map camera animations (`flyCameraTo`, `flyCameraAround`) in `MapCanvas.tsx` to cleanly swallow interrupted transitions (`AbortError: Transition was skipped`) when camera moves are superseded by user gestures or re-renders.
   - Fixed a `SecurityError` with history `replaceState` by collapsing multiple leading slashes in `window.location.pathname` (e.g. `//`) to prevent protocol-relative URL interpretation.
 - Replaced the first-run mission kickoff with a Live-only, one-prompt Places + Routes explorer that adds Weather only when requested, presents one compact evidence surface, labels jacket advice as inference, and supports a typed travel-mode counterfactual. Launch now fails closed when required Live services are unavailable.
 

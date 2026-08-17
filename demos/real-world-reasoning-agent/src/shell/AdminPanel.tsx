@@ -137,7 +137,7 @@ export function AdminPanel() {
 
       <p className="admin-panel__hint">
         Applies to your next message. <code>default</code> = high. Task agents use
-        <code>gemini-3.7-flash</code> at minimal or low thinking. Switching
+        <code>gemini-3.7-flash</code> at low thinking. Switching
         starts fresh model context.
       </p>
 

@@ -1,7 +1,7 @@
 import { ThinkingLevel } from '@google/genai';
 
 export const GMP_BROWSER_KEY = import.meta.env.VITE_GMP_API_KEY;
-export const DEFAULT_MAP_ID = 'DEMO_MAP_ID';
+export const DEFAULT_MAP_ID = '9e6b48a5b3653026f9d7556d';
 
 export function resolveMapId(value?: string): string {
   return value?.trim() || DEFAULT_MAP_ID;
@@ -29,12 +29,12 @@ export const USAGE_ATTRIBUTION_ID = 'gmp_git_agentskills_v1';
  * Every id is overridable at build time so a deployer can swap in a heavier
  * model without code changes. NEVER invent model ids — any override MUST also be
  * added to the server's allowedModels allowlist (server/index.mjs, via
- * GENAI_EXTRA_MODELS) or the /ai proxy will reject it with 403.
+ * GENAI_EXTRA_MODELS) or the /ai proxy will reject it with 403. 
  *
  * Default routing: the main copilot is the orchestration agent and uses
  * `gemini-3.7-flash` at HIGH thinking. Bounded task agents use
- * `gemini-3.7-flash`: MINIMAL for classification/formatting/voice and
- * LOW for multimodal evidence analysis. Where task agents emit JSON
+ * `gemini-3.7-flash` at LOW thinking for classification, formatting, suggestions,
+ * voice STT transcription, and multimodal evidence analysis. Where task agents emit JSON
  * (e.g. follow-up suggestions), we constrain them with a Gemini structured-output
  * `responseJsonSchema` so the model stays reliable without paying for a
  * bigger one.
@@ -44,7 +44,7 @@ export const USAGE_ATTRIBUTION_ID = 'gmp_git_agentskills_v1';
  *   VITE_GEMINI_VISION_MODEL.
  * - `stt` transcribes microphone audio for the copilot's voice input. Defaults
  *   to the low-latency worker tier (already allowlisted); override with
- *   VITE_GEMINI_STT_MODEL. Runs with MINIMAL thinking for the fastest turnaround.
+ *   VITE_GEMINI_STT_MODEL. Runs with LOW thinking for the fastest turnaround.
  * - `omni` targets the Gemini "omni" model, which is a VIDEO generation model
  *   driven through the Interactions API (see src/ai/video.ts) — NOT an
  *   image-understanding model. It powers the Cinema tour-video and Scout
@@ -59,24 +59,37 @@ const WORKER_MODEL =
   import.meta.env.VITE_GEMINI_WORKER_MODEL ||
   import.meta.env.VITE_GEMINI_UTILITY_MODEL ||
   'gemini-3.7-flash';
+const VISION_MODEL =
+  import.meta.env.VITE_GEMINI_VISION_MODEL ||
+  WORKER_MODEL;
+const STT_MODEL =
+  import.meta.env.VITE_GEMINI_STT_MODEL ||
+  WORKER_MODEL;
 
 export const MODELS = {
-  /** Plans each copilot turn and coordinates deterministic journey tools. */
+  /** Main orchestrator (copilot chat in every journey). Defaults to gemini-3.7-flash. */
   orchestrator: ORCHESTRATOR_MODEL,
-  /** Low-cost task agent for grounded summaries, analysis, suggestions, and voice. */
-  worker: WORKER_MODEL,
-  // Compatibility aliases for existing call sites and deployer overrides.
+  /** Legacy alias for {@link MODELS.orchestrator}. */
   chat: ORCHESTRATOR_MODEL,
+  /** Shared fast worker for bounded tasks (JSON formatting, chips, briefs). */
+  worker: WORKER_MODEL,
+  /** Legacy alias for {@link MODELS.worker}. */
   utility: WORKER_MODEL,
-  vision: import.meta.env.VITE_GEMINI_VISION_MODEL || WORKER_MODEL,
-  stt: import.meta.env.VITE_GEMINI_STT_MODEL || WORKER_MODEL,
-  tts: 'gemini-3.1-flash-tts-preview',
+  /** Multimodal imagery reasoning (Street View + aerial). Defaults to WORKER_MODEL. */
+  vision: VISION_MODEL,
+  /** Speech-to-text for the copilot voice input. Defaults to WORKER_MODEL. */
+  stt: STT_MODEL,
+  /** TTS model used when browser speechSynthesis is unavailable or disabled. */
+  tts: import.meta.env.VITE_GEMINI_TTS_MODEL || 'gemini-3.1-flash-tts-preview',
+  /** Image generation model used for Ad Studio assets and visuals. */
   image: import.meta.env.VITE_GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-lite-image',
+  /** Video generation model (Interactions API) powering Cinema and Scout video. */
   omni: import.meta.env.VITE_GEMINI_OMNI_MODEL || 'gemini-omni-flash-preview',
 } as const;
 
 /**
- * Feature flag for the preview omni video-gen surface. ON by default — set
+ * Global killswitch for video generation (Cinema tour-video and Scout walkthrough).
+ * Defaults to true. If you don't have access to the omni video model, set
  * VITE_VIDEO_GEN_ENABLED=false to hide the Cinema/Scout video CTAs. For the
  * clip to actually render, MODELS.omni must be a real image→video model your
  * project can call and must be on the server allowlist (the default omni id is
@@ -88,7 +101,7 @@ export const VIDEO_GEN_ENABLED = import.meta.env.VITE_VIDEO_GEN_ENABLED !== 'fal
 
 /** Thinking level configurations based on the type of task:
  *  - 'orchestration' for max orchestration (Copilot multi-turn tool calling) -> HIGH
- *  - 'simpleUi' for immediate simple ui/ux (Grounding, Cinema Narration, Voice, Suggestions) -> MINIMAL
+ *  - 'simpleUi' for immediate simple ui/ux (Grounding, Cinema Narration, Voice, Suggestions) -> LOW
  *  - 'other' for primary text and vision reasoning -> LOW
  */
 export const THINKING_CONFIGS = {
@@ -96,7 +109,7 @@ export const THINKING_CONFIGS = {
     thinkingLevel: ThinkingLevel.HIGH,
   },
   simpleUi: {
-    thinkingLevel: ThinkingLevel.MINIMAL,
+    thinkingLevel: ThinkingLevel.LOW,
   },
   other: {
     thinkingLevel: ThinkingLevel.LOW,
@@ -106,25 +119,25 @@ export const THINKING_CONFIGS = {
 /** Public, inspectable routing contract used by the settings UI and tests. */
 export const AGENT_PROFILES = {
   orchestrator: { model: MODELS.orchestrator, thinking: 'high' },
-  fastWorker: { model: MODELS.worker, thinking: 'minimal' },
+  fastWorker: { model: MODELS.worker, thinking: 'low' },
   analysisWorker: { model: MODELS.vision, thinking: 'low' },
 } as const;
 
 /**
- * Fastest thinking tier — used for the latency-sensitive voice path (speech-to-text
- * transcription and text-to-speech narration) where the model isn't reasoning, it's
- * transcribing or vocalizing, so any thinking is pure added latency in the browser.
+ * Fast reasoning tier for general-purpose utility calls (voice transcription,
+ * suggestions, grounded briefs).
  */
-export const MINIMAL_THINKING_CONFIG = THINKING_CONFIGS.simpleUi;
+export const LOW_THINKING_CONFIG = THINKING_CONFIGS.simpleUi;
+export const MINIMAL_THINKING_CONFIG = LOW_THINKING_CONFIG;
 
 /** Default reasoning tier for general-purpose Gemini text and vision calls. */
 export const DEFAULT_THINKING_CONFIG = THINKING_CONFIGS.other;
 
 /**
  * Safely resolves the thinkingConfig object based on model support.
- * - Gemini 3/3.5 models (e.g. gemini-3.*) support `thinkingLevel`.
- * - Gemini 2.5 models (e.g. gemini-2.5-*) support `thinkingBudget`.
- * - Other/older models (e.g. gemini-2.0, gemini-1.5, image, tts) do not support thinking config at all and will error.
+ * - Gemini 3.x models support thinkingLevel: LOW, MEDIUM, HIGH.
+ * - Gemini 2.5 models support thinkingBudget.
+ * - Image, TTS, and Omni models do not support thinking config and return undefined.
  */
 export function getThinkingConfig(
   model: string,
@@ -132,15 +145,17 @@ export function getThinkingConfig(
 ): { thinkingLevel?: ThinkingLevel; thinkingBudget?: number } | undefined {
   if (!model) return undefined;
 
-  // Gemini 3.x supports named thinking levels.
+  // Image, audio/TTS, and Omni models do not support thinking config
+  if (/image|tts|omni/i.test(model)) {
+    return undefined;
+  }
+
+  // Gemini 3.x models (gemini-3.7, gemini-3.6, gemini-3.5, gemini-3.1)
   if (/^gemini-3/i.test(model)) {
     if (level === 'orchestration') {
       return { thinkingLevel: ThinkingLevel.HIGH };
-    } else if (level === 'simpleUi') {
-      return { thinkingLevel: ThinkingLevel.MINIMAL };
-    } else {
-      return { thinkingLevel: ThinkingLevel.LOW };
     }
+    return { thinkingLevel: ThinkingLevel.LOW };
   }
 
   // Gemini 2.5 supports thinkingBudget
@@ -161,19 +176,16 @@ export function getThinkingConfig(
 /**
  * Optional global override for the COPILOT CHAT model's thinking level, so you can
  * A/B the orchestrator thinking tier without code edits. Set
- * `VITE_GEMINI_CHAT_THINKING` to
- * `minimal | low | medium | high`. The production UI exposes low/medium for the
- * orchestrator; the wider type remains for backwards-compatible env experiments.
+ * `VITE_GEMINI_CHAT_THINKING` to `low | medium | high`.
  */
 export const CHAT_THINKING_OVERRIDE = import.meta.env.VITE_GEMINI_CHAT_THINKING as
-  | 'minimal'
   | 'low'
   | 'medium'
   | 'high'
   | undefined;
 
 const THINKING_LEVEL_BY_NAME: Record<string, ThinkingLevel> = {
-  minimal: ThinkingLevel.MINIMAL,
+  minimal: ThinkingLevel.LOW,
   low: ThinkingLevel.LOW,
   medium: ThinkingLevel.MEDIUM,
   high: ThinkingLevel.HIGH,

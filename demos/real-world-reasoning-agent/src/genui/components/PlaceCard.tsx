@@ -55,6 +55,12 @@ function PlaceUiKitDetails({ placeId }: { placeId: string }) {
   useEffect(() => {
     let disposed = false;
     let element: HTMLElement | null = null;
+    const cleanPlaceId = placeId?.trim();
+    if (!cleanPlaceId) {
+      setLoading(false);
+      return;
+    }
+
     setUnsupported(false);
     setLoading(true);
 
@@ -71,7 +77,8 @@ function PlaceUiKitDetails({ placeId }: { placeId: string }) {
 
       element = new (ctor as CustomElementConstructor)();
       element.className = 'genui-placecard__ui-kit';
-      element.setAttribute('place', placeId);
+      (element as any).place = cleanPlaceId;
+      element.setAttribute('place', cleanPlaceId);
       element.setAttribute('orientation', 'vertical');
       element.setAttribute('truncation-preferred', '');
       // Attribute the Places calls this element makes to the agent-skills program
@@ -82,7 +89,8 @@ function PlaceUiKitDetails({ placeId }: { placeId: string }) {
       ];
 
       const requestEl = document.createElement('gmp-place-details-place-request');
-      requestEl.setAttribute('place', placeId);
+      (requestEl as any).place = cleanPlaceId;
+      requestEl.setAttribute('place', cleanPlaceId);
       element.appendChild(requestEl);
 
       const contentEl = document.createElement('gmp-place-content-config');
