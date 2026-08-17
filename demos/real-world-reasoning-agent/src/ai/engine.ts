@@ -820,21 +820,51 @@ function argsSummary(name: string, a: Record<string, unknown>): string | undefin
   }
 }
 
-function isRetryableStreamError(err: unknown): boolean {
+export function isRetryableStreamError(err: unknown): boolean {
+  if (isRateLimitError(err)) return false;
   const msg = err instanceof Error ? err.message : String(err);
-  return /\b(429|500|502|503|504)\b|service unavailable|temporar/i.test(msg);
+  return /\b(500|502|503|504)\b|service unavailable|temporar/i.test(msg);
 }
 
-function summarizeStreamError(err: unknown): string {
+export function summarizeStreamError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
   if (/\b503\b|service unavailable/i.test(msg)) return 'service unavailable';
-  if (/\b429\b|quota|rate/i.test(msg)) return 'rate limited';
+  if (isRateLimitError(err)) return 'rate limited';
   return 'transient failure';
 }
 
-function isRateLimitError(err: unknown): boolean {
+export function isRateLimitError(err: unknown): boolean {
+  if (!err) return false;
+  if (typeof err === 'object') {
+    const anyErr = err as Record<string, unknown>;
+    if (
+      anyErr.status === 429 ||
+      anyErr.statusCode === 429 ||
+      anyErr.code === 429 ||
+      anyErr.code === 'RATE_LIMITED' ||
+      anyErr.code === 'FREE_TIER_EXHAUSTED' ||
+      anyErr.code === 'FREE_TIER_UNAVAILABLE' ||
+      anyErr.code === 'GEMINI_QUOTA_EXHAUSTED' ||
+      anyErr.status === 'RESOURCE_EXHAUSTED'
+    ) {
+      return true;
+    }
+    const inner = (anyErr.error || anyErr.cause) as Record<string, unknown> | undefined;
+    if (
+      inner &&
+      (inner.code === 429 ||
+        inner.status === 'RESOURCE_EXHAUSTED' ||
+        inner.code === 'RATE_LIMITED' ||
+        inner.code === 'FREE_TIER_EXHAUSTED' ||
+        inner.code === 'FREE_TIER_UNAVAILABLE')
+    ) {
+      return true;
+    }
+  }
   const msg = err instanceof Error ? err.message : String(err);
-  return /\b429\b|rate limit|quota|demo is busy/i.test(msg);
+  return /\b429\b|rate limit|quota|demo is busy|resource_exhausted|prepayment credit|too_many_requests|too many requests|free_tier|depleted/i.test(
+    msg,
+  );
 }
 
 function sleep(ms: number): Promise<void> {

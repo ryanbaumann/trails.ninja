@@ -211,7 +211,7 @@ const configFromEnv = (env) => ({
   mcpLimit: numberFromEnv(env, 'RWR_MCP_RATE_LIMIT', 120, { min: 1, max: 10_000 }),
   metadataLimit: numberFromEnv(env, 'RWR_METADATA_RATE_LIMIT', 60, { min: 1, max: 10_000 }),
   windowMs: numberFromEnv(env, 'RWR_RATE_LIMIT_WINDOW_MS', 15 * 60_000, { min: 1_000, max: 60 * 60_000 }),
-  dailyAiCap: numberFromEnv(env, 'RWR_DAILY_AI_CAP', 50, { max: 100_000 }),
+  dailyAiCap: numberFromEnv(env, 'RWR_DAILY_AI_CAP', 1_000, { max: 100_000 }),
   dailyAiInputBytes: numberFromEnv(env, 'RWR_DAILY_AI_INPUT_BYTES', 1_400_000, { max: 100 * 1024 * 1024 }),
   dailyGmpCap: numberFromEnv(env, 'RWR_DAILY_GMP_CAP', 1_000, { min: 1, max: 100_000 }),
   dailyGmpTileCap: numberFromEnv(env, 'RWR_DAILY_GMP_TILE_CAP', 10_000, { min: 1, max: 1_000_000 }),

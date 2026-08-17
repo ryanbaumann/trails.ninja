@@ -88,7 +88,16 @@ export const App: React.FC = () => {
       };
       setHistory((prev) => [newItem, ...prev]);
     } catch (err) {
-      if (err instanceof RateLimitError || (err instanceof GeminiApiError && err.statusCode === 429)) {
+      if (
+        err instanceof RateLimitError ||
+        (err instanceof GeminiApiError &&
+          (err.statusCode === 429 ||
+            err.statusCode === 503 ||
+            err.code === 'FREE_TIER_UNAVAILABLE' ||
+            err.code === 'FREE_TIER_EXHAUSTED' ||
+            err.code === 'RATE_LIMITED' ||
+            err.code === 'GEMINI_QUOTA_EXHAUSTED'))
+      ) {
         setErrorMessage(err.message || 'Free hosted tier rate limit reached. Connect your Gemini API key to continue.');
         // Automatically open the BYOK dialog as per requirements
         setIsKeyDialogOpen(true);
@@ -137,7 +146,16 @@ export const App: React.FC = () => {
       };
       setHistory((prev) => [refinedItem, ...prev]);
     } catch (err) {
-      if (err instanceof RateLimitError || (err instanceof GeminiApiError && err.statusCode === 429)) {
+      if (
+        err instanceof RateLimitError ||
+        (err instanceof GeminiApiError &&
+          (err.statusCode === 429 ||
+            err.statusCode === 503 ||
+            err.code === 'FREE_TIER_UNAVAILABLE' ||
+            err.code === 'FREE_TIER_EXHAUSTED' ||
+            err.code === 'RATE_LIMITED' ||
+            err.code === 'GEMINI_QUOTA_EXHAUSTED'))
+      ) {
         setErrorMessage(err.message || 'Rate limit reached. Connect your Gemini API key.');
         setIsKeyDialogOpen(true);
       } else if (err instanceof Error) {

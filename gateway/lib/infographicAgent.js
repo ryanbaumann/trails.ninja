@@ -280,10 +280,32 @@ Output valid JSON adhering to the schema.`;
 
     return result(404, { error: 'Unknown infographic-agent API route.' });
   } catch (error) {
-    const statusCode = error.statusCode || 500;
+    if (error?.name === 'TimeoutError') return result(504, { error: 'Gemini took too long to respond. Please try again.' });
+    if (error?.name === 'AbortError') return result(499, { error: 'Request cancelled.' });
+    if (error?.statusCode === 401) {
+      return result(401, {
+        error: 'Gemini rejected that API key. Check the key and try again.',
+        code: 'INVALID_GEMINI_KEY',
+      });
+    }
+    if (error?.statusCode === 429 && credentialSource === 'hosted') {
+      return result(503, {
+        error: 'The shared Gemini allowance is temporarily unavailable. Add your own key to continue.',
+        code: 'FREE_TIER_UNAVAILABLE',
+        details: error.details,
+      });
+    }
+    if (error?.statusCode === 429) {
+      return result(429, {
+        error: 'That Gemini API key has reached its provider quota. Check its quota or use another key.',
+        code: 'GEMINI_QUOTA_EXHAUSTED',
+        details: error.details,
+      });
+    }
+    const statusCode = error.statusCode || 502;
     return result(statusCode, {
       error: error.message || 'Infographic Agent API request failed.',
-      code: statusCode === 429 ? 'RATE_LIMITED' : 'INFOGRAPHIC_AGENT_ERROR',
+      code: 'INFOGRAPHIC_AGENT_ERROR',
       details: error.details,
     });
   }

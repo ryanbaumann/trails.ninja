@@ -16,7 +16,15 @@ vi.mock('@/ai/client', () => ({
   }),
 }));
 
-import { CopilotEngine, MAX_HOPS, MAX_STREAM_RETRIES, markHopLimitPartial, stripInternalPromptEcho } from './engine';
+import {
+  CopilotEngine,
+  MAX_HOPS,
+  MAX_STREAM_RETRIES,
+  isRateLimitError,
+  isRetryableStreamError,
+  markHopLimitPartial,
+  stripInternalPromptEcho,
+} from './engine';
 import { useAtlas } from '@/state/store';
 import { useMission } from '@/mission/store';
 
@@ -330,6 +338,28 @@ describe('engine tool-loop', () => {
     expect(useAtlas.getState().apiHealth).toBe('ok');
   });
 
+  it('fails fast on rate limit / credit depletion errors without retrying and opens key dialog', async () => {
+    let sends = 0;
+    h.chat = {
+      async sendMessageStream() {
+        sends++;
+        const error = new Error('Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects');
+        (error as unknown as Record<string, unknown>).status = 429;
+        throw error;
+      },
+    };
+    const engine = new CopilotEngine('scout', '', [], 'sf');
+    await engine.send('plan something');
+
+    // Fast-fail: only 1 send attempt, no retries
+    expect(sends).toBe(1);
+    expect(useAtlas.getState().running).toBe(false);
+    expect(useAtlas.getState().apiHealth).toBe('degraded');
+    expect(useAtlas.getState().keyDialogOpen).toBe(true);
+    const retries = useAtlas.getState().telemetry.filter((e) => e.name === 'retry_ai_response');
+    expect(retries.length).toBe(0);
+  });
+
   it('gives up after MAX_STREAM_RETRIES on a persistent stream error and surfaces it', async () => {
     // Every attempt throws a retryable error → after MAX_STREAM_RETRIES the run
     // ends, marks the final retry event as error, and stops running.
@@ -401,3 +431,31 @@ describe('markHopLimitPartial', () => {
     expect(useMission.getState().mission.status).toBe('draft');
   });
 });
+
+describe('isRateLimitError and isRetryableStreamError', () => {
+  it('identifies prepayment credit depletion and 429 quota exhaustion as rate limits', () => {
+    expect(isRateLimitError(new Error('Your prepayment credits are depleted. Please go to AI Studio'))).toBe(true);
+    expect(isRateLimitError(new Error('429 Too Many Requests'))).toBe(true);
+    expect(isRateLimitError(new Error('RESOURCE_EXHAUSTED'))).toBe(true);
+    expect(isRateLimitError({ status: 429 })).toBe(true);
+    expect(isRateLimitError({ statusCode: 429 })).toBe(true);
+    expect(isRateLimitError({ code: 'FREE_TIER_UNAVAILABLE' })).toBe(true);
+    expect(isRateLimitError({ code: 'GEMINI_QUOTA_EXHAUSTED' })).toBe(true);
+    expect(isRateLimitError({ error: { code: 429, message: 'quota exceeded' } })).toBe(true);
+  });
+
+  it('does not classify 5xx or generic errors as rate limits', () => {
+    expect(isRateLimitError(new Error('500 Internal Server Error'))).toBe(false);
+    expect(isRateLimitError(new Error('503 Service Unavailable'))).toBe(false);
+    expect(isRateLimitError(new Error('Network error'))).toBe(false);
+  });
+
+  it('treats 500/503 as retryable stream errors but excludes rate limits/credit depletion', () => {
+    expect(isRetryableStreamError(new Error('503 Service Unavailable'))).toBe(true);
+    expect(isRetryableStreamError(new Error('500 Internal Server Error'))).toBe(true);
+    expect(isRetryableStreamError(new Error('Your prepayment credits are depleted'))).toBe(false);
+    expect(isRetryableStreamError(new Error('429 Too Many Requests'))).toBe(false);
+    expect(isRetryableStreamError({ status: 429 })).toBe(false);
+  });
+});
+

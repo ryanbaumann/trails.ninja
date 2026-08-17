@@ -96,3 +96,50 @@ test('handleInfographicAgentApi /prepare formats Interactions API request correc
   assert.equal(result.json.prompt, 'Infographic about solar power...');
 });
 
+test('handleInfographicAgentApi maps upstream 429 to 503 FREE_TIER_UNAVAILABLE for hosted credential', async () => {
+  const result = await handleInfographicAgentApi({
+    pathname: '/api/infographic-agent/prepare',
+    method: 'POST',
+    body: {
+      topic: 'Space travel',
+      mode: 'data-story',
+      aspect: '16:9',
+    },
+    apiKey: 'AIzaSyValidGeminiKey123',
+    credentialSource: 'hosted',
+    fetchImpl: async () => ({
+      ok: false,
+      status: 429,
+      text: async () => JSON.stringify({ error: { message: 'Resource exhausted', code: 429 } }),
+    }),
+  });
+
+  assert.equal(result.statusCode, 503);
+  assert.equal(result.json.code, 'FREE_TIER_UNAVAILABLE');
+  assert.match(result.json.error, /shared Gemini allowance is temporarily unavailable/i);
+});
+
+test('handleInfographicAgentApi maps upstream 429 to 429 GEMINI_QUOTA_EXHAUSTED for personal credential', async () => {
+  const result = await handleInfographicAgentApi({
+    pathname: '/api/infographic-agent/prepare',
+    method: 'POST',
+    body: {
+      topic: 'Space travel',
+      mode: 'data-story',
+      aspect: '16:9',
+    },
+    apiKey: 'AIzaSyPersonalGeminiKey123',
+    credentialSource: 'personal',
+    fetchImpl: async () => ({
+      ok: false,
+      status: 429,
+      text: async () => JSON.stringify({ error: { message: 'Quota exceeded', code: 429 } }),
+    }),
+  });
+
+  assert.equal(result.statusCode, 429);
+  assert.equal(result.json.code, 'GEMINI_QUOTA_EXHAUSTED');
+  assert.match(result.json.error, /reached its provider quota/i);
+});
+
+
