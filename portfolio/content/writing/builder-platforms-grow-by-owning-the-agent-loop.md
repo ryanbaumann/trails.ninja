@@ -8,25 +8,25 @@ image: /img/writing/agent-feedback-loop-header.svg
 imageAlt: A stable builder platform control plane holds context, evals, distribution, and outcomes while models and agent harnesses change around it.
 socialImage: /social/developer-platforms-need-to-own-the-agent-feedback-loop.jpg
 shareTitle: Own the Agent Feedback Loop
-shareSummary: A DevX strategy for making critical developer journeys work across changing models and agent harnesses.
+shareSummary: A DevX strategy for making critical developer tasks work across changing models and agent harnesses.
 shareImageAlt: Social card for Own the Agent Feedback Loop with a compact context, eval, outcome, and distribution loop.
 tags: ["developer experience", "ai", "evals"]
-order: 1
+order: 2
 draft: false
 noindex: false
 ---
 
 When a developer asks a coding agent to build with your platform, that session becomes part of how they experience your product.
 
-If the agent chooses the wrong API, misses an authentication step, or writes code that fails to compile, the developer doesn't blame the model: they experience that failure as your platform, and they leave.
+Our team learned this while running agent skills and evals across Google Maps Platform: if an agent picks the wrong API, misses an authentication step, or writes code that fails to compile, the developer doesn't blame the model: they experience that failure as your platform, and they leave.
 
-The best model will change, and so will the agent harness wrapped around it. A builder platform can't anchor its developer experience to either one. It needs to own the feedback loop that keeps core developer tasks working as models and agents move around it.
+The best model will change, and so will the agent harness wrapped around it. Don't anchor your platform's developer experience to either one. Own the feedback loop that keeps core developer tasks working as models and agents move around it.
 
 ## The model is not the strategy
 
-A coding agent is a model plus a harness. The harness controls instructions, tools, repository search, context, and how the agent decides it's done. Change either and the behavior changes.
+A coding agent pairs a base model with an execution harness. The harness controls instructions, tools, repository search, context, and stopping criteria. Change either component and the runtime behavior changes.
 
-Models and harnesses will keep moving. Your platform can still own four parts of the loop:
+Models and harnesses evolve continuously. Your platform can still own four parts of the loop:
 
 1. **Context:** current product knowledge, examples, constraints, and workflows.
 2. **Evals:** representative tasks and a clear definition of success.
@@ -37,11 +37,11 @@ Models and harnesses will keep moving. Your platform can still own four parts of
 
 *The loop: distribute tested context, measure activation, retention, and expansion, then review selected traces to improve the skills and evals.*
 
-Evals test the context. Distribution puts the tested path in more hands, while outcome signals show where it still falls short. After review, some failures become new tasks and some successes become better examples. Usage doesn't automatically become training data for a model company, and it shouldn't.
+Use evals to test your context. Distribution puts tested paths in developer hands, while outcome signals show where they break. After review, failures become new eval tasks and successes become better examples. Usage doesn't automatically become training data for a model company, and it shouldn't.
 
 ## Why verifiers matter
 
-Pretraining gives a model broad capability. Post-training turns that capability toward a job through [human demonstrations and preferences](https://arxiv.org/abs/2203.02155) or through rewards. Coding makes some rewards unusually concrete. A compiler can check the build, tests can check behavior, and static analysis can catch security and API errors. Reinforcement learning from verifiable rewards, or RLVR, trains directly against those checks.
+Pretraining gives a model broad capability. Post-training shapes that capability for a job through [human demonstrations and preferences](https://arxiv.org/abs/2203.02155) or through verifiable rewards. Coding makes some rewards unusually concrete. A compiler can check the build, tests can check behavior, and static analysis can catch security and API errors. Reinforcement learning from verifiable rewards, or RLVR, trains directly against those checks.
 
 ![Pretraining produces a base model, post-training can shape it with supervised examples and preference or verifiable rewards, and the model operates inside a harness with platform context, tools, and an execution environment.](/img/writing/agent-feedback-loop-training.svg)
 
@@ -60,17 +60,17 @@ For each task, define the checks that can be objective:
 
 Add human judgment where the task needs it. For qualities like UI taste and system simplicity, start with a human-written rubric, and calibrate any model grader against repeated human review. A judge that agrees with itself isn't evidence that it agrees with developers.
 
-![A critical developer journey passes through deterministic checks and calibrated judgment before a ship, improve, or hold decision, while a separate held-out set helps protect the measurement.](/img/writing/agent-feedback-loop-evals.svg)
+![A critical developer task passes through deterministic checks and calibrated judgment before a ship, improve, or hold decision, while a separate held-out set helps protect the measurement.](/img/writing/agent-feedback-loop-evals.svg)
 
 *The eval: deterministic checks and calibrated judgment lead to a ship, improve, or hold decision. Held-out tasks stay outside tuning.*
 
-Keep a meaningful slice of tasks and answers out of the context and tuning loop. Otherwise the system can learn the test instead of the job. Recent [audits of public coding benchmarks](https://openai.com/index/separating-signal-from-noise-coding-evaluations/) show how broken tasks and gameable tests can hollow out a familiar score. Audit the eval before blaming the model.
+Hold out a representative slice of tasks and answers from the context and tuning loop. Otherwise the system learns the test instead of the job. Recent [audits of public coding benchmarks](https://openai.com/index/separating-signal-from-noise-coding-evaluations/) show how broken tasks and gameable tests can hollow out a familiar score. Audit the eval before blaming the model.
 
 ## First-party signals close the product loop
 
-A builder platform needs a first-party measurement path, either through a surface it owns or a partner harness with clear permission and privacy boundaries. The point is to govern what gets measured and shared, not to replace every coding agent.
+Build a first-party measurement path, either through an owned surface or a partner harness with clear permission and privacy boundaries. The point is to govern what gets measured and shared, not to replace every coding agent.
 
-Record the exact model, harness, context, execution environment, verifier, and run budget, then connect the run to a product outcome. A passing eval only says the path can work. Activation proves the developer found value, and retention confirms they stayed. Expansion follows when the platform earns more of their work.
+Record the exact model, harness, context, execution environment, verifier, and run budget, then connect the run to a product outcome. A passing eval only proves the path can work. Activation proves the developer found value, and retention confirms they stayed. Expansion follows when the platform earns more of their work.
 
 Don't collect raw source code or private conversations by default. Keep only the signals that can change a product decision, and review traces through an explicit privacy and security process.
 
@@ -92,4 +92,4 @@ Start with ten core developer tasks. For each one:
 4. Test it across representative model and harness versions.
 5. Measure outcomes and review failures. Reuse traces only when they're authorized and cleared through privacy and security review.
 
-Start small and let the loop compound. If you're building developer platforms for an agent-first world, join the conversation below and share how you structure your evaluation and distribution loops.
+Start small and let the loop compound. If you are building developer platforms for an agent-first world, how are you structuring your evaluation and distribution loops? Share your approach in the comments below.

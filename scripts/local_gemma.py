@@ -56,7 +56,7 @@ def ensure_model_downloaded(repo_id: str = DEFAULT_MODEL_REPO, local_dir: Path =
 def resolve_latest_adapter(model_name: str = "26b") -> Path | None:
     """Find the highest version adapter available locally for the given model architecture."""
     prefix = "gemma-4-31b-ryan-voice" if "31b" in str(model_name) else "gemma-4-26b-ryan-voice"
-    for ver in ["v6", "v5", "v4", "v3", "v2", ""]:
+    for ver in ["v8", "v7", "v6", "v5", "v4", "v3", "v2", ""]:
         suffix = f"-{ver}" if ver else ""
         candidate = ROOT_DIR / "adapters" / f"{prefix}{suffix}"
         if candidate.exists() and (candidate / "adapters.safetensors").exists():

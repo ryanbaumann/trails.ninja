@@ -2,6 +2,16 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-18 - Independent subagent reviewer teams (maker/checker loop) filter and contextualize dense model editorial critiques
+
+Context: Running Gemma 4 31B Dense (Round 8 LoRA) in editorial critique mode across all 6 published articles, using a team of 3 independent reviewer subagents to evaluate every suggested edit before applying changes to the narrative.
+Learning:
+1. LLM editorial suggestions frequently identify genuine narrative friction (e.g. passive openings, unnecessary semicolons, weak conclusions), but often introduce subtle stylistic regressions in the replacement text: inventing new false antithesis flips ("not X, but Y"), softening decisive first-person conclusions, or losing critical metric contexts.
+2. Employing an independent maker/checker subagent team that reviews each model suggestion item-by-item against `.agents/skills/portfolio-writing/SKILL.md` allows selective adoption: accepting genuine friction points, modifying proposed replacements to maintain voice constraints (e.g. replacing false antitheses with colon pivots or direct statements), and rejecting changes that discard essential metrics or URLs.
+3. Sorting pinned portfolio entries by an explicit numerical property (`meta.order` ascending) guarantees deterministic homepage layout without depending on implicit file or date sorting order.
+Evidence: All 6 published articles updated and verified; `npm run check:content` passed with 0 errors/warnings; gateway tests (169 passing) and smoke tests (21 passing) green.
+Use next time: Always pipe dense model editorial critiques through an independent subagent reviewer team with explicit style constraints rather than applying raw model suggestions verbatim.
+
 ## 2026-08-18 - Applying fine-tuned model editorial critique streamlines narrative velocity and strips subtle meta-narratives
 
 Context: Running the fine-tuned Gemma 4 31B Dense (Round 8 LoRA) model in editorial review mode over `can-i-build-an-ai-agent-that-doesnt-write-slop.md` to critique narrative structure, pacing, and AI tells.

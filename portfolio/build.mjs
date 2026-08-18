@@ -1296,11 +1296,11 @@ function writerDashboard(entries) {
 
 function buildHome(collections) {
   const bySlug = (collection, slug) => collections[collection].find((entry) => entry.slug === slug);
-  const pinnedWork = collections.work.find((e) => e.meta.order !== undefined) || collections.work[0];
+  const pinnedWork = collections.work.slice().sort((a, b) => (a.meta.order ?? Infinity) - (b.meta.order ?? Infinity))[0] || collections.work[0];
   const otherWork = collections.work.filter((e) => e !== pinnedWork);
   const selectedWork = [pinnedWork, ...otherWork].filter(Boolean).slice(0, 3);
 
-  const pinnedWriting = collections.writing.find((e) => e.meta.order !== undefined) || collections.writing[0];
+  const pinnedWriting = collections.writing.slice().sort((a, b) => (a.meta.order ?? Infinity) - (b.meta.order ?? Infinity))[0] || collections.writing[0];
   const otherWriting = collections.writing.filter((e) => e !== pinnedWriting);
   const writingEntries = [pinnedWriting, ...otherWriting].filter(Boolean).slice(0, 4);
 
