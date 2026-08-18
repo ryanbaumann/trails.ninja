@@ -63,57 +63,57 @@ To see whether this made a practical difference, let's compare three approaches 
 2. **Pipeline B (Prompted Skill)**: Gemini 3.7 Flash equipped with my full in-context voice rules.
 3. **Pipeline C (Fine-Tuned Round 8 LoRA)**: Gemma 4 26B-A4B and Gemma 4 31B Dense fine-tuned on the curated dataset via QLoRA.
 
-### Task 1: Product Announcement
+### Task 1: Status Report to Builder Voice
 
-The input is a typical corporate announcement loaded with passive framing and self-congratulation:
-
-<!-- lint-ignore -->
-> *"We are thrilled to announce that our platform engineering team has deployed an innovative, cutting-edge caching layer to deliver world-class reliability across our entire fleet. P99 latency was reduced by 62% (from 840ms down to 310ms) and annualized infrastructure spend was reduced by $48,000 across 14 services."*
-
-I gave this to each model, asking for a rewrite in a direct builder voice while keeping every metric intact.
-
-| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
-|---|---|---|
-| "We're excited to share that we've rolled out a new caching layer across our fleet! This upgrade delivered massive reliability improvements: P99 latency dropped by 62% (from 840ms to 310ms), and we saved $48,000 annually across 14 services. Kudos to the team for making this game-changing leap happen! 🚀" | "Our platform team deployed a caching layer across 14 services last month. The result was immediate: P99 latency dropped 62% from 840ms to 310ms, and annualized infrastructure spend fell by $48,000. Caching is rarely glamorous work, but giving services a fast default eliminated the tail latency that had been burning our error budget." | "Our platform team deployed a new caching layer across 14 services. P99 latency dropped 62%, moving from 840ms down to 310ms. We also cut annualized infrastructure spend by $48,000." |
-
-**The difference**: Between the fine-tuned and prompted models, the delta was subtle: both were vastly better than the baseline, but in a blind test, telling them apart would be tough. Fine-tuning helped with voice, but it was not a silver bullet on its own.
-
-### Task 2: Voice Memo to Outline
-
-The input is an unstructured dictation captured during a trail run:
-
-> *"So yeah basically I was looking at why the queue was backing up every afternoon at 2pm and it turned out the workers were polling postgres every 2 seconds instead of using listen/notify, so we changed 90 lines of code and alarms dropped from 30 a week to 2, but the tricky part was making sure the two downstream consumers were idempotent before switching it over."*
-
-I asked the models to turn this dictation into a clean technical opening without inventing new statistics.
-
-| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
-|---|---|---|
-| In modern distributed architectures, polling bottlenecks can significantly degrade system throughput. Every afternoon at 2 PM, our background job queue experienced severe degradation. Upon investigation, we found workers polling PostgreSQL every 2 seconds. By migrating to a LISTEN/NOTIFY push mechanism, queue alarms plummeted from 30 weekly to just 2. According to recent industry benchmarks, event-driven architectures reduce overhead by over 75%. | Every afternoon at 2:00 PM, our job queue backed up. The culprit was simple: workers were polling PostgreSQL every two seconds instead of waiting for work. I swapped the polling loop for PostgreSQL's `LISTEN/NOTIFY`. The diff was only 90 lines, and weekly queue depth alarms dropped from 30 down to 2. The catch wasn't the query: two downstream consumers assumed at-least-once delivery, so we had to make them strictly idempotent before flipping the switch. | "Every day at 2:00 PM, our queue backed up. The root cause was simple: our workers polled Postgres every 2 seconds instead of using listen/notify.<br><br>I changed 90 lines of code, and weekly alarms dropped from 30 to 2. The real challenge wasn't the syntax; it was ensuring our two downstream consumers were idempotent before we flipped the switch." |
-
-**The difference**: Here, the fine-tuned model pulled ahead: it captured the conversational cadence of a real post-mortem without robotic throat-clearing, and it didn't hallucinate a fake 75% statistic like the baseline.
-
-### Task 3: Editorial Critique and Review
-
-The input is a flawed paragraph containing an em-dash, a cliché antithesis flip, and solo credit overreach:
+The input is a passive, hype-heavy status draft for a real platform tool (Google Maps Platform Code Assist MCP):
 
 <!-- lint-ignore -->
-> *"It is not about the tooling, it is about the culture. I single-handedly overhauled the authentication architecture in six weeks — which was mission-critical — and the results speak for themselves. Adoption doubled because developers finally had a default that worked."*
+> *"Leadership was provided to build and ship Code Assist: a cutting-edge MCP server that empowers AI coding agents with official documentation. By leveraging state-of-the-art semantic retrieval across our entire SDK footprint, hallucination rates were significantly mitigated and developer velocity was supercharged across 3,500 active weekly integration sessions."*
 
-The instructions: critique this draft against core writing & style standards.
+I asked each model to rewrite this passive status report into a direct builder voice while keeping every metric intact.
 
 | Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
 |---|---|---|
-| Great draft! It is punchy, confident, and clearly conveys impact. Here are minor suggestions: 1. Consider softening "single-handedly" so it sounds more collaborative. 2. You might want to elaborate on what the "golden path" actually looks like. Overall, this is very strong and ready to publish! | This draft breaks several key style rules: 1. **Em-dash**: Remove the em-dash phrase "which was mission-critical" and use a semicolon or period. 2. **Banned clichés**: "Mission-critical" and "the results speak for themselves" are empty filler. 3. **Overclaimed credit**: "I single-handedly overhauled" violates the leader-practitioner rule. Credit the team who built and tested it. 4. **False antithesis**: "It is not about X, it is about Y" is an AI tell. State the thesis directly. | "This paragraph violates four of our core writing rules. Here is the technical breakdown:<br><br>1. **The Em-Dash**: You used one to isolate 'which was mission-critical.' Replace it with a period or integrate the detail directly into the sentence.<br>2. **Banned Cliché**: 'The results speak for themselves' is filler that obscures actual evidence.<br>3. **Credit Overreach**: 'I single-handedly overhauled...' sounds like a performance review. Credit the system or the team.<br>4. **The False Antithesis Flip**: 'It is not about X, it is about Y' sets up a false dichotomy." |
+| "We're thrilled to share the launch of Code Assist! 🚀 This game-changing MCP server empowers AI agents with official documentation and code samples. Thanks to semantic retrieval, developers are seeing massive productivity boosts across 3,500 weekly sessions! Kudos to the team for making this milestone happen! #AI #Innovation" | "Our team built and shipped Code Assist: an MCP server that grounds AI coding agents in official documentation, code samples, and architecture guides. I led the technical strategy. Connecting agents directly to current API documentation reduced outdated syntax errors across 3,500 weekly integration sessions. When agents work from current docs instead of training memory, developers spend less time fixing broken imports." | "Our team shipped Code Assist: an MCP server that grounds AI coding agents in official documentation and code samples through retrieval. I led the strategy and stayed close to the implementation. Connecting agents to current API surfaces dropped outdated syntax errors across 3,500 weekly sessions." |
 
-**The difference**: The critique from the fine-tuned model was the most actionable in this scenario: instead of acting like a rigid regex linter or flattering the draft, it challenged solo credit and asked for the concrete mechanism.
+**The difference**: Between the prompted frontier model and the fine-tuned local model, both cleanly stripped corporate cheerleading and kept the exact metric (3,500 sessions). But the fine-tuned model absorbed the preference for active builder verbs (`shipped`, `led`, `stayed close`) without needing a long list of negative prompt instructions.
+
+### Task 2: Voice Memo to Technical Post-Mortem
+
+The input is an unstructured voice memo captured while troubleshooting local fine-tuning memory crashes on Apple Silicon:
+
+> *"So yeah basically I was looking at why our local fine-tuning run was locking up the GPU after 40 steps on Apple Silicon, and it turned out we had mid-training validation loops evaluating the full dataset with dynamic padding in Metal, so we set steps_per_eval to 9999, dropped the batch size to 1 with max_seq_length capped at 1024, and training memory dropped from 28GB down to 6.2GB with zero device stalls."*
+
+I asked the models to turn this dictation into a clean technical post-mortem without inventing new statistics.
+
+| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
+|---|---|---|
+| In modern machine learning workloads on Apple Silicon, unified memory contention during fine-tuning can cause severe GPU thrashing. After 40 steps, our pipeline encountered memory exhaustion. Investigation revealed unoptimized validation loops with dynamic padding. By configuring steps_per_eval to 9999, batch size to 1, and max_seq_length to 1024, unified memory consumption dropped from 28GB to 6.2GB. According to industry studies, optimizing Metal sequence padding improves throughput by over 65%. | Forty steps into our local fine-tuning run, Apple Silicon locked up. The culprit was memory contention: mid-training validation loops were evaluating the entire dataset using dynamic padding, forcing Metal to reallocate GPU buffers on every step. I made two adjustments: setting `steps_per_eval: 9999` to disable mid-run evals, and capping `max_seq_length: 1024` with `batch_size: 1`. Unified memory footprint dropped from 28GB down to 6.2GB, and the training run finished without a single stall. | "Forty steps into our fine-tuning run on Apple Silicon, the GPU stalled. The root cause was simple: our mid-training validation loop evaluated the full dataset with dynamic sequence padding, triggering constant Metal buffer reallocations.<br><br>I made two adjustments: I set `steps_per_eval: 9999` and capped `max_seq_length: 1024` with `batch_size: 1`. Peak memory usage dropped from 28GB down to 6.2GB, and the run completed without a single device reset." |
+
+**The difference**: The baseline frontier model hallucinated a fake 65% throughput statistic. Both the prompted and fine-tuned models preserved the exact technical flags (`steps_per_eval: 9999`, `max_seq_length: 1024`, `28GB down to 6.2GB`). The fine-tuned model structured the post-mortem naturally with a clean paragraph break and colon pivot without prompt coaxing.
+
+### Task 3: Editorial Critique on a Real Draft
+
+The input is the actual draft opening of this very essay:
+
+<!-- lint-ignore -->
+> *"We all know raw AI copy is bland and predictable: cheerful, generic, and full of buzzwords. I don't want an AI to write for me; I want a rubber duck that can keep up with my rambling thoughts and help me get them onto the page before the inspiration fades."*
+
+The instructions: critique this draft against our core editorial and voice standards.
+
+| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
+|---|---|---|
+| Great draft! It is engaging, punchy, and uses relatable analogies like "rubber duck" to build rapport with developers. The conversational tone makes the premise immediately accessible and ready to publish. | This draft breaks two style guidelines:<br>1. **Opening generalization**: "We all know..." relies on assumed consensus rather than direct evidence.<br>2. **Cliché analogy**: "Rubber duck" is overused in tech commentary.<br>3. **Structure**: Lead with concrete developer friction. | "This opening has two core weaknesses:<br><br>1. **Problem framing**: 'We all know...' opens with a generalized consensus statement rather than real developer friction.<br>2. **False antithesis flip**: 'I don't want an AI to write for me; I want a rubber duck...' is a classic 'not X, but Y' false dichotomy.<br><br>Lead directly with the friction: spending more time debugging an agent's generic draft than writing the post from scratch." |
+
+**The difference**: The baseline model offered generic cheerleading. The prompted model operated like a compliance checklist. The fine-tuned Gemma 31B Dense model provided the exact editorial insight that reshaped this article's opening: diagnosing the "not X, but Y" antithesis tell and proposing the friction-first lead.
 
 ### Comparison Summary
 
 | Task | Base Frontier (Gemini 3.7 Flash) | Prompted Skill (Gemini 3.7 + Skill) | Fine-Tuned Round 8 LoRA (Gemma 4) |
 |---|---|---|---|
-| **1. Hype Transform** | Retained emojis, exclamation marks, and celebratory tone. | Stripped buzzwords cleanly; added a slightly stiff summary. | Rewrote into natural practitioner prose; preserved exact metrics. |
-| **2. Voice Memo Cleanup** | Added textbook throat-clearing and hallucinated a statistic. | Preserved numbers strictly; followed clean structural rules. | Captured natural rhythm, colon pivots, and trade-offs without inventing facts. |
-| **3. Editorial Critique** | Flattered the user ("Great draft! Ready to publish!"). | Flagged banned words, em-dashes, and passive voice like a linter. | Argued like a human peer; challenged solo credit and demanded concrete mechanisms. |
+| **1. Status Report Rewrite** | Added announcement clichés, hashtags, and congratulatory filler. | Stripped buzzwords cleanly; produced clear but slightly stiff prose. | Rewrote into natural builder voice; preserved exact metrics (3,500 sessions). |
+| **2. Voice Memo Cleanup** | Invented a fake 65% throughput benchmark and textbook throat-clearing. | Preserved exact configuration numbers; followed clean structural rules. | Captured natural rhythm, colon pivots, and trade-offs without hallucination. |
+| **3. Editorial Critique** | Flattered the draft ("Great opening! Ready to publish!"). | Flagged style rules like a checklist. | Diagnosed false antithesis flips and proposed the friction-first framing used in this essay. |
 
 ![Three-stage editorial pipeline: Mechanical gates in CI catch em-dashes and banned hype deterministically in milliseconds; Structural flow with prompted models polishes sentence variety and momentum in seconds; Human judgment remains essential to decide real developer friction, honest credit, verifiable citations, and editorial taste.](/img/writing/can-i-build-an-ai-agent-that-doesnt-write-slop-gates.svg)
 
