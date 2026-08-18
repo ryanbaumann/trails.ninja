@@ -1,16 +1,16 @@
 {
-  "total_examples": 245,
-  "train_examples": 221,
-  "val_examples": 24,
+  "total_examples": 132,
+  "train_examples": 119,
+  "val_examples": 13,
   "task_breakdown": {
-    "Edit": 122,
-    "Draft": 57,
-    "Critique": 32,
-    "Headline": 22,
-    "Present": 8,
-    "OOD": 4
+    "Draft": 74,
+    "Critique": 13,
+    "Edit": 23,
+    "Present": 13,
+    "Headline": 9
   },
   "source_inventory": {
-    "portfolio_entries": 23
+    "portfolio_entries": 36,
+    "human_reviewed_samples": 10
   }
 }

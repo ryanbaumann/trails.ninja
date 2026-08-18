@@ -2,6 +2,23 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-17 - Placeholder tokenization in zero-dependency markdown parser prevents inline code characters from breaking emphasis
+
+Context: Reviewing the rendered HTML in `portfolio/dist/writing/can-i-build-an-ai-agent-that-doesnt-write-slop/index.html` where an inline code span containing an asterisk (`` `G-HEADLINE-*` ``) inside bold text produced corrupted markup `*<em>Headline Format Compliance (<code>G-HEADLINE-</em></code>)<strong>: </strong>100%**`.
+Learning: In naive sequential regex markdown formatters, replacing backtick code spans with `<code>` tags before strong/emphasis matching leaves literal asterisks or underscores inside the intermediate string. The subsequent `\*\*([^*]+)\*\*` regex terminates prematurely on the internal asterisk, and the single-asterisk `\*([^*]+)\*` rule mispairs the opening delimiter with the internal code character. Stashing extracted code spans into non-formatting placeholder tokens (`\x00CODE_n\x00`) before running link, bold, and italic regexes, and restoring them at the end, guarantees that special syntax characters within code spans never collide with outer inline formatting.
+Evidence: Updated `inlineMd` in `portfolio/build.mjs`, rebuilt the portfolio, and confirmed `<li><strong>Headline Format Compliance (<code>G-HEADLINE-*</code>)</strong>: <strong>100%</strong> pass rate...</li>` renders cleanly with 0 malformed tags and 169 passing gateway tests.
+Use next time: In hand-rolled inline markdown parsers, always tokenize and isolate literal code spans and raw syntax blocks into placeholder sigils before evaluating delimiter-based formatting like emphasis, links, or strike-throughs.
+
+## 2026-08-17 - Grounded multi-category synthesis with exact system prompt alignment and human review edits lifts voice LoRA clean pass rate to 42%
+
+Context: Fine-tuning Gemma 4 26B-A4B on Ryan's voice after human review revealed repetitive fabricated templates in synthetic candidates (Round 7 scored 23% vs 31% base).
+Learning: 
+1. Hardcoded synthetic templates (e.g. fixed headline loops across every article) induce stock phrase memorization (`G-STOCK-PHRASE`) and degrade task variety (`G-HEADLINE-COUNT`). Replacing synthetic templates with diverse subagent-synthesized pairs grounded on real-world case studies (Mapbox Boundaries, BigQuery Spatial SQL, Strava 3D, Code Assist MCP traces) dramatically improves fidelity.
+2. System prompt drift between the training dataset generator and the evaluation runner causes subtle task boundary degradation; aligning `SYSTEM_PROMPT` word-for-word ensures the model routes `[Task: Edit]`, `[Task: Critique]`, `[Task: Headline]`, `[Task: Draft]`, and `[Task: Present]` accurately.
+3. Incorporating human review edits that emphasize first-person builder agency, leading with user value, and stripping buzzwords/em-dashes enabled the Round 8 LoRA adapter (`adapters/gemma-4-26b-ryan-voice-v8`) to achieve a 42% clean pass rate (20/48 items, 95% CI 29–56%), with 100% pass on em-dash removal (`G-EMDASH`), 100% pass on headline formatting (`G-HEADLINE-COUNT`), and 98% pass on hype/AI-tell suppression.
+Evidence: Held-out benchmark suite (`experiment/voice-ft/eval/heldout.jsonl`) scored 20/48 clean items in `experiment/voice-ft/eval/results/round8_scorecard.md`, surpassing Round 7 (11/48, 23%) and base Gemma 4 26B-A4B (15/48, 31%).
+Use next time: When fine-tuning for voice and editing tasks, ensure 100% word-for-word system prompt parity between SFT data generation and evaluation harnesses, and ground all synthetic candidate pairs in diverse, authentic architectural case studies rather than static loops.
+
 ## 2026-08-17 - Gemini 3.7 Flash rejects minimal thinking level (requires low/medium/high) and Places UI Kit requires DOM property assignment
 
 Context: Investigating HTTP 400 Bad Request on `gemini-3.7-flash:generateContent` (e.g. clicking "What's it like to live here?") and `<gmp-internal-use-place-details-compact>: Ignoring <gmp-place-details-place-request> with no place.` in `demos/real-world-reasoning-agent`.

@@ -1,0 +1,85 @@
+{
+  "currentIndex": 15,
+  "decisions": {
+    "cand-0001": {
+      "action": "select_a",
+      "text": null,
+      "timestamp": 1787004388202
+    },
+    "cand-0002": {
+      "action": "select_a",
+      "text": null,
+      "timestamp": 1787004729360
+    },
+    "cand-0003": {
+      "action": "select_a",
+      "text": null,
+      "timestamp": 1787004746385
+    },
+    "cand-0004": {
+      "action": "select_a",
+      "text": null,
+      "timestamp": 1787004769894
+    },
+    "cand-0005": {
+      "action": "remove",
+      "text": null,
+      "timestamp": 1787004806326
+    },
+    "cand-0006": {
+      "action": "remove",
+      "text": null,
+      "timestamp": 1787004812809
+    },
+    "cand-0007": {
+      "action": "edit",
+      "text": "If you don't ship your product prototype to a customer and see their needs follow through to production then you haven't learned product market fit yet",
+      "timestamp": 1787004860800
+    },
+    "cand-0008": {
+      "action": "edit",
+      "text": "Seeing pretty data visualizations was the dangerous one i'd be at a computer monitor with a senior engineer and i'd pull up contour plots and data visualisations and it looked   I had a good answer but then when we really interrogated it we weren't actually looking at the right assumptions and constraints. We had to go back to what the real problem was",
+      "timestamp": 1787004951099
+    },
+    "cand-0009": {
+      "action": "edit",
+      "text": "Lead with the user value - What did we do for the user, and why should they care? Then what the real world feedback was, then the result for the google business e.g. direct growth in API engagement (by how much)?",
+      "timestamp": 1787020404450
+    },
+    "cand-0010": {
+      "action": "select_a",
+      "text": null,
+      "timestamp": 1787020421485
+    },
+    "cand-0011": {
+      "action": "remove",
+      "text": null,
+      "timestamp": 1787020430592
+    },
+    "cand-0012": {
+      "action": "remove",
+      "text": null,
+      "timestamp": 1787020433093
+    },
+    "cand-0013": {
+      "action": "remove",
+      "text": null,
+      "timestamp": 1787020452929
+    },
+    "cand-0014": {
+      "action": "edit",
+      "text": "So we met users where they were, by putting custom data visualization Mapbox maps inside Jupyter notebooks and BI dashboard tools like Tableau and PowerBI that developers already used daily.",
+      "timestamp": 1787020511533
+    },
+    "cand-0015": {
+      "action": "select_a",
+      "text": null,
+      "timestamp": 1787020518537
+    }
+  },
+  "stats": {
+    "approved": 10,
+    "removed": 5,
+    "total": 92
+  }
+}

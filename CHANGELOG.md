@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Local Synthetic Review Web App & Multi-Agent Dataset Pipeline (`scripts/review_app.mjs`, `scripts/generate_review_candidates.py`)**:
+  - Interactive local A/B review web app with keyboard shortcuts (`1` for option A, `2` for option B, `R` to remove, `E` for custom surgical edits).
+  - Grounded candidate generator extracting real-world writing patterns, architectural case studies, and talk outlines from `portfolio/content/`.
+  - Multi-category subagent synthesis pipeline creating diverse, non-duplicative training pairs across `Draft`, `Edit`, `Critique`, `Headline`, `Present`, and `Abstention` tasks.
+  - Round 8 SFT LoRA fine-tuning on Gemma 4 26B-A4B (`adapters/gemma-4-26b-ryan-voice-v8`), achieving a **42% clean pass rate** (20/48 items) on the held-out benchmark suite (up from 23% in Round 7 and 31% base), with 100% em-dash elimination (`G-EMDASH`), 100% headline count adherence (`G-HEADLINE-COUNT`), and 98% hype suppression (`G-HYPE`).
+
 ### Fixed
 - Fixed Gemini rate limiting, quota exhaustion, and prepayment credit depletion handling across demo apps:
   - `gateway/lib/rateLimit.js`: Added hosted Gemini health probe state tracking (`recordHostedGeminiFailure`, `recordHostedGeminiSuccess`, `isHostedGeminiHealthy`, `getHostedGeminiHealth`) with 5-minute cooldown and recovery on successful requests/validations.
@@ -22,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - Configured real dark styled Map ID (`9e6b48a5b3653026f9d7556d`) as `DEFAULT_MAP_ID` in `demos/real-world-reasoning-agent/src/lib/config.ts` matching other portfolio Maps demos.
 - Fixed CSP violation in `infographic-agent` by configuring `"csp": "maps"` in `apps.json`, allowing Google Fonts stylesheets and font files.
 - Fixed Gemini Interactions API 400 Bad Request errors in `gateway/lib/infographicAgent.js` and `gateway/lib/hairstyleAi.js` by structuring `generation_config: { thinking_level: 'low' }` according to REST API specification instead of top-level `thinking_config`.
+- Fixed inline markdown parsing in `portfolio/build.mjs` (`inlineMd`) to preserve code spans using placeholders before bold/italic parsing, preventing asterisks inside inline code (e.g. `` `G-HEADLINE-*` ``) from breaking surrounding emphasis.
 - Added canonical URL and OpenGraph / Twitter social metadata tags to `demos/infographic-agent/index.html` to pass production smoke test deployment assertions.
 
 ### Changed

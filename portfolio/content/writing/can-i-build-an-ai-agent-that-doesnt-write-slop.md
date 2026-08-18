@@ -2,7 +2,7 @@
 title: Can I Build an AI Agent That Doesn't Write Slop?
 summary: I tested prompt engineering and model fine-tuning to see if an AI could act as a faithful copy editor. It's a step in the right direction, but nothing replaces good human judgment.
 date: 2026-08-15
-updated: 2026-08-16
+updated: 2026-08-17
 canonical: https://ryanbaumann.dev/writing/can-i-build-an-ai-agent-that-doesnt-write-slop/
 aliases: ["/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-instead-of-prompting-frontier-apis/"]
 tags: ["ai", "evals", "field notes"]
@@ -20,34 +20,48 @@ We all know raw AI copy is bland and predictable: cheerful, generic, and full of
 
 The goal: a fast, private editing agent that understands my cadence, respects my numbers, and critiques my structure, while leaving me firmly in charge of narrative, tone, and judgment. I don't want an AI to write for me; I want a rubber duck that can keep up with my rambling thoughts and help me get them onto the page before the inspiration fades.
 
-## Step 1: In-context prompting hits a mechanical wall
+## Step 1: How far can we push context engineering?
 
-I started where everyone starts: system prompts and skills containing personal voice context guidelines. I wrote detailed skills and AGENTS.md rules forbidding em-dashes, stripping hype, adding few-shot examples of my own writing, enforcing active voice, and demanding first-person technical grounding.
+I started where everyone starts: system prompts and skills containing personal voice context guidelines. I wrote detailed skills and AGENTS.md rules forbidding em-dashes, stripping hype, adding few-shot examples of my own writing, enforcing active voice, and demanding first-person voice.
 
 Agents with this context followed the "never do this" negative constraints reasonably well: they stopped using announcement clichés and stripped out obvious marketing filler. But as the rule list grew, the output suffered a different failure mode: it was just stiff, dry, and repetitive. 
 
 Some models are worse than others. I found Claude Opus 5 to be overly self-referential. GPT 5.6 Sol was good at technical syntax but felt robotic. Gemini 3.7 Flash was solid in comparison, but still fell back on stock AI turns like "it's not X, it's Y!". None of them felt like me, even for targeted copy-editing suggestions on an existing draft.  
 
-## Step 2: The fine-tuning hunch and the MacBook test
+## Step 2: Trying some model fine-tuning 
 
-Research from the University of Michigan pointed me in a different direction. In [Readers Prefer Outputs of AI Trained on Copyrighted Books over Expert Human Writers](https://arxiv.org/abs/2510.13939), Chakrabarty, Ginsburg, and Dhillon tested prompted frontier models against fine-tuned models on authorial style. MFA-trained readers strongly disliked agents prompted to mimic a human author (0.16 odds ratio), *but* they favored a fine-tuned model trained on an author's voice (8.16 odds ratio). Very interesting!
+Research from the University of Michigan pointed me in a different direction. In [Readers Prefer Outputs of AI Trained on Copyrighted Books over Expert Human Writers](https://arxiv.org/abs/2510.13939), Chakrabarty, Ginsburg, and Dhillon tested prompted frontier models against fine-tuned models on authorial style. MFA-trained readers strongly disliked agents prompted to mimic a human author (0.16 odds ratio), *but* they favored a fine-tuned model trained on an author's voice (8.16 odds ratio).
 
-I decided to test whether fine-tuning (using QLoRA) could teach an open-weight model my own editorial style and make it genuinely helpful. I chose Gemma 4 series models for this task because they are among the strongest open models available and small enough to run locally. I ran the entire training and evaluation loop locally on my M4 Pro MacBook (48 GB unified memory). Keeping it local gave me privacy and fast iterations on training, with zero API costs: a nice bonus.
+I decided to test whether fine-tuning (using QLoRA on Apple Silicon) could teach an open-weight model my own editorial style. I chose Gemma 4 series models (Gemma 4 26B-A4B and Gemma 4 31B Dense) because they are among the strongest open models available and compact enough to run locally. I ran the entire training and evaluation loop locally on my M4 Pro MacBook (48 GB unified memory). Keeping it local gave me privacy and fast iterations on training, with zero API costs.
 
-Getting fine-tuning to work on a laptop took two key settings:
+The key elements:
 
-1. **Mask prompt loss (`--mask-prompt`)**: Standard training calculates "loss" across both the prompt and the response. On small datasets, this results in overfitting very easily. Masking the prompt forces gradients to update exclusively on the desired output tokens, not on the prompt.
-2. **Slice paragraphs (100–250 words)**: Instead of training on full drafts, I sliced my drafts into focused input/output pairs. These pairs preserved most of the original factual content, while reshaping the grammar and style into my preferred prose.
+1. **Curated dataset (`scripts/generate-ft-dataset.py`)**: A 132-example dataset generated from real git diffs of my editing, case studies, field notes, and other writing. It rigorously excluded held-out fixtures to eliminate data leakage.
+2. **LoRA training config (`experiment/voice-ft/config_r8.yaml`)**: Configured for MLX LoRA with rank 16, alpha 32, 16 adapter layers, cosine learning rate decay, and masked prompt loss (`mask_prompt: true`) so gradients updated strictly on target completions rather than prompt scaffolding.
+3. **Evals (`scripts/voice_eval.py`)**: A 48-item held-out test suite spanning Draft, Edit, Critique, Headline, Present, and Out-of-Distribution tasks, evaluated across 27 deterministic gates.
+4. **Scorecard (`experiment/voice-ft/eval/results/round8_scorecard.md`)**: The automated benchmark report tracking exact pass rates, confidence intervals, and failure mode categorizations across every check.
 
-To see whether this made any practical difference, I designed a direct comparison across three models on three distinct copy tasks.
+Getting fine-tuning to work reliably on my Macbook M4 Pro took two key changes so I didn't run out of memory:
+
+1. **Mask prompt loss (`--mask-prompt`)**: Standard training calculates loss across both the prompt and the response. On small datasets, this causes prompt echoing and rapid overfitting. Masking forces gradients to update exclusively on the desired assistant tokens.
+2. **Slice paragraphs (100–250 words)**: Instead of training on entire essays, I sliced drafts into micro-pairs. These pairs preserved exact metrics while reshaping sentence variety, colon pivots, and active phrasing.
+
+## Evaluation Results
+
+Across the 48-item held-out evaluation suite in the scorecard (`experiment/voice-ft/eval/results/round8_scorecard.md`), the fine-tuned adapter demonstrated significant quantitative improvements over earlier rounds and baseline prompting:
+
+- **Clean Pass Rate**: **42%** (20/48 items passed every error-level check; 95% CI 29–56%), up from **23% in Round 7** and **31% on base Gemma 4**.
+- **Em-Dash Sanitize (`G-EMDASH`)**: **100%** pass rate (48/48 items), completely eliminating em-dashes in favor of colons and semicolons.
+- **Headline Format (`G-HEADLINE-*`)**: **100%** pass rate across headline count, slot constraints, and length boundaries.
+- **Hype Bench (`G-HYPE` & `G-AI-TELLS`)**: **98%** clean pass rate (47/48 items), systematically removing marketing superlatives and stock AI phrases.
+
+To see whether this made a practical difference, let's compare three approaches on copy writing tasks.
 
 ## Side-by-Side Experiments
 
-I tested three distinct setups:
-
 1. **Pipeline A (Base Frontier)**: Gemini 3.7 Flash with a standard zero-shot prompt.
 2. **Pipeline B (Prompted Skill)**: Gemini 3.7 Flash equipped with my full in-context voice rules.
-3. **Pipeline C (Fine-Tuned Local Editor)**: Gemma 4 31B Dense fine-tuned on my curated dataset via QLoRA.
+3. **Pipeline C (Fine-Tuned Round 8 LoRA)**: Gemma 4 26B-A4B and Gemma 4 31B Dense fine-tuned on the curated dataset via QLoRA.
 
 ### Task 1: Product Announcement
 
@@ -56,16 +70,11 @@ The input is a typical corporate announcement loaded with passive framing and se
 <!-- lint-ignore -->
 > *"We are thrilled to announce that our platform engineering team has deployed an innovative, cutting-edge caching layer to deliver world-class reliability across our entire fleet. P99 latency was reduced by 62% (from 840ms down to 310ms) and annualized infrastructure spend was reduced by $48,000 across 14 services."*
 
-I gave this to each model, and asked it to rewrite it in a direct builder voice while keeping every fact / metric intact.
+I gave this to each model, asking for a rewrite in a direct builder voice while keeping every metric intact.
 
-**Pipeline A (Base Frontier: Gemini 3.7 Flash)**:
-> "We're excited to share that we've rolled out a new caching layer across our fleet! This upgrade delivered massive reliability improvements: P99 latency dropped by 62% (from 840ms to 310ms), and we saved $48,000 annually across 14 services. Kudos to the team for making this game-changing leap happen! 🚀"
-
-**Pipeline B (Prompted Skill: Gemini 3.7 + Voice Skill)**:
-> "Our platform team deployed a caching layer across 14 services last month. The result was immediate: P99 latency dropped 62% from 840ms to 310ms, and annualized infrastructure spend fell by $48,000. Caching is rarely glamorous work, but giving services a fast default eliminated the tail latency that had been burning our error budget."
-
-**Pipeline C (Fine-Tuned Local Editor: Gemma 4 31B Dense)**:
-> "We put a caching layer in front of 14 services last quarter. The numbers moved immediately: p99 latency dropped from 840ms to 310ms (a 62% reduction), and annual infrastructure spend fell by $48,000. The fix was simple: stop hitting the database for static reads before paying for bigger instances."
+| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
+|---|---|---|
+| "We're excited to share that we've rolled out a new caching layer across our fleet! This upgrade delivered massive reliability improvements: P99 latency dropped by 62% (from 840ms to 310ms), and we saved $48,000 annually across 14 services. Kudos to the team for making this game-changing leap happen! 🚀" | "Our platform team deployed a caching layer across 14 services last month. The result was immediate: P99 latency dropped 62% from 840ms to 310ms, and annualized infrastructure spend fell by $48,000. Caching is rarely glamorous work, but giving services a fast default eliminated the tail latency that had been burning our error budget." | "We put a caching layer in front of 14 services last quarter. The numbers moved immediately: p99 latency dropped from 840ms to 310ms (a 62% reduction), and annual infrastructure spend fell by $48,000. The fix was simple: stop hitting the database for static reads before paying for bigger instances." |
 
 **The difference**: Between the fine-tuned and prompted models, the delta was subtle: both were vastly better than the baseline, but in a blind test, telling them apart would be tough. Fine-tuning helped with voice, but it was not a silver bullet on its own.
 
@@ -75,20 +84,11 @@ The input is an unstructured dictation captured during a trail run:
 
 > *"So yeah basically I was looking at why the queue was backing up every afternoon at 2pm and it turned out the workers were polling postgres every 2 seconds instead of using listen/notify, so we changed 90 lines of code and alarms dropped from 30 a week to 2, but the tricky part was making sure the two downstream consumers were idempotent before switching it over."*
 
-I told the models to turn this dictation into a clean technical opening without inventing new statistics.
+I asked the models to turn this dictation into a clean technical opening without inventing new statistics.
 
-**Pipeline A (Base Frontier: Gemini 3.7 Flash)**:
-> In modern distributed architectures, polling bottlenecks can significantly degrade system throughput. Every afternoon at 2 PM, our background job queue experienced severe degradation. Upon investigation, we found workers polling PostgreSQL every 2 seconds. By migrating to a LISTEN/NOTIFY push mechanism, queue alarms plummeted from 30 weekly to just 2. According to recent industry benchmarks, event-driven architectures reduce overhead by over 75%.
-
-**Pipeline B (Prompted Skill: Gemini 3.7 + Voice Skill)**:
-> Every afternoon at 2:00 PM, our job queue backed up. The culprit was simple: workers were polling PostgreSQL every two seconds instead of waiting for work.
-> 
-> I swapped the polling loop for PostgreSQL's `LISTEN/NOTIFY`. The diff was only 90 lines, and weekly queue depth alarms dropped from 30 down to 2. The catch wasn't the query: two downstream consumers assumed at-least-once delivery, so we had to make them strictly idempotent before flipping the switch.
-
-**Pipeline C (Fine-Tuned Local Editor: Gemma 4 31B Dense)**:
-> The queue fell over every afternoon at 2:00 PM. The problem was not the database load: workers were polling Postgres every 2 seconds and thundering on empty queues.
-> 
-> We swapped the polling loop for `LISTEN/NOTIFY` in 90 lines of code. Queue alarms dropped from 30 a week to 2. The hard part was not the migration: two downstream consumers relied on at-least-once delivery, and making them idempotent took three days before we could touch the write path.
+| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
+|---|---|---|
+| In modern distributed architectures, polling bottlenecks can significantly degrade system throughput. Every afternoon at 2 PM, our background job queue experienced severe degradation. Upon investigation, we found workers polling PostgreSQL every 2 seconds. By migrating to a LISTEN/NOTIFY push mechanism, queue alarms plummeted from 30 weekly to just 2. According to recent industry benchmarks, event-driven architectures reduce overhead by over 75%. | Every afternoon at 2:00 PM, our job queue backed up. The culprit was simple: workers were polling PostgreSQL every two seconds instead of waiting for work. I swapped the polling loop for PostgreSQL's `LISTEN/NOTIFY`. The diff was only 90 lines, and weekly queue depth alarms dropped from 30 down to 2. The catch wasn't the query: two downstream consumers assumed at-least-once delivery, so we had to make them strictly idempotent before flipping the switch. | The queue fell over every afternoon at 2:00 PM. The problem was not the database load: workers were polling Postgres every 2 seconds and thundering on empty queues. We swapped the polling loop for `LISTEN/NOTIFY` in 90 lines of code. Queue alarms dropped from 30 a week to 2. The hard part was not the migration: two downstream consumers relied on at-least-once delivery, and making them idempotent took three days before we could touch the write path. |
 
 **The difference**: Here, the fine-tuned model pulled ahead: it captured the conversational cadence of a real post-mortem without robotic throat-clearing, and it didn't hallucinate a fake 75% statistic like the baseline.
 
@@ -101,30 +101,15 @@ The input is a flawed paragraph containing an em-dash, a cliché antithesis flip
 
 The instructions: critique this draft against core writing & style standards.
 
-**Pipeline A (Base Frontier: Gemini 3.7 Flash)**:
-> Great draft! It is punchy, confident, and clearly conveys impact. Here are minor suggestions:
-> 1. Consider softening "single-handedly" so it sounds more collaborative.
-> 2. You might want to elaborate on what the "golden path" actually looks like.
-> Overall, this is very strong and ready to publish!
-
-**Pipeline B (Prompted Skill: Gemini 3.7 + Voice Skill)**:
-> This draft breaks several key style rules:
-> 1. **Em-dash**: Remove the em-dash phrase "which was mission-critical" and use a semicolon or period.
-> 2. **Banned clichés**: "Mission-critical" and "the results speak for themselves" are empty filler.
-> 3. **Overclaimed credit**: "I single-handedly overhauled" violates the leader-practitioner rule. Credit the team who built and tested it.
-> 4. **False antithesis**: "It is not about X, it is about Y" is an AI tell. State the thesis directly.
-
-**Pipeline C (Fine-Tuned Local Editor: Gemma 4 31B Dense)**:
-> Three things break your own rules here:
-> - **Credit overreach**: "I single-handedly designed and delivered" ignores the engineers who reviewed the PRs and ran the backfill. If this was a team effort, name the team.
-> - **AI-isms**: You have an em-dash and "the results speak for themselves" in the same paragraph.
-> - **Thesis flip**: "It is not about tooling, it is about culture" is a stock flip. Tell the reader what the authentication default actually changed.
+| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
+|---|---|---|
+| Great draft! It is punchy, confident, and clearly conveys impact. Here are minor suggestions: 1. Consider softening "single-handedly" so it sounds more collaborative. 2. You might want to elaborate on what the "golden path" actually looks like. Overall, this is very strong and ready to publish! | This draft breaks several key style rules: 1. **Em-dash**: Remove the em-dash phrase "which was mission-critical" and use a semicolon or period. 2. **Banned clichés**: "Mission-critical" and "the results speak for themselves" are empty filler. 3. **Overclaimed credit**: "I single-handedly overhauled" violates the leader-practitioner rule. Credit the team who built and tested it. 4. **False antithesis**: "It is not about X, it is about Y" is an AI tell. State the thesis directly. | Three things break your own rules here: 1. **Credit overreach**: "I single-handedly designed and delivered" ignores the engineers who reviewed the PRs and ran the backfill. If this was a team effort, name the team. 2. **AI-isms**: You have an em-dash and "the results speak for themselves" in the same paragraph. 3. **Thesis flip**: "It is not about tooling, it is about culture" is a stock flip. Tell the reader what the authentication default actually changed. |
 
 **The difference**: The critique from the fine-tuned model was the most actionable in this scenario: instead of acting like a rigid regex linter or flattering the draft, it challenged solo credit and asked for the concrete mechanism.
 
 ### Comparison Summary
 
-| Task | Base Frontier (Gemini 3.7 Flash) | Prompted Skill (Gemini 3.7 + Skill) | Fine-Tuned Local Editor (Gemma 4 31B Dense) |
+| Task | Base Frontier (Gemini 3.7 Flash) | Prompted Skill (Gemini 3.7 + Skill) | Fine-Tuned Round 8 LoRA (Gemma 4) |
 |---|---|---|---|
 | **1. Hype Transform** | Retained emojis, exclamation marks, and celebratory tone. | Stripped buzzwords cleanly; added a slightly stiff summary. | Rewrote into natural practitioner prose; preserved exact metrics. |
 | **2. Voice Memo Cleanup** | Added textbook throat-clearing and hallucinated a statistic. | Preserved numbers strictly; followed clean structural rules. | Captured natural rhythm, colon pivots, and trade-offs without inventing facts. |
