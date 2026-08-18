@@ -32,14 +32,14 @@ Some models are worse than others. I found Claude Opus 5 to be overly self-refer
 
 Research from the University of Michigan pointed me in a different direction. In [Readers Prefer Outputs of AI Trained on Copyrighted Books over Expert Human Writers](https://arxiv.org/abs/2510.13939), Chakrabarty, Ginsburg, and Dhillon tested prompted frontier models against fine-tuned models on authorial style. MFA-trained readers strongly disliked agents prompted to mimic a human author (0.16 odds ratio), *but* they favored a fine-tuned model trained on an author's voice (8.16 odds ratio).
 
-I decided to test whether fine-tuning (using QLoRA on Apple Silicon) could teach an open-weight model my own editorial style. I chose Gemma 4 series models (Gemma 4 26B-A4B and Gemma 4 31B Dense) because they are among the strongest open models available and compact enough to run locally. I ran the entire training and evaluation loop locally on my M4 Pro MacBook (48 GB unified memory). Keeping it local gave me privacy and fast iterations on training, with zero API costs.
+I decided to test whether fine-tuning (using QLoRA on Apple Silicon) could teach an open-weight model my own editorial style. I set up an [open-source voice fine-tuning experiment](https://github.com/ryanbaumann/fieldwork/tree/main/experiment/voice-ft) using Gemma 4 series models (Gemma 4 26B-A4B and Gemma 4 31B Dense) because they are among the strongest open models available and compact enough to run locally. I ran the entire training and evaluation loop locally on my M4 Pro MacBook (48 GB unified memory). Keeping it local gave me privacy and fast iterations on training, with zero API costs.
 
 The key elements:
 
-1. **Curated dataset (`scripts/generate-ft-dataset.py`)**: A 132-example dataset generated from real git diffs of my editing, case studies, field notes, and other writing. It rigorously excluded held-out fixtures to eliminate data leakage.
-2. **LoRA training config (`experiment/voice-ft/config_r8.yaml`)**: Configured for MLX LoRA with rank 16, alpha 32, 16 adapter layers, cosine learning rate decay, and masked prompt loss (`mask_prompt: true`) so gradients updated strictly on target completions rather than prompt scaffolding.
-3. **Evals (`scripts/voice_eval.py`)**: A 48-item held-out test suite spanning Draft, Edit, Critique, Headline, Present, and Out-of-Distribution tasks, evaluated across 27 deterministic gates.
-4. **Scorecard (`experiment/voice-ft/eval/results/round8_scorecard.md`)**: The automated benchmark report tracking exact pass rates, confidence intervals, and failure mode categorizations across every check.
+1. **Curated dataset**: A 132-example dataset generated from real git diffs of my editing, case studies, field notes, and other writing. It rigorously excluded held-out fixtures to eliminate data leakage.
+2. **LoRA training config**: Configured for MLX LoRA with rank 16, alpha 32, 16 adapter layers, cosine learning rate decay, and masked prompt loss (`mask_prompt: true`) so gradients updated strictly on target completions rather than prompt scaffolding.
+3. **Evals**: A 48-item held-out test suite spanning Draft, Edit, Critique, Headline, Present, and Out-of-Distribution tasks, evaluated across 27 deterministic gates.
+4. **Scorecard**: An automated benchmark report tracking exact pass rates, confidence intervals, and failure mode categorizations across every check.
 
 Getting fine-tuning to work reliably on my Macbook M4 Pro took two key changes so I didn't run out of memory:
 
@@ -48,7 +48,7 @@ Getting fine-tuning to work reliably on my Macbook M4 Pro took two key changes s
 
 ## Evaluation Results
 
-Across the 48-item held-out evaluation suite in the scorecard (`experiment/voice-ft/eval/results/round8_dense_scorecard.md`), the fine-tuned adapter demonstrated significant quantitative improvements over earlier rounds and baseline prompting:
+Across the 48-item held-out evaluation suite, the fine-tuned adapter demonstrated significant quantitative improvements over earlier rounds and baseline prompting:
 
 - **Clean Pass Rate**: **54%** on Gemma 4 31B Dense (26/48 items passed every error-level check; 95% CI 40–67%) and **42%** on Gemma 4 26B-A4B MoE, up from **23% in Round 7** and **31% on base Gemma 4**.
 - **Headline Format (`G-HEADLINE-*`)**: **100%** pass rate across count, variety, slot constraints, and length boundaries.
