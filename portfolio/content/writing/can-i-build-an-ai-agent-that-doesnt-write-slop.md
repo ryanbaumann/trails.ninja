@@ -32,7 +32,7 @@ Some models struggled more than others. Claude Opus 5 leaned heavily into self-r
 
 Research from the University of Michigan pointed me in a different direction. In [Readers Prefer Outputs of AI Trained on Copyrighted Books over Expert Human Writers](https://arxiv.org/abs/2510.13939), Chakrabarty, Ginsburg, and Dhillon tested prompted frontier models against fine-tuned models on authorial style. MFA-trained readers strongly disliked agents prompted to mimic a human author (0.16 odds ratio), *but* they favored a fine-tuned model trained on an author's voice (8.16 odds ratio).
 
-I decided to test whether fine-tuning (using QLoRA on Apple Silicon) could teach an open-weight model my own editorial style. I set up an [open-source voice fine-tuning experiment](https://github.com/ryanbaumann/fieldwork/tree/main/experiment/voice-ft) using Gemma 4 series models (Gemma 4 26B-A4B and Gemma 4 31B Dense) because they are among the strongest open models available and compact enough to run locally. I ran the entire training and evaluation loop locally on my M4 Pro MacBook (48 GB unified memory). Keeping it local gave me privacy and fast iterations on training, with zero API costs.
+I decided to test whether fine-tuning (using QLoRA on Apple Silicon) could teach an open-weight model my own editorial style. I set up an [open-source voice fine-tuning experiment](https://github.com/ryanbaumann/fieldwork/tree/main/experiment/voice-ft) using Gemma 4 31B Dense because it is among the strongest open models available and compact enough to run locally. I ran the entire training and evaluation workflow locally on my M4 Pro MacBook (48 GB unified memory). Keeping it local gave me privacy and fast iterations on training, with zero API costs.
 
 I built the training setup around four components:
 
@@ -48,12 +48,12 @@ Getting fine-tuning to work reliably on my Macbook M4 Pro took two key adjustmen
 
 ## Evaluation Results
 
-Across the 48-item held-out evaluation suite, the fine-tuned adapter demonstrated significant quantitative improvements over earlier rounds and baseline prompting:
+Across the 48-item held-out evaluation suite, the fine-tuned Gemma 4 31B Dense adapter demonstrated significant quantitative improvements over baseline prompting:
 
-- **Clean Pass Rate**: **54%** Gemma 4 31B Dense (26/48 items passed every error-level check; 95% CI 40–67%).
-- **Headline Format**: **100%** pass rate across count, variety, slot constraints, and length boundaries.
-- **Hype Bench**: **98%** clean pass rate (47/48 items), removing marketing superlatives and stock AI phrases.
-- **Em-Dash**: **98%** pass rate (47/48 items) on 31B Dense and **100%** (48/48 items) on 26B-A4B MoE.
+- **Overall Clean Pass Rate**: **54%** (26/48 items passed every error-level check; 95% CI 40–67%).
+- **Headline Formatting**: **100%** pass rate across count, variety, slot constraints, and length boundaries.
+- **Marketing Hype Suppression**: **98%** pass rate (47/48 items), eliminating superlatives and stock AI phrases.
+- **Em-Dash Elimination**: **98%** pass rate (47/48 items), removing mechanical punctuation crutches.
 
 I compared three approaches on live writing tasks to see the actual impact.
 
@@ -61,7 +61,7 @@ I compared three approaches on live writing tasks to see the actual impact.
 
 1. **Pipeline A (Base Frontier)**: Gemini 3.7 Flash with a standard zero-shot prompt.
 2. **Pipeline B (Prompted Skill)**: Gemini 3.7 Flash equipped with my full in-context voice rules.
-3. **Pipeline C (Fine-Tuned Round 8 LoRA)**: Gemma 4 26B-A4B and Gemma 4 31B Dense fine-tuned on the curated dataset via QLoRA.
+3. **Pipeline C (Fine-Tuned Gemma 31B)**: Gemma 4 31B Dense fine-tuned on the curated dataset via QLoRA.
 
 ### Task 1: Status Report to Builder Voice
 
@@ -72,7 +72,7 @@ The input is a passive, corporate status report with real metrics:
 
 I asked each pipeline to rewrite this into a direct builder voice without extra fluff.
 
-| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
+| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Gemma 31B) |
 |---|---|---|
 | "Led the deployment of a caching layer to enhance fleet reliability. This initiative reduced P99 latency by 62% (from 840ms to 310ms) across 14 services. The change significantly improved system performance and resource efficiency." | "To make our fleet reliable, I deployed a caching layer across 14 services. We cut P99 latency by 62%, dropping it from 840ms to 310ms: our systems don't bottleneck under load anymore." | "I deployed a caching layer across 14 services to improve fleet reliability. P99 latency dropped 62%, from 840ms to 310ms." |
 
@@ -86,7 +86,7 @@ The input is an unstructured voice memo capturing a production fix:
 
 I asked each model to turn this dictation into a clean post-mortem opening without inventing external stats.
 
-| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
+| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Gemma 31B) |
 |---|---|---|
 | "At 2:00 PM, database polling bottlenecks caused severe queue backups as workers queried Postgres every two seconds. By migrating to a push-based listen/notify pattern with a 90-line patch, we resolved the lag. Weekly alarms dramatically dropped from 30 to 2." | "To stabilize our queue under load, we replaced Postgres polling with push notifications. I shipped a 90-line listen/notify rewrite to stop the 2-second poll spam: weekly alarms dropped from 30 to 2, and we don't see backups at 2 PM." | "Weekly alarms dropped from 30 to 2. At 2pm, our queue backed up because workers polled Postgres every 2 seconds: we changed 90 lines to use listen/notify and fixed it." |
 
@@ -101,7 +101,7 @@ The input is the original draft opening of this very essay:
 
 The instructions: critique this draft against our editorial and voice standards.
 
-| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
+| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Gemma 31B) |
 |---|---|---|
 | "This is a strong, highly relatable opening hook that immediately engages the reader. The rubber duck metaphor works perfectly to explain your collaborative vision. Consider expanding slightly on how this 'rubber ducking' looks in practice to build on this great setup." | "To hook busy developers, we must skip the 'AI is bland' cliché. Let's lead with negative space: define what the rubber duck does and what it doesn't do. Swap the general claim for a concrete draft trace so we don't sound like another marketing page." | "Cut 'We all know'. It's a consensus tell. The second sentence is a false antithesis flip. State what you actually did instead." |
 

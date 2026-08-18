@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
   - Round 8 SFT LoRA fine-tuning on Gemma 4 26B-A4B (`adapters/gemma-4-26b-ryan-voice-v8`), achieving a **42% clean pass rate** (20/48 items) on the held-out benchmark suite (up from 23% in Round 7 and 31% base), with 100% em-dash elimination (`G-EMDASH`), 100% headline count adherence (`G-HEADLINE-COUNT`), and 98% hype suppression (`G-HYPE`).
   - Round 8 SFT LoRA fine-tuning on Gemma 4 31B Dense (`adapters/gemma-4-31b-ryan-voice-v8`), achieving a new benchmark-high **54% clean pass rate** (26/48 items, 95% CI 40–67%) on the held-out suite (up from 44% in Round 6 Dense and 42% on 26B-A4B), with **100% Headline pass rate** (6/6 items), **80% Present pass rate** (4/5 items), **98% hype/AI-tell suppression**, **98% em-dash suppression**, and **94% verbatim echo resistance** (`G-ECHO`).
 
+### Changed
+- Standardized `portfolio/content/writing/can-i-build-an-ai-agent-that-doesnt-write-slop.md` to exclusively reference **Gemma 4 31B Dense** evaluation results and plain English benchmark descriptions (`Overall Clean Pass Rate`, `Headline Formatting`, `Marketing Hype Suppression`, `Em-Dash Elimination`), removing iteration numbers and internal benchmark labels.
+
 ### Fixed
 - Fixed Gemini rate limiting, quota exhaustion, and prepayment credit depletion handling across demo apps:
   - `gateway/lib/rateLimit.js`: Added hosted Gemini health probe state tracking (`recordHostedGeminiFailure`, `recordHostedGeminiSuccess`, `isHostedGeminiHealthy`, `getHostedGeminiHealth`) with 5-minute cooldown and recovery on successful requests/validations.
