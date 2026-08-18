@@ -5,14 +5,19 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Full-Corpus Editorial Review via Local Gemma 4 31B Dense R8 (`scripts/review_all_published.py`)**:
+  - Automated editorial peer review across all 6 published articles using fine-tuned Gemma 4 31B Dense Round 8 (`adapters/gemma-4-31b-ryan-voice-v8`).
+  - Implemented an independent subagent reviewer team (maker/checker loop) to evaluate each model critique against `.agents/skills/portfolio-writing/SKILL.md`, filtering out false antithesis flips, stripping buzzwords and em-dashes, strengthening first-person active voice, and preserving technical metrics and URLs.
+  - Applied reviewed and vetted edits to all 6 published essays: `can-i-build-an-ai-agent-that-doesnt-write-slop.md`, `builder-platforms-grow-by-owning-the-agent-loop.md`, `devex-is-a-growth-discipline.md`, `fine-tuning-was-the-easy-part.md`, `loop-engineering-coding-agent.md`, and `the-model-that-picks-your-platform-doesnt-write-the-code.md`.
 - **Local Synthetic Review Web App & Multi-Agent Dataset Pipeline (`scripts/review_app.mjs`, `scripts/generate_review_candidates.py`)**:
   - Interactive local A/B review web app with keyboard shortcuts (`1` for option A, `2` for option B, `R` to remove, `E` for custom surgical edits).
   - Grounded candidate generator extracting real-world writing patterns, architectural case studies, and talk outlines from `portfolio/content/`.
   - Multi-category subagent synthesis pipeline creating diverse, non-duplicative training pairs across `Draft`, `Edit`, `Critique`, `Headline`, `Present`, and `Abstention` tasks.
-  - Round 8 SFT LoRA fine-tuning on Gemma 4 26B-A4B (`adapters/gemma-4-26b-ryan-voice-v8`), achieving a **42% clean pass rate** (20/48 items) on the held-out benchmark suite (up from 23% in Round 7 and 31% base), with 100% em-dash elimination (`G-EMDASH`), 100% headline count adherence (`G-HEADLINE-COUNT`), and 98% hype suppression (`G-HYPE`).
+  - Round 8 SFT LoRA fine-tuning on Gemma 4 26B-A4B (`adapters/gemma-4-26b-ryan-voice-v8`), achieving a **42% clean pass rate** (20/48 items) on the held-out benchmark suite, with 100% em-dash elimination (`G-EMDASH`), 100% headline count adherence (`G-HEADLINE-COUNT`), and 98% hype suppression (`G-HYPE`).
   - Round 8 SFT LoRA fine-tuning on Gemma 4 31B Dense (`adapters/gemma-4-31b-ryan-voice-v8`), achieving a new benchmark-high **54% clean pass rate** (26/48 items, 95% CI 40–67%) on the held-out suite (up from 44% in Round 6 Dense and 42% on 26B-A4B), with **100% Headline pass rate** (6/6 items), **80% Present pass rate** (4/5 items), **98% hype/AI-tell suppression**, **98% em-dash suppression**, and **94% verbatim echo resistance** (`G-ECHO`).
 
 ### Changed
+- Pinned `can-i-build-an-ai-agent-that-doesnt-write-slop.md` (`order: 1`) as the primary featured article on the homepage, and updated `portfolio/build.mjs` (`buildHome`) to deterministically sort pinned entries by `meta.order` ascending.
 - Standardized `portfolio/content/writing/can-i-build-an-ai-agent-that-doesnt-write-slop.md` to exclusively reference **Gemma 4 31B Dense** evaluation results and plain English benchmark descriptions (`Overall Clean Pass Rate`, `Headline Formatting`, `Marketing Hype Suppression`, `Em-Dash Elimination`), removing iteration numbers and internal benchmark labels.
 
 ### Fixed
