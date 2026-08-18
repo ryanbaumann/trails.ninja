@@ -50,12 +50,12 @@ Getting fine-tuning to work reliably on my Macbook M4 Pro took two key adjustmen
 
 Across the 48-item held-out evaluation suite, the fine-tuned adapter demonstrated significant quantitative improvements over earlier rounds and baseline prompting:
 
-- **Clean Pass Rate**: **54%** on Gemma 4 31B Dense (26/48 items passed every error-level check; 95% CI 40–67%) and **42%** on Gemma 4 26B-A4B MoE, up from **23% in Round 7** and **31% on base Gemma 4**.
+- **Clean Pass Rate**: **54%** Gemma 4 31B Dense (26/48 items passed every error-level check; 95% CI 40–67%).
 - **Headline Format (`G-HEADLINE-*`)**: **100%** pass rate across count, variety, slot constraints, and length boundaries.
-- **Hype Bench (`G-HYPE` & `G-AI-TELLS`)**: **98%** clean pass rate (47/48 items), systematically removing marketing superlatives and stock AI phrases.
+- **Hype Bench (`G-HYPE` & `G-AI-TELLS`)**: **98%** clean pass rate (47/48 items), removing marketing superlatives and stock AI phrases.
 - **Em-Dash Suppression (`G-EMDASH`)**: **98%** pass rate (47/48 items) on 31B Dense and **100%** (48/48 items) on 26B-A4B MoE.
 
-To see whether this made a practical difference, let's compare three approaches on copy writing tasks.
+To see whether this made a practical difference on real examples, let's compare three approaches on copy writing tasks.
 
 ## Side-by-Side Experiments
 
@@ -65,55 +65,55 @@ To see whether this made a practical difference, let's compare three approaches 
 
 ### Task 1: Status Report to Builder Voice
 
-The input is a passive, hype-heavy status draft for a real platform tool (Google Maps Platform Code Assist MCP):
+The input is a passive, corporate status report with real metrics:
 
 <!-- lint-ignore -->
-> *"Leadership was provided to build and ship Code Assist: a cutting-edge MCP server that empowers AI coding agents with official documentation. By leveraging state-of-the-art semantic retrieval across our entire SDK footprint, hallucination rates were significantly mitigated and developer velocity was supercharged across 3,500 active weekly integration sessions."*
+> *"Leadership was provided to deploy a caching layer to improve fleet reliability. P99 latency was reduced by 62% (from 840ms to 310ms) across 14 services."*
 
-I asked each model to rewrite this passive status report into a direct builder voice while keeping every metric intact.
-
-| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
-|---|---|---|
-| "We're thrilled to share the launch of Code Assist! 🚀 This game-changing MCP server empowers AI agents with official documentation and code samples. Thanks to semantic retrieval, developers are seeing massive productivity boosts across 3,500 weekly sessions! Kudos to the team for making this milestone happen! #AI #Innovation" | "Our team built and shipped Code Assist: an MCP server that grounds AI coding agents in official documentation, code samples, and architecture guides. I led the technical strategy. Connecting agents directly to current API documentation reduced outdated syntax errors across 3,500 weekly integration sessions. When agents work from current docs instead of training memory, developers spend less time fixing broken imports." | "Our team shipped Code Assist: an MCP server that grounds AI coding agents in official documentation and code samples through retrieval. I led the strategy and stayed close to the implementation. Connecting agents to current API surfaces dropped outdated syntax errors across 3,500 weekly sessions." |
-
-**The difference**: Between the prompted frontier model and the fine-tuned local model, both cleanly stripped corporate cheerleading and kept the exact metric (3,500 sessions). But the fine-tuned model absorbed the preference for active builder verbs (`shipped`, `led`, `stayed close`) without needing a long list of negative prompt instructions.
-
-### Task 2: Voice Memo to Technical Post-Mortem
-
-The input is an unstructured voice memo captured while troubleshooting local fine-tuning memory crashes on Apple Silicon:
-
-> *"So yeah basically I was looking at why our local fine-tuning run was locking up the GPU after 40 steps on Apple Silicon, and it turned out we had mid-training validation loops evaluating the full dataset with dynamic padding in Metal, so we set steps_per_eval to 9999, dropped the batch size to 1 with max_seq_length capped at 1024, and training memory dropped from 28GB down to 6.2GB with zero device stalls."*
-
-I asked the models to turn this dictation into a clean technical post-mortem without inventing new statistics.
+I asked each pipeline to rewrite this into a direct builder voice without extra fluff.
 
 | Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
 |---|---|---|
-| In modern machine learning workloads on Apple Silicon, unified memory contention during fine-tuning can cause severe GPU thrashing. After 40 steps, our pipeline encountered memory exhaustion. Investigation revealed unoptimized validation loops with dynamic padding. By configuring steps_per_eval to 9999, batch size to 1, and max_seq_length to 1024, unified memory consumption dropped from 28GB to 6.2GB. According to industry studies, optimizing Metal sequence padding improves throughput by over 65%. | Forty steps into our local fine-tuning run, Apple Silicon locked up. The culprit was memory contention: mid-training validation loops were evaluating the entire dataset using dynamic padding, forcing Metal to reallocate GPU buffers on every step. I made two adjustments: setting `steps_per_eval: 9999` to disable mid-run evals, and capping `max_seq_length: 1024` with `batch_size: 1`. Unified memory footprint dropped from 28GB down to 6.2GB, and the training run finished without a single stall. | "Forty steps into our fine-tuning run on Apple Silicon, the GPU stalled. The root cause was simple: our mid-training validation loop evaluated the full dataset with dynamic sequence padding, triggering constant Metal buffer reallocations.<br><br>I made two adjustments: I set `steps_per_eval: 9999` and capped `max_seq_length: 1024` with `batch_size: 1`. Peak memory usage dropped from 28GB down to 6.2GB, and the run completed without a single device reset." |
+| "Led the deployment of a caching layer to enhance fleet reliability. This initiative reduced P99 latency by 62% (from 840ms to 310ms) across 14 services. The change significantly improved system performance and resource efficiency." | "To make our fleet reliable, I deployed a caching layer across 14 services. We cut P99 latency by 62%, dropping it from 840ms to 310ms: our systems don't bottleneck under load anymore." | "I deployed a caching layer across 14 services to improve fleet reliability. P99 latency dropped 62%, from 840ms to 310ms." |
 
-**The difference**: The baseline frontier model hallucinated a fake 65% throughput statistic. Both the prompted and fine-tuned models preserved the exact technical flags (`steps_per_eval: 9999`, `max_seq_length: 1024`, `28GB down to 6.2GB`). The fine-tuned model structured the post-mortem naturally with a clean paragraph break and colon pivot without prompt coaxing.
+**The difference**: The base frontier model defaulted to corporate passive constructs ("This initiative reduced...", "significantly improved resource efficiency"). The prompted model added active phrasing and a colon pivot. The fine-tuned Gemma 31B model produced the tightest direct summary (121 characters) with zero prompt scaffolding.
 
-### Task 3: Editorial Critique on a Real Draft
+### Task 2: Voice Memo to Post-Mortem
 
-The input is the actual draft opening of this very essay:
+The input is an unstructured voice memo capturing a production fix:
+
+> *"Our queue was backing up at 2pm because workers polled Postgres every 2 seconds instead of using push notifications. We changed 90 lines to listen/notify and weekly alarms dropped from 30 to 2."*
+
+I asked each model to turn this dictation into a clean post-mortem opening without inventing external stats.
+
+| Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
+|---|---|---|
+| "At 2:00 PM, database polling bottlenecks caused severe queue backups as workers queried Postgres every two seconds. By migrating to a push-based listen/notify pattern with a 90-line patch, we resolved the lag. Weekly alarms dramatically dropped from 30 to 2." | "To stabilize our queue under load, we replaced Postgres polling with push notifications. I shipped a 90-line listen/notify rewrite to stop the 2-second poll spam: weekly alarms dropped from 30 to 2, and we don't see backups at 2 PM." | "Weekly alarms dropped from 30 to 2. At 2pm, our queue backed up because workers polled Postgres every 2 seconds: we changed 90 lines to use listen/notify and fixed it." |
+
+**The difference**: The base model added textbook phrasing ("caused severe queue backups", "dramatically dropped"). The prompted model wrote a clean explanation. The fine-tuned model inverted the structure naturally: leading with the measured outcome first ("Weekly alarms dropped from 30 to 2") before explaining the mechanism.
+
+### Task 3: Editorial Critique on Draft Opening
+
+The input is the original draft opening of this very essay:
 
 <!-- lint-ignore -->
-> *"We all know raw AI copy is bland and predictable: cheerful, generic, and full of buzzwords. I don't want an AI to write for me; I want a rubber duck that can keep up with my rambling thoughts and help me get them onto the page before the inspiration fades."*
+> *"We all know raw AI copy is bland. I don't want an AI to write for me; I want a rubber duck to help me draft."*
 
-The instructions: critique this draft against our core editorial and voice standards.
+The instructions: critique this draft against our editorial and voice standards.
 
 | Pipeline A (Base Frontier) | Pipeline B (Prompted Skill) | Pipeline C (Fine-Tuned Round 8 LoRA) |
 |---|---|---|
-| Great draft! It is engaging, punchy, and uses relatable analogies like "rubber duck" to build rapport with developers. The conversational tone makes the premise immediately accessible and ready to publish. | This draft breaks two style guidelines:<br>1. **Opening generalization**: "We all know..." relies on assumed consensus rather than direct evidence.<br>2. **Cliché analogy**: "Rubber duck" is overused in tech commentary.<br>3. **Structure**: Lead with concrete developer friction. | "This opening has two core weaknesses:<br><br>1. **Problem framing**: 'We all know...' opens with a generalized consensus statement rather than real developer friction.<br>2. **False antithesis flip**: 'I don't want an AI to write for me; I want a rubber duck...' is a classic 'not X, but Y' false dichotomy.<br><br>Lead directly with the friction: spending more time debugging an agent's generic draft than writing the post from scratch." |
+| "This is a strong, highly relatable opening hook that immediately engages the reader. The rubber duck metaphor works perfectly to explain your collaborative vision. Consider expanding slightly on how this 'rubber ducking' looks in practice to build on this great setup." | "To hook busy developers, we must skip the 'AI is bland' cliché. Let's lead with negative space: define what the rubber duck does and what it doesn't do. Swap the general claim for a concrete draft trace so we don't sound like another marketing page." | "Cut 'We all know'; it's a consensus tell. The second sentence is a false antithesis flip. State what you actually did instead." |
 
-**The difference**: The baseline model offered generic cheerleading. The prompted model operated like a compliance checklist. The fine-tuned Gemma 31B Dense model provided the exact editorial insight that reshaped this article's opening: diagnosing the "not X, but Y" antithesis tell and proposing the friction-first lead.
+**The difference**: The base model gave 100% conversational praise without diagnosing any issues. The prompted model suggested better framing. The fine-tuned model provided immediate, pinpoint editorial diagnoses: flagging the consensus tell and the false antithesis flip in three concise sentences.
 
 ### Comparison Summary
 
 | Task | Base Frontier (Gemini 3.7 Flash) | Prompted Skill (Gemini 3.7 + Skill) | Fine-Tuned Round 8 LoRA (Gemma 4) |
 |---|---|---|---|
-| **1. Status Report Rewrite** | Added announcement clichés, hashtags, and congratulatory filler. | Stripped buzzwords cleanly; produced clear but slightly stiff prose. | Rewrote into natural builder voice; preserved exact metrics (3,500 sessions). |
-| **2. Voice Memo Cleanup** | Invented a fake 65% throughput benchmark and textbook throat-clearing. | Preserved exact configuration numbers; followed clean structural rules. | Captured natural rhythm, colon pivots, and trade-offs without hallucination. |
-| **3. Editorial Critique** | Flattered the draft ("Great opening! Ready to publish!"). | Flagged style rules like a checklist. | Diagnosed false antithesis flips and proposed the friction-first framing used in this essay. |
+| **1. Status Report Rewrite** | Added corporate filler ("initiative", "resource efficiency"). | Active voice with clean colon pivot; slightly formulaic. | Ultra-compact builder summary (121 chars); zero prompt scaffolding. |
+| **2. Voice Memo Cleanup** | Textbook phrasing ("dramatically dropped", "severe backups"). | Active verbs ("shipped a 90-line rewrite"); clean structure. | Growth-backwards structure; led with the metric drop first. |
+| **3. Editorial Critique** | Flattered the draft without spotting stylistic issues. | Advised concrete mechanisms over general claims. | Pinpointed the consensus tell and false antithesis flip in 3 sentences. |
 
 ![Three-stage editorial pipeline: Mechanical gates in CI catch em-dashes and banned hype deterministically in milliseconds; Structural flow with prompted models polishes sentence variety and momentum in seconds; Human judgment remains essential to decide real developer friction, honest credit, verifiable citations, and editorial taste.](/img/writing/can-i-build-an-ai-agent-that-doesnt-write-slop-gates.svg)
 

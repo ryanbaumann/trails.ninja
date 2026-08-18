@@ -1,0 +1,23 @@
+{
+  "task_1": {
+    "name": "Task 1: Status Report to Builder Voice",
+    "task": "Edit",
+    "output": "I deployed a caching layer across 14 services to improve fleet reliability. P99 latency dropped 62%, from 840ms to 310ms.",
+    "seconds": 6.69,
+    "char_count": 121
+  },
+  "task_2": {
+    "name": "Task 2: Voice Memo to Post-Mortem",
+    "task": "Draft",
+    "output": "Weekly alarms dropped from 30 to 2. At 2pm, our queue backed up because workers polled Postgres every 2 seconds: we changed 90 lines to use listen/notify and fixed it.",
+    "seconds": 6.85,
+    "char_count": 167
+  },
+  "task_3": {
+    "name": "Task 3: Editorial Critique",
+    "task": "Critique",
+    "output": "Cut 'We all know'; it's a consensus tell. The second sentence is a false antithesis flip. State what you actually did instead.",
+    "seconds": 5.3,
+    "char_count": 126
+  }
+}
