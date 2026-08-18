@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
   - Grounded candidate generator extracting real-world writing patterns, architectural case studies, and talk outlines from `portfolio/content/`.
   - Multi-category subagent synthesis pipeline creating diverse, non-duplicative training pairs across `Draft`, `Edit`, `Critique`, `Headline`, `Present`, and `Abstention` tasks.
   - Round 8 SFT LoRA fine-tuning on Gemma 4 26B-A4B (`adapters/gemma-4-26b-ryan-voice-v8`), achieving a **42% clean pass rate** (20/48 items) on the held-out benchmark suite (up from 23% in Round 7 and 31% base), with 100% em-dash elimination (`G-EMDASH`), 100% headline count adherence (`G-HEADLINE-COUNT`), and 98% hype suppression (`G-HYPE`).
+  - Round 8 SFT LoRA fine-tuning on Gemma 4 31B Dense (`adapters/gemma-4-31b-ryan-voice-v8`), achieving a new benchmark-high **54% clean pass rate** (26/48 items, 95% CI 40–67%) on the held-out suite (up from 44% in Round 6 Dense and 42% on 26B-A4B), with **100% Headline pass rate** (6/6 items), **80% Present pass rate** (4/5 items), **98% hype/AI-tell suppression**, **98% em-dash suppression**, and **94% verbatim echo resistance** (`G-ECHO`).
 
 ### Fixed
 - Fixed Gemini rate limiting, quota exhaustion, and prepayment credit depletion handling across demo apps:

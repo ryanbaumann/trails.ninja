@@ -2,6 +2,16 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-17 - Dense architecture scaling delivers 54% clean pass rate and perfect headline generation in voice LoRA fine-tuning
+
+Context: Fine-tuning Gemma 4 31B Dense on the grounded 132-item Round 8 SFT dataset (`adapters/gemma-4-31b-ryan-voice-v8`) after achieving 42% on Gemma 4 26B-A4B (MoE).
+Learning: 
+1. Dense parameter capacity significantly outperforms mixture-of-experts routing on structured stylistic formatting and nuance tasks: Gemma 4 31B Dense achieved a **54% clean pass rate** (26/48 items, 95% CI 40–67%) on the held-out evaluation suite, outperforming both Gemma 4 26B-A4B MoE (42%) and Round 6 Dense (44%).
+2. Dense models demonstrate superior adherence to rigid length, slot, and variety constraints: achieving **100% clean pass rate** across all headline tasks (`G-HEADLINE-*`, 6/6 items), **80% on presentation tasks** (`Present`, 4/5 items), and **50% on drafting tasks** (`Draft`, 4/8 items).
+3. On Apple Silicon Metal with unified memory (48GB), running single-batch SFT LoRA fine-tuning on 31B Dense (`batch_size: 1`, `max_seq_length: 1536`, `num_layers: 16`, `pad_to_max_length: false`, `mask_prompt: true`) fits comfortably within ~35.7 GB peak memory and completes 180 iterations in ~15 minutes (~0.20 it/sec).
+Evidence: Scorecard evaluation (`experiment/voice-ft/eval/results/round8_dense_scorecard.md`) confirmed 26/48 clean items with zero warnings and passing gateway test suite.
+Use next time: For final production deployments of stylistic voice adapters where inference latency is secondary to structural fidelity and constraint adherence, prioritize dense base architectures (e.g. Gemma 4 31B Dense) over MoE variants.
+
 ## 2026-08-17 - Placeholder tokenization in zero-dependency markdown parser prevents inline code characters from breaking emphasis
 
 Context: Reviewing the rendered HTML in `portfolio/dist/writing/can-i-build-an-ai-agent-that-doesnt-write-slop/index.html` where an inline code span containing an asterisk (`` `G-HEADLINE-*` ``) inside bold text produced corrupted markup `*<em>Headline Format Compliance (<code>G-HEADLINE-</em></code>)<strong>: </strong>100%**`.
