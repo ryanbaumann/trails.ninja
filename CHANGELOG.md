@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Local Synthetic Review Web App & Multi-Agent Dataset Pipeline (`scripts/review_app.mjs`, `scripts/generate_review_candidates.py`)**:
+  - Interactive local A/B review web app with keyboard shortcuts (`1` for option A, `2` for option B, `R` to remove, `E` for custom surgical edits).
+  - Grounded candidate generator extracting real-world writing patterns, architectural case studies, and talk outlines from `portfolio/content/`.
+  - Multi-category subagent synthesis pipeline creating diverse, non-duplicative training pairs across `Draft`, `Edit`, `Critique`, `Headline`, `Present`, and `Abstention` tasks.
+  - Round 8 SFT LoRA fine-tuning on Gemma 4 26B-A4B (`adapters/gemma-4-26b-ryan-voice-v8`), achieving a **42% clean pass rate** (20/48 items) on the held-out benchmark suite (up from 23% in Round 7 and 31% base), with 100% em-dash elimination (`G-EMDASH`), 100% headline count adherence (`G-HEADLINE-COUNT`), and 98% hype suppression (`G-HYPE`).
+
 ### Fixed
 - Fixed Gemini rate limiting, quota exhaustion, and prepayment credit depletion handling across demo apps:
   - `gateway/lib/rateLimit.js`: Added hosted Gemini health probe state tracking (`recordHostedGeminiFailure`, `recordHostedGeminiSuccess`, `isHostedGeminiHealthy`, `getHostedGeminiHealth`) with 5-minute cooldown and recovery on successful requests/validations.

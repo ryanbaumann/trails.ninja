@@ -1,0 +1,44 @@
+# MLX LoRA fine-tuning, round 7. Gemma 4 26B-A4B MoE.
+#
+#   mlx_lm.lora --config experiment/voice-ft/config_r7.yaml
+#
+# Round 7 Focus:
+#   - Human-reviewed gold edits and diverse, non-duplicative real-world grounded samples.
+#   - Full coverage across 6 core tasks (Draft, Edit, Critique, Headline, Present, Negative Traps).
+#   - Surgical editing, strict factual metric preservation, and anti-hallucination abstention.
+#   - Masked prompt loss to update gradients strictly on the target assistant completion.
+#
+# Dataset: 95 train examples, batch 1. 160 iters = ~1.68 epochs.
+
+model: "models/gemma-4-26b-a4b-it-4bit"
+train: true
+data: "./experiment/voice-ft/training"
+
+fine_tune_type: lora
+num_layers: 16
+
+iters: 160
+batch_size: 1
+max_seq_length: 1536
+
+# Loss on the assistant turn only to prevent scaffold echoing.
+mask_prompt: true
+
+learning_rate: 5.0e-5
+lr_schedule:
+  name: cosine_decay
+  warmup: 15
+  warmup_init: 1.0e-7
+  arguments: [5.0e-5, 160, 1.0e-6]
+
+lora_parameters:
+  rank: 16
+  scale: 32.0
+  dropout: 0.05
+
+seed: 42
+adapter_path: "./adapters/gemma-4-26b-ryan-voice-v7"
+save_every: 40
+steps_per_eval: 9999
+steps_per_report: 10
+val_batches: 1

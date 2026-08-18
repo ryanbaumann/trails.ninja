@@ -300,6 +300,11 @@ function rebase(href) {
 
 function inlineMd(text) {
   let html = escapeHtml(text);
+  const codeSpans = [];
+  html = html.replace(/`([^`]+)`/g, (_, code) => {
+    codeSpans.push(`<code>${code}</code>`);
+    return `\x00CODE_${codeSpans.length - 1}\x00`;
+  });
   html = html.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_, alt, src) => {
     const localPath = src.startsWith('/') ? join(STATIC_DIR, src.slice(1)) : null;
     const { width, height } = localPath && existsSync(localPath) ? getImageDimensions(localPath) : { width: 960, height: 600 };
@@ -309,9 +314,9 @@ function inlineMd(text) {
     const external = /^https?:\/\//.test(href);
     return `<a href="${rebase(href)}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''}>${label}</a>`;
   });
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  html = html.replace(/\x00CODE_(\d+)\x00/g, (_, idx) => codeSpans[Number(idx)]);
   return html;
 }
 

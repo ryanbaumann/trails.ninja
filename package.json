@@ -28,6 +28,7 @@
     "eval:grade": "python3 scripts/voice_eval.py grade",
     "eval:citations": "python3 scripts/voice_eval.py citations",
     "eval:leakage": "python3 scripts/voice_eval.py leakage",
+    "review:data": "node scripts/review_app.mjs",
     "new:demo": "node scripts/new-demo.mjs",
     "new:post": "node scripts/new-post.mjs",
     "previews": "node scripts/previews.mjs"
