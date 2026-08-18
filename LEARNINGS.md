@@ -2,6 +2,13 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-17 - Placeholder tokenization in zero-dependency markdown parser prevents inline code characters from breaking emphasis
+
+Context: Reviewing the rendered HTML in `portfolio/dist/writing/can-i-build-an-ai-agent-that-doesnt-write-slop/index.html` where an inline code span containing an asterisk (`` `G-HEADLINE-*` ``) inside bold text produced corrupted markup `*<em>Headline Format Compliance (<code>G-HEADLINE-</em></code>)<strong>: </strong>100%**`.
+Learning: In naive sequential regex markdown formatters, replacing backtick code spans with `<code>` tags before strong/emphasis matching leaves literal asterisks or underscores inside the intermediate string. The subsequent `\*\*([^*]+)\*\*` regex terminates prematurely on the internal asterisk, and the single-asterisk `\*([^*]+)\*` rule mispairs the opening delimiter with the internal code character. Stashing extracted code spans into non-formatting placeholder tokens (`\x00CODE_n\x00`) before running link, bold, and italic regexes, and restoring them at the end, guarantees that special syntax characters within code spans never collide with outer inline formatting.
+Evidence: Updated `inlineMd` in `portfolio/build.mjs`, rebuilt the portfolio, and confirmed `<li><strong>Headline Format Compliance (<code>G-HEADLINE-*</code>)</strong>: <strong>100%</strong> pass rate...</li>` renders cleanly with 0 malformed tags and 169 passing gateway tests.
+Use next time: In hand-rolled inline markdown parsers, always tokenize and isolate literal code spans and raw syntax blocks into placeholder sigils before evaluating delimiter-based formatting like emphasis, links, or strike-throughs.
+
 ## 2026-08-17 - Grounded multi-category synthesis with exact system prompt alignment and human review edits lifts voice LoRA clean pass rate to 42%
 
 Context: Fine-tuning Gemma 4 26B-A4B on Ryan's voice after human review revealed repetitive fabricated templates in synthetic candidates (Round 7 scored 23% vs 31% base).

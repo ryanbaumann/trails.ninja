@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - Configured real dark styled Map ID (`9e6b48a5b3653026f9d7556d`) as `DEFAULT_MAP_ID` in `demos/real-world-reasoning-agent/src/lib/config.ts` matching other portfolio Maps demos.
 - Fixed CSP violation in `infographic-agent` by configuring `"csp": "maps"` in `apps.json`, allowing Google Fonts stylesheets and font files.
 - Fixed Gemini Interactions API 400 Bad Request errors in `gateway/lib/infographicAgent.js` and `gateway/lib/hairstyleAi.js` by structuring `generation_config: { thinking_level: 'low' }` according to REST API specification instead of top-level `thinking_config`.
+- Fixed inline markdown parsing in `portfolio/build.mjs` (`inlineMd`) to preserve code spans using placeholders before bold/italic parsing, preventing asterisks inside inline code (e.g. `` `G-HEADLINE-*` ``) from breaking surrounding emphasis.
 - Added canonical URL and OpenGraph / Twitter social metadata tags to `demos/infographic-agent/index.html` to pass production smoke test deployment assertions.
 
 ### Changed
