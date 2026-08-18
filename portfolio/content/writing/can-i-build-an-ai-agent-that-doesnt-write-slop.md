@@ -20,46 +20,44 @@ We all know raw AI copy is bland and predictable: cheerful, generic, and full of
 
 The goal: a fast, private editing agent that understands my cadence, respects my numbers, and critiques my structure, while leaving me firmly in charge of narrative, tone, and judgment. I don't want an AI to write for me; I want a rubber duck that can keep up with my rambling thoughts and help me get them onto the page before the inspiration fades.
 
-## Step 1: In-context prompting hits a mechanical wall
+## Step 1: How far can we push context engineering?
 
-I started where everyone starts: system prompts and skills containing personal voice context guidelines. I wrote detailed skills and AGENTS.md rules forbidding em-dashes, stripping hype, adding few-shot examples of my own writing, enforcing active voice, and demanding first-person technical grounding.
+I started where everyone starts: system prompts and skills containing personal voice context guidelines. I wrote detailed skills and AGENTS.md rules forbidding em-dashes, stripping hype, adding few-shot examples of my own writing, enforcing active voice, and demanding first-person voice.
 
 Agents with this context followed the "never do this" negative constraints reasonably well: they stopped using announcement clichés and stripped out obvious marketing filler. But as the rule list grew, the output suffered a different failure mode: it was just stiff, dry, and repetitive. 
 
 Some models are worse than others. I found Claude Opus 5 to be overly self-referential. GPT 5.6 Sol was good at technical syntax but felt robotic. Gemini 3.7 Flash was solid in comparison, but still fell back on stock AI turns like "it's not X, it's Y!". None of them felt like me, even for targeted copy-editing suggestions on an existing draft.  
 
-## Step 2: The fine-tuning hunch and the MacBook test
+## Step 2: Trying some model fine-tuning 
 
 Research from the University of Michigan pointed me in a different direction. In [Readers Prefer Outputs of AI Trained on Copyrighted Books over Expert Human Writers](https://arxiv.org/abs/2510.13939), Chakrabarty, Ginsburg, and Dhillon tested prompted frontier models against fine-tuned models on authorial style. MFA-trained readers strongly disliked agents prompted to mimic a human author (0.16 odds ratio), *but* they favored a fine-tuned model trained on an author's voice (8.16 odds ratio).
 
 I decided to test whether fine-tuning (using QLoRA on Apple Silicon) could teach an open-weight model my own editorial style. I chose Gemma 4 series models (Gemma 4 26B-A4B and Gemma 4 31B Dense) because they are among the strongest open models available and compact enough to run locally. I ran the entire training and evaluation loop locally on my M4 Pro MacBook (48 GB unified memory). Keeping it local gave me privacy and fast iterations on training, with zero API costs.
 
-The setup rested on four core artifacts:
+The key elements:
 
-1. **Curated training dataset (`scripts/generate-ft-dataset.py`)**: A 132-example dataset generated from authentic architectural case studies, field notes, talk outlines, and human-reviewed gold edits across the portfolio. It rigorously excluded held-out fixtures to eliminate data leakage.
-2. **Round 8 LoRA training config (`experiment/voice-ft/config_r8.yaml`)**: Configured for MLX LoRA with rank 16, alpha 32, 16 adapter layers, cosine learning rate decay, and masked prompt loss (`mask_prompt: true`) so gradients updated strictly on target completions rather than prompt scaffolding.
-3. **Automated evaluation suite (`scripts/voice_eval.py`)**: A 48-item held-out test suite spanning Draft, Edit, Critique, Headline, Present, and Out-of-Distribution tasks, evaluated across 27 deterministic gates.
-4. **Round 8 scorecard (`experiment/voice-ft/eval/results/round8_scorecard.md`)**: The automated benchmark report tracking exact pass rates, confidence intervals, and failure mode categorizations across every check.
+1. **Curated dataset (`scripts/generate-ft-dataset.py`)**: A 132-example dataset generated from real git diffs of my editing, case studies, field notes, and other writing. It rigorously excluded held-out fixtures to eliminate data leakage.
+2. **LoRA training config (`experiment/voice-ft/config_r8.yaml`)**: Configured for MLX LoRA with rank 16, alpha 32, 16 adapter layers, cosine learning rate decay, and masked prompt loss (`mask_prompt: true`) so gradients updated strictly on target completions rather than prompt scaffolding.
+3. **Evals (`scripts/voice_eval.py`)**: A 48-item held-out test suite spanning Draft, Edit, Critique, Headline, Present, and Out-of-Distribution tasks, evaluated across 27 deterministic gates.
+4. **Scorecard (`experiment/voice-ft/eval/results/round8_scorecard.md`)**: The automated benchmark report tracking exact pass rates, confidence intervals, and failure mode categorizations across every check.
 
-Getting fine-tuning to work reliably on a laptop required two key practices:
+Getting fine-tuning to work reliably on my Macbook M4 Pro took two key changes so I didn't run out of memory:
 
 1. **Mask prompt loss (`--mask-prompt`)**: Standard training calculates loss across both the prompt and the response. On small datasets, this causes prompt echoing and rapid overfitting. Masking forces gradients to update exclusively on the desired assistant tokens.
 2. **Slice paragraphs (100–250 words)**: Instead of training on entire essays, I sliced drafts into micro-pairs. These pairs preserved exact metrics while reshaping sentence variety, colon pivots, and active phrasing.
 
-## Round 8 Evaluation Results
+## Evaluation Results
 
-Across the 48-item held-out evaluation suite in the Round 8 scorecard (`experiment/voice-ft/eval/results/round8_scorecard.md`), the fine-tuned adapter demonstrated significant quantitative improvements over earlier rounds and baseline prompting:
+Across the 48-item held-out evaluation suite in the scorecard (`experiment/voice-ft/eval/results/round8_scorecard.md`), the fine-tuned adapter demonstrated significant quantitative improvements over earlier rounds and baseline prompting:
 
-- **Overall Clean Pass Rate**: **42%** (20/48 items passed every error-level check; 95% CI 29–56%), up from **23% in Round 7** and **31% on base Gemma 4**.
-- **Em-Dash Removal (`G-EMDASH`)**: **100%** pass rate (48/48 items), completely eliminating em-dashes in favor of colons and semicolons.
-- **Headline Format Compliance (`G-HEADLINE-*`)**: **100%** pass rate across headline count, slot constraints, and length boundaries.
-- **Hype Suppression (`G-HYPE` & `G-AI-TELLS`)**: **98%** clean pass rate (47/48 items), systematically removing marketing superlatives and stock AI phrases.
+- **Clean Pass Rate**: **42%** (20/48 items passed every error-level check; 95% CI 29–56%), up from **23% in Round 7** and **31% on base Gemma 4**.
+- **Em-Dash Sanitize (`G-EMDASH`)**: **100%** pass rate (48/48 items), completely eliminating em-dashes in favor of colons and semicolons.
+- **Headline Format (`G-HEADLINE-*`)**: **100%** pass rate across headline count, slot constraints, and length boundaries.
+- **Hype Bench (`G-HYPE` & `G-AI-TELLS`)**: **98%** clean pass rate (47/48 items), systematically removing marketing superlatives and stock AI phrases.
 
-To see whether this made a practical difference, I designed a direct comparison across three pipelines on three distinct copy tasks.
+To see whether this made a practical difference, let's compare three approaches on copy writing tasks.
 
 ## Side-by-Side Experiments
-
-I tested three distinct setups:
 
 1. **Pipeline A (Base Frontier)**: Gemini 3.7 Flash with a standard zero-shot prompt.
 2. **Pipeline B (Prompted Skill)**: Gemini 3.7 Flash equipped with my full in-context voice rules.
