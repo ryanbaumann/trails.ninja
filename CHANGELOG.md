@@ -38,6 +38,8 @@ All notable changes to this project will be documented in this file.
   - Replaced generalized consensus opening with direct developer friction and tightened opening thesis.
   - Eliminated stock AI tells, meta-narratives ("I started where everyone starts"), and false antithesis flips.
   - Smoothed list introductions and pacing in Step 2 to eliminate repetitive colon-led setups.
+  - Executed live, verbatim generations across dedicated subagent pipelines (Gemini 3.7 Flash base zero-shot, Gemini 3.7 Flash prompted with voice skill, and fine-tuned Gemma 4 31B Dense Round 8 LoRA on Apple Silicon Metal) with compact brevity constraints (under 275 characters) for scannable comparison tables.
+  - Added responsive horizontal scrolling styles (`.table-scroll` container, touch scrolling, borders, styled headers) in `portfolio/style.css` for mobile viewports.
   - Restructured takeaways into "What I learned", "Where fine-tuning succeeded", "Where fine-tuning failed", and "The better path" with crisper trade-offs and modular pipeline guidance.
   - Rewrote verdict with punchy conclusions on human editorial judgment while strictly adhering to punctuation constraints.
 - Refined editorial essay rendering and stripped HTML comment cruft in `portfolio/build.mjs`:

@@ -51,9 +51,9 @@ Getting fine-tuning to work reliably on my Macbook M4 Pro took two key adjustmen
 Across the 48-item held-out evaluation suite, the fine-tuned adapter demonstrated significant quantitative improvements over earlier rounds and baseline prompting:
 
 - **Clean Pass Rate**: **54%** Gemma 4 31B Dense (26/48 items passed every error-level check; 95% CI 40–67%).
-- **Headline Format (`G-HEADLINE-*`)**: **100%** pass rate across count, variety, slot constraints, and length boundaries.
-- **Hype Bench (`G-HYPE` & `G-AI-TELLS`)**: **98%** clean pass rate (47/48 items), removing marketing superlatives and stock AI phrases.
-- **Em-Dash Suppression (`G-EMDASH`)**: **98%** pass rate (47/48 items) on 31B Dense and **100%** (48/48 items) on 26B-A4B MoE.
+- **Headline Format**: **100%** pass rate across count, variety, slot constraints, and length boundaries.
+- **Hype Bench**: **98%** clean pass rate (47/48 items), removing marketing superlatives and stock AI phrases.
+- **Em-Dash**: **98%** pass rate (47/48 items) on 31B Dense and **100%** (48/48 items) on 26B-A4B MoE.
 
 To see whether this made a practical difference on real examples, let's compare three approaches on copy writing tasks.
 
