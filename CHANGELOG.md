@@ -34,6 +34,12 @@ All notable changes to this project will be documented in this file.
 - Added canonical URL and OpenGraph / Twitter social metadata tags to `demos/infographic-agent/index.html` to pass production smoke test deployment assertions.
 
 ### Changed
+- Applied fine-tuned Gemma 4 31B Dense editorial critique recommendations to `can-i-build-an-ai-agent-that-doesnt-write-slop.md`:
+  - Replaced generalized consensus opening with direct developer friction and tightened opening thesis.
+  - Eliminated stock AI tells, meta-narratives ("I started where everyone starts"), and false antithesis flips.
+  - Smoothed list introductions and pacing in Step 2 to eliminate repetitive colon-led setups.
+  - Restructured takeaways into "What I learned", "Where fine-tuning succeeded", "Where fine-tuning failed", and "The better path" with crisper trade-offs and modular pipeline guidance.
+  - Rewrote verdict with punchy conclusions on human editorial judgment while strictly adhering to punctuation constraints.
 - Refined editorial essay rendering and stripped HTML comment cruft in `portfolio/build.mjs`:
   - Updated `markdownToHtml` and `writeMarkdownMirror` to cleanly strip HTML comments (`<!-- ... -->`) such as `<!-- lint-ignore -->` from rendered HTML output and markdown mirrors.
   - Enhanced blockquote parser to support multiline quote formatting separated by empty `>` lines.

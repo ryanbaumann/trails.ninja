@@ -2,6 +2,16 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-18 - Applying fine-tuned model editorial critique streamlines narrative velocity and strips subtle meta-narratives
+
+Context: Running the fine-tuned Gemma 4 31B Dense (Round 8 LoRA) model in editorial review mode over `can-i-build-an-ai-agent-that-doesnt-write-slop.md` to critique narrative structure, pacing, and AI tells.
+Learning:
+1. Editorial peer critique by a fine-tuned dense model effectively isolates subtle meta-narrative patterns ("I started where everyone starts", "I wanted to take my best stab at the problem") and false antithesis flips ("not X, but Y") that standard regex and prompt-based linters miss.
+2. Replacing generalized consensus openings ("We all know raw AI copy is bland...") with direct practitioner friction ("Fixing an agent's generic draft usually takes longer than writing from scratch") immediately establishes concrete narrative momentum.
+3. Restructuring section takeaways into explicit operational buckets ("Where fine-tuning succeeded", "Where fine-tuning failed", "The better path") sharpens technical trade-offs for builders without softening conclusions.
+Evidence: Content linter `npm run check:content` passed with 0 errors/warnings; full gateway test suite (169 passing) and smoke suite (21 passing) validated all routes and rendered markup.
+Use next time: Use the fine-tuned 31B Dense model in editorial critique mode on technical drafts to catch structural pacing friction and meta-commentary before publication.
+
 ## 2026-08-17 - Dense architecture scaling delivers 54% clean pass rate and perfect headline generation in voice LoRA fine-tuning
 
 Context: Fine-tuning Gemma 4 31B Dense on the grounded 132-item Round 8 SFT dataset (`adapters/gemma-4-31b-ryan-voice-v8`) after achieving 42% on Gemma 4 26B-A4B (MoE).

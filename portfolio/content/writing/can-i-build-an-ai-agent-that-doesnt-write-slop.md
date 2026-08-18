@@ -2,7 +2,7 @@
 title: Can I Build an AI Agent That Doesn't Write Slop?
 summary: I tested prompt engineering and model fine-tuning to see if an AI could act as a faithful copy editor. It's a step in the right direction, but nothing replaces good human judgment.
 date: 2026-08-15
-updated: 2026-08-17
+updated: 2026-08-18
 canonical: https://ryanbaumann.dev/writing/can-i-build-an-ai-agent-that-doesnt-write-slop/
 aliases: ["/writing/why-i-fine-tuned-a-26b-model-on-my-laptop-instead-of-prompting-frontier-apis/"]
 tags: ["ai", "evals", "field notes"]
@@ -16,17 +16,17 @@ shareSummary: I fine-tuned a model on my own writing. Tone transferred. Judgment
 shareImageAlt: "A share card illustrating the evaluation gap between automated code graders and human editorial judgment."
 ---
 
-We all know raw AI copy is bland and predictable: cheerful, generic, and full of buzzwords. But can an AI assistant still serve as a drafter and copy editor where I can hand over messy notes, get back a polished draft, and actually ship something good? I wanted to take my best stab at the problem; here's what I tried and learned.
+Raw AI copy is predictable: cheerful, generic, and full of buzzwords. Fixing an agent's generic draft usually takes longer than writing from scratch.
 
-The goal: a fast, private editing agent that understands my cadence, respects my numbers, and critiques my structure, while leaving me firmly in charge of narrative, tone, and judgment. I don't want an AI to write for me; I want a rubber duck that can keep up with my rambling thoughts and help me get them onto the page before the inspiration fades.
+I wanted a private editing agent that matches my cadence, preserves exact benchmark numbers, and challenges weak structure while leaving narrative judgment to me. Here is what worked across prompt engineering and local fine-tuning on Apple Silicon.
 
 ## Step 1: How far can we push context engineering?
 
-I started where everyone starts: system prompts and skills containing personal voice context guidelines. I wrote detailed skills and AGENTS.md rules forbidding em-dashes, stripping hype, adding few-shot examples of my own writing, enforcing active voice, and demanding first-person voice.
+I started with context engineering: system prompts and skill files containing personal voice guidelines. I wrote detailed rules forbidding em-dashes, stripping hype, adding few-shot examples of my own writing, enforcing active voice, and demanding first-person voice.
 
-Agents with this context followed the "never do this" negative constraints reasonably well: they stopped using announcement clichés and stripped out obvious marketing filler. But as the rule list grew, the output suffered a different failure mode: it was just stiff, dry, and repetitive. 
+Agents with this context followed negative constraints reliably: they stopped using announcement clichés and stripped out obvious marketing filler. But as the rule list grew, the writing became stiff, dry, and repetitive. 
 
-Some models are worse than others. I found Claude Opus 5 to be overly self-referential. GPT 5.6 Sol was good at technical syntax but felt robotic. Gemini 3.7 Flash was solid in comparison, but still fell back on stock AI turns like "it's not X, it's Y!". None of them felt like me, even for targeted copy-editing suggestions on an existing draft.  
+Some models struggled more than others. Claude Opus 5 leaned heavily into self-referential commentary. GPT 5.6 Sol handled technical syntax cleanly but felt robotic. Gemini 3.7 Flash was solid in comparison, but still fell back on stock AI turns like "it's not X, it's Y!". None of them felt like an authentic collaborator on an existing draft.  
 
 ## Step 2: Trying some model fine-tuning 
 
@@ -34,14 +34,14 @@ Research from the University of Michigan pointed me in a different direction. In
 
 I decided to test whether fine-tuning (using QLoRA on Apple Silicon) could teach an open-weight model my own editorial style. I set up an [open-source voice fine-tuning experiment](https://github.com/ryanbaumann/fieldwork/tree/main/experiment/voice-ft) using Gemma 4 series models (Gemma 4 26B-A4B and Gemma 4 31B Dense) because they are among the strongest open models available and compact enough to run locally. I ran the entire training and evaluation loop locally on my M4 Pro MacBook (48 GB unified memory). Keeping it local gave me privacy and fast iterations on training, with zero API costs.
 
-The key elements:
+The training setup centered on four components:
 
-1. **Curated dataset**: A 132-example dataset generated from real git diffs of my editing, case studies, field notes, and other writing. It rigorously excluded held-out fixtures to eliminate data leakage.
+1. **Curated dataset**: A 132-example dataset generated from real git diffs of my editing, case studies, field notes, and other writing. It excluded held-out fixtures to eliminate data leakage.
 2. **LoRA training config**: Configured for MLX LoRA with rank 16, alpha 32, 16 adapter layers, cosine learning rate decay, and masked prompt loss (`mask_prompt: true`) so gradients updated strictly on target completions rather than prompt scaffolding.
 3. **Evals**: A 48-item held-out test suite spanning Draft, Edit, Critique, Headline, Present, and Out-of-Distribution tasks, evaluated across 27 deterministic gates.
 4. **Scorecard**: An automated benchmark report tracking exact pass rates, confidence intervals, and failure mode categorizations across every check.
 
-Getting fine-tuning to work reliably on my Macbook M4 Pro took two key changes so I didn't run out of memory:
+Getting fine-tuning to work reliably on my Macbook M4 Pro took two key adjustments to prevent memory exhaustion:
 
 1. **Mask prompt loss (`--mask-prompt`)**: Standard training calculates loss across both the prompt and the response. On small datasets, this causes prompt echoing and rapid overfitting. Masking forces gradients to update exclusively on the desired assistant tokens.
 2. **Slice paragraphs (100–250 words)**: Instead of training on entire essays, I sliced drafts into micro-pairs. These pairs preserved exact metrics while reshaping sentence variety, colon pivots, and active phrasing.
@@ -117,36 +117,36 @@ The instructions: critique this draft against core writing & style standards.
 
 ![Three-stage editorial pipeline: Mechanical gates in CI catch em-dashes and banned hype deterministically in milliseconds; Structural flow with prompted models polishes sentence variety and momentum in seconds; Human judgment remains essential to decide real developer friction, honest credit, verifiable citations, and editorial taste.](/img/writing/can-i-build-an-ai-agent-that-doesnt-write-slop-gates.svg)
 
-## Learnings & Recommendations
+## What I learned
 
-Fine-tuning open models locally helped me build intuition about where model weights help, where context engineering is enough, and where you just need a human to do the hard editing work.
+Fine-tuning open models locally helped me build intuition about where model weights help, where context engineering is enough, and where you need human editorial judgment.
 
-### Fine-Tuning helped for:
+### Where fine-tuning succeeded
 
-1. **Cadence and phrasing**: The fine-tuned model absorbed natural sentence variety, colon pivots, and concise phrasing directly into its weights. It didn't need a thirty-line prompt telling it to avoid corporate cheerleading.
-2. **Number preservation**: In specific edit tasks, the fine-tuned model achieved 100% fact retention across our held-out test cases, never dropping latencies or dollar figures.
-3. **Better conversational critique**: When reviewing drafts, it offered feedback that felt like a technical peer rather than a pedantic style guide.
+1. **Cadence and phrasing**: Learned sentence variety, colon pivots, and concise phrasing directly into weights without a thirty-line prompt constraint.
+2. **Data integrity**: 100% retention on held-out benchmark metrics, preserving latencies and dollar figures without dropping numbers.
+3. **Peer tone**: Critique read like a technical collaborator challenging credit and demanding concrete mechanisms rather than a pedantic style guide.
 
-### Fine-Tuning didn't work well for:
+### Where fine-tuning failed
 
-1. **Editorial judgment**: A fine-tuned model cannot tell you if an opening lands on real developer friction or merely states a plausible premise. It cannot verify whether an engineering metric was measured accurately, or whether credit attributed to a team is genuine.
-2. **Citation hallucinations**: Style transfers cleanly; facts do not. When asked for supporting evidence, the model still attempted to generate plausible-sounding academic citations that failed offline arithmetic checks.
-3. **Maintenance overhead**: Curation, loss masking, and LoRA tuning require real effort. If your voice or focus shifts, you have to rebuild the dataset and retrain.
+1. **Editorial judgment**: Cannot verify if an opening lands on real developer friction, evaluate narrative weight, or confirm whether an engineering metric was measured accurately.
+2. **Hallucination**: Style transfers cleanly; facts do not. When asked for supporting evidence, the model still attempted to generate plausible-sounding academic citations that failed offline arithmetic checks.
+3. **Maintenance overhead**: Requires rebuilding the dataset and retraining when voice, topics, or focus change.
 
-### What I'd recommend
+### The better path
 
-If your goal is reliable editing assistance as you write, building a fine-tuned model might not be the most practical path. A modular pipeline of specific agentic checkers often delivers better results, faster, and with less friction:
+A modular pipeline of deterministic regex linters, a focused structural prompt, and offline link/citation checkers outperforms a single fine-tuned model for everyday writing workflows:
 
 - **A mechanical style linter**: Fast, deterministic regex checks for em-dashes, hype adjectives, and passive stock phrases.
 - **A structural flow checker**: A prompted model tasked exclusively with identifying weak openings, rambling paragraphs, and missing transitions.
 - **A factual and citation validator**: An offline validator that verifies links, checks arithmetic formats on arXiv IDs, and flags unsourced metrics.
 
-Separating these concerns into small, atomic checks is easier to debug, simpler to maintain, and does not require running a custom fine-tuning pipeline on your laptop. It also reinforces the human-in-the-loop steps that are essential to any good piece of writing. The author's judgment and voice remain the most important part.
+Separating these concerns into small, atomic checks is easier to debug, simpler to maintain, and avoids the overhead of managing local fine-tuning runs. It also reinforces the human-in-the-loop steps that are essential to any good piece of writing: the author's judgment and voice remain the primary driver.
 
-## So what's the verdict?
+## The verdict
 
-Is a locally fine-tuned AI ready to replace human editing? Not even close 😆. Human judgment remains the gold standard, and that is not going anywhere anytime soon.
+A locally fine-tuned model cannot replace a human editor. Not even close. Human judgment is still the gold standard.
 
-I learned a massive amount about local model fine-tuning, QLoRA, loss masking, and dataset curation. But the real craft of writing (deciding what matters, verifying the evidence, and earning the reader's attention) stays entirely with the author. As it should.
+I learned a lot about QLoRA, loss masking, and dataset curation during this build. But the real craft of writing (deciding what matters, verifying evidence, and earning attention) stays with the author. As it should.
 
-If you are experimenting with local fine-tuning or building automated checks for your own writing, I'd love to hear what workflows are working for you. Let me know in the comments!
+If you are running local fine-tuning or building automated checks for your writing, tell me what workflows are working for you in the comments.
