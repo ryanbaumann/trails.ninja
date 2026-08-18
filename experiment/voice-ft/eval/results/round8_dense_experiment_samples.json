@@ -1,0 +1,23 @@
+{
+  "task_1_product_announcement": {
+    "name": "Task 1: Product Announcement",
+    "task": "Edit",
+    "prompt": "Rewrite this corporate announcement in Ryan's active, direct builder voice. Keep every metric intact (62% reduction, 840ms to 310ms, $48,000 annualized spend, 14 services). Strip all hype words (\"thrilled to announce\", \"innovative\", \"cutting-edge\", \"world-class\", emojis). No em-dashes.\n\nSource:\n\"We are thrilled to announce that our platform engineering team has deployed an innovative, cutting-edge caching layer to deliver world-class reliability across our entire fleet. P99 latency was reduced by 62% (from 840ms down to 310ms) and annualized infrastructure spend was reduced by $48,000 across 14 services.\"",
+    "output": "Our platform team deployed a new caching layer across 14 services. P99 latency dropped 62%, moving from 840ms down to 310ms. We also cut annualized infrastructure spend by $48,000.",
+    "seconds": 8.29
+  },
+  "task_2_voice_memo": {
+    "name": "Task 2: Voice Memo to Outline",
+    "task": "Draft",
+    "prompt": "Turn this voice memo dictation into a clean technical opening for a blog post. Keep the numbers exact (2:00 PM, 2 seconds, 90 lines, 30 alarms to 2, 2 downstream consumers). No invented statistics or external studies. No em-dashes. Open with the problem directly.\n\nVoice memo:\n\"So yeah basically I was looking at why the queue was backing up every afternoon at 2pm and it turned out the workers were polling postgres every 2 seconds instead of using listen/notify, so we changed 90 lines of code and alarms dropped from 30 a week to 2, but the tricky part was making sure the two downstream consumers were idempotent before switching it over.\"",
+    "output": "Every day at 2:00 PM, our queue backed up. The root cause was simple: our workers polled Postgres every 2 seconds instead of using listen/notify. \n\nI changed 90 lines of code, and weekly alarms dropped from 30 to 2. The real challenge wasn't the syntax; it was ensuring our two downstream consumers were idempotent before we flipped the switch.",
+    "seconds": 10.47
+  },
+  "task_3_editorial_critique": {
+    "name": "Task 3: Editorial Critique and Review",
+    "task": "Critique",
+    "prompt": "Critique this draft paragraph against Ryan's writing rules. Point out the em-dash, the banned clich\u00e9 phrases, the credit overreach, and the false antithesis flip. Give specific, constructive feedback as a technical peer.\n\nDraft:\n\"It is not about the tooling, it is about the culture. I single-handedly overhauled the authentication architecture in six weeks \u2014 which was mission-critical \u2014 and the results speak for themselves. Adoption doubled because developers finally had a default that worked.\"",
+    "output": "This paragraph violates four of our core writing rules. Here is the technical breakdown:\n\n**1. The Em-Dash**\nYou used one to isolate \"which was mission-critical.\" Ryan does not use em-dashes. Replace it with a period or integrate the detail directly into the sentence.\n\n**2. Banned Clich\u00e9**\n\"The results speak for themselves\" is a filler phrase. It tells the reader nothing and obscures the actual evidence. If the results are good, name them; don't tell us they are speaking.\n\n**3. Credit Overreach**\n\"I single-handedly overhauled...\" sounds like a performance review, not a technical post. No one works in a vacuum. Even if you wrote every line of code, you had reviewers, stakeholders, and documentation. Credit the system or the team to maintain credibility.\n\n**4. The False Antithesis Flip**\n\"It is not about X, it is about Y\" is a lazy opening. It sets up a false dichotomy that feels like a LinkedIn thought-leader template rather than a real lesson.",
+    "seconds": 22.3
+  }
+}

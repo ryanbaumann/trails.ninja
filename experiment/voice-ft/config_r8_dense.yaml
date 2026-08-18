@@ -1,0 +1,45 @@
+# MLX LoRA fine-tuning, round 8. Gemma 4 31B Dense.
+#
+#   mlx_lm.lora --config experiment/voice-ft/config_r8_dense.yaml
+#
+# Round 8 Focus:
+#   - 119 diverse training pairs grounded on authentic portfolio writing, case studies, and talk architectures.
+#   - Incorporates user-reviewed gold edits and style signals (first-person builder agency, direct ends, user value).
+#   - Balanced representation across Draft, Edit, Critique, Headline, Present, and Abstention tasks.
+#   - Exact system prompt alignment with evaluation harness.
+#   - Masked prompt loss to update gradients strictly on the target assistant completion.
+#
+# Dataset: 119 train examples, batch 1. 180 iters = ~1.5 epochs.
+
+model: "models/gemma-4-31b-it-4bit"
+train: true
+data: "./experiment/voice-ft/training"
+
+fine_tune_type: lora
+num_layers: 16
+
+iters: 180
+batch_size: 1
+max_seq_length: 1536
+
+# Loss on the assistant turn only to prevent scaffold echoing.
+mask_prompt: true
+
+learning_rate: 3.5e-5
+lr_schedule:
+  name: cosine_decay
+  warmup: 15
+  warmup_init: 1.0e-7
+  arguments: [3.5e-5, 180, 1.0e-6]
+
+lora_parameters:
+  rank: 16
+  scale: 32.0
+  dropout: 0.05
+
+seed: 42
+adapter_path: "./adapters/gemma-4-31b-ryan-voice-v8"
+save_every: 45
+steps_per_eval: 9999
+steps_per_report: 10
+val_batches: 1
