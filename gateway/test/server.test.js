@@ -296,6 +296,7 @@ test('Real World Reasoning capability preflight is mounted under its Fieldwork A
       maps: true,
       gemini: true,
       hostedGemini: true,
+      mapsGrounding: true,
       groundingLite: true,
     });
     assert.match(response.res.headers['content-security-policy'], /default-src 'self'/);

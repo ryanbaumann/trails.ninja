@@ -68,14 +68,13 @@ Open **Connect Gemini** on the first screen (or **AI key** in the app header), p
 
 ## Local development
 
-Prerequisites: Node.js 20.19+ and a Google Cloud project with the Maps JavaScript, Places (New), Routes, Map Tiles, Geocoding, Air Quality, Weather, Pollen, Solar, Static Maps/Street View, and Maps Grounding Lite APIs enabled ([create API keys](https://console.cloud.google.com/google/maps-apis/credentials)), plus a [Gemini API key](https://aistudio.google.com/apikey).
+Prerequisites: Node.js 20.19+ and a Google Cloud project with the Maps JavaScript, Places (New), Routes, Map Tiles, Geocoding, Air Quality, Weather, Pollen, Solar, and Static Maps/Street View APIs enabled ([create API keys](https://console.cloud.google.com/google/maps-apis/credentials)), plus a [Gemini API key](https://aistudio.google.com/apikey) with Google Maps Grounding enabled.
 
 1. Create an ignored `.env` file and set:
    - `VITE_GMP_API_KEY` — restricted browser key for Maps JavaScript, Places (New), Routes, and Map Tiles.
    - `VITE_GMP_MAP_ID` — optional public map ID; Atlas uses Google's `DEMO_MAP_ID` when unset.
    - `GMP_SERVER_KEY` — server-side Google Maps Platform REST/static key.
-   - `GROUNDING_LITE_ENABLED=true` — explicit live-explorer opt-in after Grounding Lite enablement and key restrictions are verified.
-   - `GEMINI_KEY` — server-side Gemini key.
+   - `GEMINI_KEY` — server-side Gemini key (used for Gemini reasoning and Google Maps Grounding).
 
 2. Install and run:
 

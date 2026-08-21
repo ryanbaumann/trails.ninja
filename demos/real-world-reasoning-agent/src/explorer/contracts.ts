@@ -40,7 +40,7 @@ export type GroundingResult<T> =
   | { status: 'failure'; message: string; retryable: boolean }
   | { status: 'cancelled' };
 
-export interface GroundingLiteProvider {
+export interface MapsGroundingProvider {
   searchPlaces(input: {
     query: string;
     near: { lat: number; lng: number };
@@ -56,6 +56,8 @@ export interface GroundingLiteProvider {
     units: 'METRIC' | 'IMPERIAL';
   }, signal?: AbortSignal): Promise<GroundingResult<GroundedWeather>>;
 }
+
+export type GroundingLiteProvider = MapsGroundingProvider;
 
 export type ExplorerStage =
   | 'interpreting'
@@ -102,7 +104,7 @@ export interface ExplorerUpdate {
 }
 
 export interface ExplorerDependencies {
-  grounding: GroundingLiteProvider;
+  grounding: MapsGroundingProvider;
   displayRoutes?: RoutesProvider;
   now?: () => number;
 }

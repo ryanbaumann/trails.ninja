@@ -2,7 +2,7 @@ import { createExplorerFixture } from '@/explorer/fixtures';
 import { buildExplorerSurface } from '@/explorer/presenter';
 import { buildExplorerFallbackAnswer } from '@/explorer/answer';
 import { rerunExplorerRoutes, runExplorer } from '@/explorer/runtime';
-import type { ExplorerRun, ExplorerTravelMode, ExplorerUpdate, GroundingLiteProvider } from '@/explorer/contracts';
+import type { ExplorerRun, ExplorerTravelMode, ExplorerUpdate, MapsGroundingProvider } from '@/explorer/contracts';
 import type { ExplorerEvalTrace } from './types';
 
 export interface ExplorerEvalCase {
@@ -18,11 +18,11 @@ export interface ExplorerEvalCase {
 
 const baseInput = { origin: { lat: 1, lng: 2 }, surfaceId: 'universal-explorer' };
 
-function observeProvider(provider: GroundingLiteProvider) {
+function observeProvider(provider: MapsGroundingProvider) {
   const events: string[] = [];
   let activeRoutes = 0;
   let valid = true;
-  const observed: GroundingLiteProvider = {
+  const observed: MapsGroundingProvider = {
     async searchPlaces(input, signal) {
       if (events.length) valid = false;
       events.push('search');

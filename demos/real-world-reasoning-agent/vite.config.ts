@@ -1,8 +1,6 @@
 import { defineConfig, loadEnv, type ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
-// @ts-expect-error Shared server-side JavaScript guard intentionally has no declaration file.
-import { validateGroundingLiteCall } from './server/groundingLiteGate.mjs';
 // @ts-expect-error Shared server-side JavaScript auth helpers intentionally have no declaration file.
 import { GEMINI_BYOK_HEADER, selectGeminiCredential, validateGeminiCredential } from './server/lib.mjs';
 
@@ -12,14 +10,8 @@ const GMP_SOLUTION_ID = 'gmp_git_agentskills_v1';
 // uses server/index.mjs so server-only keys are never bundled into the client.
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const gmpKey = env.GMP_SERVER_KEY ?? '';
-  // Grounding Lite calls mapstools.googleapis.com server-to-server, so it needs a
-  // key with NO HTTP-referrer restriction — a referrer-locked key is rejected with
-  // "Requests from referer <empty> are blocked" and the whole Live path degrades to
-  // "Live unavailable". `server/index.mjs` already resolves this separately; dev has
-  // to agree with it or Live works in production and fails locally.
-  const gmpMcpKey = (env.GMP_MCP_KEY ?? '').trim() || gmpKey;
-  const geminiKey = env.GEMINI_KEY ?? '';
+  const gmpKey = env.GMP_SERVER_KEY ?? env.GMP_SERVER_API_KEY ?? '';
+  const geminiKey = env.GEMINI_KEY ?? env.GEMINI_API_KEY ?? '';
 
   const appendKey = (path: string, key: string): string => {
     const [base, query] = path.split('?');
@@ -42,7 +34,8 @@ export default defineConfig(({ mode }) => {
         res.end(JSON.stringify({
           maps: Boolean(gmpKey),
           gemini: Boolean(geminiKey),
-          groundingLite: Boolean(gmpMcpKey) && env.GROUNDING_LITE_ENABLED === 'true',
+          mapsGrounding: Boolean(geminiKey),
+          groundingLite: Boolean(geminiKey),
         }));
       });
     },
@@ -123,50 +116,9 @@ export default defineConfig(({ mode }) => {
     },
   });
 
-  const groundingLiteProxy = () => ({
-    name: 'atlas-grounding-lite-proxy',
-    configureServer(server: import('vite').ViteDevServer) {
-      server.middlewares.use('/api/real-world-reasoning-agent/gmp/grounding-lite/mcp', async (req, res) => {
-        if (req.method !== 'POST' || !gmpMcpKey) {
-          res.writeHead(req.method === 'POST' ? 500 : 405, { 'content-type': 'text/plain; charset=utf-8' });
-          res.end(req.method === 'POST' ? 'GMP server key is not configured' : 'Grounding Lite only accepts POST');
-          return;
-        }
-        try {
-          const chunks: Buffer[] = [];
-          let size = 0;
-          for await (const chunk of req) {
-            const item = Buffer.from(chunk);
-            size += item.length;
-            if (size > 64 * 1024) throw new Error('body_too_large');
-            chunks.push(item);
-          }
-          const body = Buffer.concat(chunks);
-          const parsed = JSON.parse(body.toString('utf8'));
-          if (!validateGroundingLiteCall(parsed)) {
-            res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8' });
-            res.end('MCP tool or arguments are not allowed');
-            return;
-          }
-          const upstream = await fetch('https://mapstools.googleapis.com/mcp', {
-            method: 'POST',
-            headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', 'X-Goog-Api-Key': gmpMcpKey },
-            body,
-          });
-          const response = Buffer.from(await upstream.arrayBuffer());
-          res.writeHead(upstream.status, { 'content-type': upstream.headers.get('content-type') ?? 'application/json' });
-          res.end(response);
-        } catch (error) {
-          res.writeHead(error instanceof Error && error.message === 'body_too_large' ? 413 : 400, { 'content-type': 'text/plain; charset=utf-8' });
-          res.end('Invalid Grounding Lite request');
-        }
-      });
-    },
-  });
-
   return {
     base: '/real-world-reasoning-agent/',
-    plugins: [capabilitiesPlugin(), geminiValidationPlugin(), react(), placePhotoProxy(), groundingLiteProxy()],
+    plugins: [capabilitiesPlugin(), geminiValidationPlugin(), react(), placePhotoProxy()],
     resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
     server: {
       proxy: {

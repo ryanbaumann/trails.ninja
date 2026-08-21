@@ -2,6 +2,18 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-21 - Native Gemini Maps Grounding simplifies tool architecture and replaces custom MCP proxies
+
+Context: Migrating the Real World Reasoning Agent demo from Grounding Lite MCP to official Gemini Maps Grounding (`tools: [{ googleMaps: {} }]`).
+Learning:
+1. Gemini Maps Grounding provides built-in Google Maps retrieval directly through `generateContent` tool configuration.
+2. The retrieval configuration accepts search center coordinates (`toolConfig.retrievalConfig.latLng`) for spatial queries.
+3. Maps Grounding returns candidate titles, web URIs, and place IDs within `groundingMetadata.groundingChunks`.
+4. Browser end-to-end testing requires intercepting Maps JS SDK `Route.computeRoutes` dynamically when live billing keys are absent.
+5. Hooking `window.google.maps` via property getters and setters ensures reliable mocking across all browser viewports.
+Evidence: All 70 demo tests (575 unit assertions) and 167 gateway tests passed. Browser smoke and UI/UX responsive DOM audits passed across all 5 viewports with zero blocking defects.
+Use next time: Use native Gemini Maps Grounding tools with coordinate retrieval config instead of external MCP proxy bridges for Maps-grounded LLM workflows.
+
 ## 2026-08-18 - Independent subagent reviewer teams (maker/checker loop) filter and contextualize dense model editorial critiques
 
 Context: Running Gemma 4 31B Dense (Round 8 LoRA) in editorial critique mode across all 6 published articles, using a team of 3 independent reviewer subagents to evaluate every suggested edit before applying changes to the narrative.

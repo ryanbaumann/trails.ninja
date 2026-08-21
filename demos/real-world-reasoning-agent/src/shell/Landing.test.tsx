@@ -30,7 +30,7 @@ async function flushEffects() {
 
 beforeEach(async () => {
   startExplorerJourney.mockClear();
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ maps: true, gemini: true, groundingLite: true }), {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ maps: true, gemini: true, mapsGrounding: true }), {
     status: 200,
     headers: { 'content-type': 'application/json' },
   })));

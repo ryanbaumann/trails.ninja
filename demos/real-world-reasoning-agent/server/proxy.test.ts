@@ -205,48 +205,16 @@ describe('/ai proxy quality gates', () => {
 
 describe('/capabilities preflight', () => {
   it('reports only whether live server capabilities are configured', async () => {
-    const port = await startServer({ GEMINI_KEY: 'dummy', GMP_SERVER_KEY: 'dummy', GROUNDING_LITE_ENABLED: 'true', GMP_RATE_LIMIT: '1000' });
+    const port = await startServer({ GEMINI_KEY: 'dummy', GMP_SERVER_KEY: 'dummy', GMP_RATE_LIMIT: '1000' });
     const response = await fetch(`http://127.0.0.1:${port}/capabilities`);
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ maps: true, gemini: true, groundingLite: true });
+    expect(await response.json()).toEqual({ maps: true, gemini: true, mapsGrounding: true, groundingLite: true });
   }, 25_000);
 
   it('fails closed when either server capability is absent', async () => {
     const port = await startServer({ GEMINI_KEY: '', GMP_SERVER_KEY: '', GMP_RATE_LIMIT: '1000' });
     const response = await fetch(`http://127.0.0.1:${port}/capabilities`);
-    expect(await response.json()).toEqual({ maps: false, gemini: false, groundingLite: false });
-  }, 25_000);
-});
-
-describe('/gmp/grounding-lite MCP gate', () => {
-  it('allows only the three bounded read-only tools without contacting upstream for rejected input', async () => {
-    const port = await startServer({ GMP_SERVER_KEY: 'dummy', GMP_RATE_LIMIT: '1000' });
-    const response = await fetch(`http://127.0.0.1:${port}/gmp/grounding-lite/mcp`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'delete_everything', arguments: {} } }),
-    });
-    expect(response.status).toBe(403);
-    expect(await response.text()).toMatch(/not allowed/i);
-  }, 25_000);
-
-  it('rejects non-POST transport calls', async () => {
-    const port = await startServer({ GMP_SERVER_KEY: 'dummy', GMP_RATE_LIMIT: '1000' });
-    const response = await fetch(`http://127.0.0.1:${port}/gmp/grounding-lite/mcp`);
-    expect(response.status).toBe(405);
-  }, 25_000);
-
-  it('rejects unknown arguments before any upstream request', async () => {
-    const port = await startServer({ GMP_SERVER_KEY: 'dummy', GMP_RATE_LIMIT: '1000' });
-    const response = await fetch(`http://127.0.0.1:${port}/gmp/grounding-lite/mcp`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: {
-        name: 'search_places', arguments: { text_query: 'coffee', arbitrary_radius: 999999 },
-      } }),
-    });
-    expect(response.status).toBe(403);
-    expect(await response.text()).toMatch(/arguments/i);
+    expect(await response.json()).toEqual({ maps: false, gemini: false, mapsGrounding: false, groundingLite: false });
   }, 25_000);
 });
 
