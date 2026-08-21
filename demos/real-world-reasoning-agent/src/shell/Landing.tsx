@@ -68,7 +68,7 @@ export function Landing() {
   const sampleCity = cities.find((item) => item.id === originalCityId.current) ?? cities[0];
   const liveStatus = capabilities?.mode === 'live' ? 'ready' : capabilities ? 'unavailable' : 'checking';
   const mapsReady = Boolean(
-    capabilities?.browserMaps && capabilities.serverMaps && capabilities.groundingLite && capabilities.online && capabilities.apiHealth === 'ok',
+    capabilities?.browserMaps && capabilities.serverMaps && capabilities.online && capabilities.apiHealth === 'ok',
   );
   const needsGemini = mapsReady && capabilities?.gemini === false;
   const hostedGemini = Boolean(capabilities?.gemini && credential.source !== 'byok');

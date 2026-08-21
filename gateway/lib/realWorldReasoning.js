@@ -1,4 +1,3 @@
-import { validateGroundingLiteCall } from './realWorldReasoningGate.js';
 import {
   clientIp,
   geminiRateLimiter,
@@ -587,11 +586,13 @@ export function createRealWorldReasoningHandler({
         const hasPersonalKey = Boolean(byokHeader && isPlausibleGeminiKey(byokHeader));
         const hostedHealthy = isHostedGeminiHealthy();
         const hostedAvailable = Boolean(hostedGeminiKey && hostedHealthy);
+        const geminiAvailable = hasPersonalKey || hostedAvailable;
         sendJson(response, 200, {
           maps: Boolean(gmpKey),
-          gemini: hasPersonalKey || hostedAvailable,
+          gemini: geminiAvailable,
           hostedGemini: hostedAvailable,
-          groundingLite: Boolean(gmpMcpKey) && config.groundingLiteEnabled,
+          mapsGrounding: geminiAvailable,
+          groundingLite: geminiAvailable,
         });
       }
       return true;
@@ -639,68 +640,6 @@ export function createRealWorldReasoningHandler({
         // Telemetry must never affect the request path.
       }
       sendText(response, 204, '');
-      return true;
-    }
-
-    if (path === '/gmp/grounding-lite/mcp') {
-      if (!config.groundingLiteEnabled) {
-        sendProxy(response, 'gmp', 503, 'Grounding Lite is not enabled', config);
-        return true;
-      }
-      if (!gmpMcpKey) {
-        sendProxy(response, 'gmp', 503, 'MCP key is not configured', config);
-        return true;
-      }
-      if (request.method !== 'POST') {
-        sendProxy(response, 'gmp', 405, 'Grounding Lite only accepts POST', config);
-        return true;
-      }
-      if (!sameOrigin(request) || !rate(request, 'gmp:mcp', config.mcpLimit, config.windowMs)) {
-        sendProxy(response, 'gmp', 429, 'The demo is busy right now — try again in a few minutes', config);
-        return true;
-      }
-      let body;
-      try {
-        body = await readBody(request, config.bodyCap);
-      } catch (error) {
-        sendProxy(
-          response,
-          'gmp',
-          error?.statusCode === 413 ? 413 : 400,
-          'Invalid request body',
-          config,
-        );
-        return true;
-      }
-      let call;
-      try {
-        call = JSON.parse(body.toString('utf8'));
-      } catch {
-        sendProxy(response, 'gmp', 400, 'Invalid MCP JSON', config);
-        return true;
-      }
-      if (!validateGroundingLiteCall(call)) {
-        sendProxy(response, 'gmp', 403, 'MCP tool or arguments are not allowed', config);
-        return true;
-      }
-      if (!takeDaily('mcp', config.dailyMcpCap)) {
-        sendProxy(response, 'gmp', 429, 'The shared Maps daily budget is exhausted', config);
-        return true;
-      }
-      await proxy({
-        request,
-        response,
-        target: new URL('https://mapstools.googleapis.com/mcp'),
-        fetchImpl,
-        config,
-        endpoint: 'gmp',
-        buffer: body,
-        rawHeaders: {
-          'content-type': 'application/json',
-          accept: 'application/json, text/event-stream',
-          'X-Goog-Api-Key': gmpMcpKey,
-        },
-      });
       return true;
     }
 

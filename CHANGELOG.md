@@ -17,6 +17,12 @@ All notable changes to this project will be documented in this file.
   - Round 8 SFT LoRA fine-tuning on Gemma 4 31B Dense (`adapters/gemma-4-31b-ryan-voice-v8`), achieving a new benchmark-high **54% clean pass rate** (26/48 items, 95% CI 40–67%) on the held-out suite (up from 44% in Round 6 Dense and 42% on 26B-A4B), with **100% Headline pass rate** (6/6 items), **80% Present pass rate** (4/5 items), **98% hype/AI-tell suppression**, **98% em-dash suppression**, and **94% verbatim echo resistance** (`G-ECHO`).
 
 ### Changed
+- **Real World Reasoning Agent: Gemini Maps Grounding Migration**:
+  - Migrated the Real World Reasoning Agent demo from Grounding Lite MCP to native Gemini Maps Grounding.
+  - Configured `tools: [{ googleMaps: {} }]` with retrieval coordinates on `generateContent` requests.
+  - Preserved first-party Routes and Weather provider delegation for candidate verification.
+  - Removed deprecated `/gmp/grounding-lite/mcp` routes and obsolete gate logic from the gateway and dev servers.
+  - Enabled the gateway free tier by default with server-hosted Gemini credentials.
 - Pinned `can-i-build-an-ai-agent-that-doesnt-write-slop.md` (`order: 1`) as the primary featured article on the homepage, and updated `portfolio/build.mjs` (`buildHome`) to deterministically sort pinned entries by `meta.order` ascending.
 - Standardized `portfolio/content/writing/can-i-build-an-ai-agent-that-doesnt-write-slop.md` to exclusively reference **Gemma 4 31B Dense** evaluation results and plain English benchmark descriptions (`Overall Clean Pass Rate`, `Headline Formatting`, `Marketing Hype Suppression`, `Em-Dash Elimination`), removing iteration numbers and internal benchmark labels.
 

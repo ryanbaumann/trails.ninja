@@ -1,5 +1,4 @@
 import { createServer } from 'node:http';
-import { validateGroundingLiteCall } from './groundingLiteGate.mjs';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { join, normalize, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,10 +20,6 @@ const root = normalize(join(__dirname, '..'));
 const dist = join(root, 'dist');
 const port = Number(process.env.PORT || 8080);
 const gmpKey = (process.env.GMP_SERVER_KEY || '').trim();
-// Separate unrestricted key for server-to-server MCP calls (no HTTP Referer).
-// Falls back to GMP_SERVER_KEY for backwards compatibility.
-const gmpMcpKey = (process.env.GMP_MCP_KEY || '').trim() || gmpKey;
-const groundingLiteEnabled = process.env.GROUNDING_LITE_ENABLED === 'true';
 const geminiKey = (process.env.GEMINI_KEY || '').trim();
 const aiLimit = Number(process.env.AI_RATE_LIMIT || 36000);
 const gmpLimit = Number(process.env.GMP_RATE_LIMIT || 180000);
@@ -175,28 +170,15 @@ createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
   if (url.pathname === '/capabilities') {
     if (req.method !== 'GET') return send(res, 405, 'Capabilities only accepts GET');
-    return sendJson(res, 200, { maps: Boolean(gmpKey), gemini: Boolean(geminiKey), groundingLite: Boolean(gmpMcpKey) && groundingLiteEnabled });
+    return sendJson(res, 200, {
+      maps: Boolean(gmpKey),
+      gemini: Boolean(geminiKey),
+      mapsGrounding: Boolean(geminiKey),
+      groundingLite: Boolean(geminiKey),
+    });
   }
   if (url.pathname.startsWith('/gmp/')) {
     if (!gmpKey) return send(res, 500, 'GMP server key is not configured');
-    if (url.pathname === '/gmp/grounding-lite/mcp') {
-      if (req.method !== 'POST') return sendProxy(res, 'gmp', 405, 'Grounding Lite only accepts POST');
-      if (!sameOrigin(req) || !rate(req, 'gmp', gmpLimit)) return sendProxy(res, 'gmp', 429, 'The demo is busy right now — try again in a few minutes');
-      let buf;
-      try { buf = await body(req); } catch (e) { return sendProxy(res, 'gmp', e.message === 'body_too_large' ? 413 : 400, 'Invalid request body'); }
-      let request;
-      try { request = JSON.parse(buf.toString('utf8')); } catch { return sendProxy(res, 'gmp', 400, 'Invalid MCP JSON'); }
-      if (!validateGroundingLiteCall(request)) return sendProxy(res, 'gmp', 403, 'MCP tool or arguments are not allowed');
-      if (!gmpMcpKey) return sendProxy(res, 'gmp', 500, 'MCP key is not configured');
-      // Server-to-server MCP call: authenticate via API key, NOT browser referer.
-      // Omit referer/origin entirely — an empty referer: '' header triggers key
-      // referer restrictions ('Requests from referer <empty> are blocked').
-      return proxy(req, res, new URL('https://mapstools.googleapis.com/mcp'), {
-        endpoint: 'gmp',
-        buffer: buf,
-        rawHeaders: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', 'X-Goog-Api-Key': gmpMcpKey },
-      });
-    }
     if (url.pathname === '/gmp/placephoto') {
       if (!sameOrigin(req) || !rate(req, 'gmp', gmpLimit * 10)) return sendProxy(res, 'gmp:photo', 429, 'The demo is busy right now — try again in a few minutes');
       const target = allowedPhotoTarget(url.searchParams.get('url') || ''); if (!target) return sendProxy(res, 'gmp:photo', 400, 'Unsupported photo URL');

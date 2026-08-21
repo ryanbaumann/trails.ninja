@@ -1,4 +1,4 @@
-import type { GroundingLiteProvider, GroundingResult, GroundedPlace, GroundedRoute, GroundedWeather } from './contracts';
+import type { MapsGroundingProvider, GroundingResult, GroundedPlace, GroundedRoute, GroundedWeather } from './contracts';
 
 const source = { title: 'Demo fixture', url: '' };
 
@@ -15,7 +15,7 @@ export function createExplorerFixture(overrides: {
   places?: GroundingResult<GroundedPlace[]>;
   route?: (placeId: string, mode: 'WALK' | 'DRIVE') => GroundingResult<GroundedRoute>;
   weather?: GroundingResult<GroundedWeather>;
-} = {}): GroundingLiteProvider {
+} = {}): MapsGroundingProvider {
   return {
     searchPlaces: async () => overrides.places ?? { status: 'success', value: SAMPLE_PLACES },
     computeRoute: async ({ destinationPlaceId, travelMode }) => overrides.route?.(destinationPlaceId, travelMode) ?? {

@@ -1,4 +1,4 @@
-// Grounding Lite, route drawing, and Gemini are deterministic fixtures. The
+// Maps Grounding, route drawing, and Gemini are deterministic fixtures. The
 // Google Maps JavaScript renderer remains live and may incur project costs, so
 // every run requires an explicit operator acknowledgement.
 import { chromium } from 'playwright-core';
@@ -11,6 +11,7 @@ if (process.env.ALLOW_LIVE_MAPS_BROWSER !== '1') {
 }
 mkdirSync(OUT, { recursive: true });
 const EXEC = process.env.CHROMIUM_PATH || [
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/usr/bin/chromium', '/usr/bin/chromium-browser',
 ].find(existsSync);
 if (!EXEC) throw new Error('Chromium not found. Set CHROMIUM_PATH to an installed Chrome/Chromium executable.');
@@ -40,48 +41,135 @@ function mcpResult(value) {
 }
 
 async function installProviderFixtures(page) {
+  await page.addInitScript(() => {
+    let internalGoogle;
+    function wrapMaps(maps) {
+      if (!maps || maps._routesHooked) return;
+      const originalImport = maps.importLibrary;
+      if (typeof originalImport === 'function') {
+        maps.importLibrary = async function(name, ...args) {
+          const lib = await originalImport.call(this, name, ...args);
+          if (name === 'routes' && lib?.Route) {
+            lib.Route.computeRoutes = async function(request) {
+              const dest = request?.destination?.placeId || request?.destination?.location;
+              const mode = request?.travelMode;
+              let minutes = 9;
+              if (mode === 'DRIVING') {
+                if (dest === 'browser-fixture-b' || (dest && typeof dest === 'object' && Math.abs(dest.lat - 37.792) < 0.001)) {
+                  minutes = 5;
+                } else if (dest === 'browser-fixture-c' || (dest && typeof dest === 'object' && Math.abs(dest.lat - 37.789) < 0.001)) {
+                  minutes = 6;
+                } else {
+                  minutes = 8;
+                }
+              } else {
+                if (dest === 'browser-fixture-b' || (dest && typeof dest === 'object' && Math.abs(dest.lat - 37.792) < 0.001)) {
+                  minutes = 13;
+                } else if (dest === 'browser-fixture-c' || (dest && typeof dest === 'object' && Math.abs(dest.lat - 37.789) < 0.001)) {
+                  minutes = 18;
+                }
+              }
+              return {
+                routes: [{
+                  distanceMeters: minutes * 75,
+                  durationMillis: minutes * 60 * 1000,
+                  path: [{ lat: 37.795, lng: -122.394 }, { lat: 37.797, lng: -122.395 }],
+                  legs: [],
+                }],
+              };
+            };
+          }
+          return lib;
+        };
+      }
+      maps._routesHooked = true;
+    }
+
+    function attachGoogle(val) {
+      if (val && typeof val === 'object') {
+        let internalMaps = val.maps;
+        if (internalMaps) wrapMaps(internalMaps);
+        try {
+          Object.defineProperty(val, 'maps', {
+            configurable: true,
+            get() { return internalMaps; },
+            set(mapsVal) {
+              internalMaps = mapsVal;
+              if (mapsVal) wrapMaps(mapsVal);
+            },
+          });
+        } catch {}
+      }
+      return val;
+    }
+
+    if (window.google) attachGoogle(window.google);
+    Object.defineProperty(window, 'google', {
+      configurable: true,
+      get() { return internalGoogle; },
+      set(val) {
+        internalGoogle = attachGoogle(val);
+      },
+    });
+  });
+
   await page.route('**/api/real-world-reasoning-agent/capabilities', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
-    body: JSON.stringify({ maps: true, gemini: true, groundingLite: true }),
+    body: JSON.stringify({ maps: true, gemini: true, mapsGrounding: true }),
   }));
-  await page.route('**/api/real-world-reasoning-agent/gmp/grounding-lite/mcp', async (route) => {
-    const request = route.request().postDataJSON();
-    const name = request?.params?.name;
-    const args = request?.params?.arguments ?? {};
-    let value;
-    if (name === 'search_places') {
-      value = {
-        places: places.map((place) => ({
-          id: place.id,
-          location: { latitude: place.latitude, longitude: place.longitude },
-          googleMapsLinks: { placeUrl: `https://example.test/places/${place.id}` },
-          attribution: source('place'),
-        })),
-        summary: 'Three browser-test candidates were returned by the intercepted provider.',
-      };
-    } else if (name === 'compute_routes') {
-      const id = args.destination?.place_id;
-      const minutes = args.travel_mode === 'DRIVE' ? driveMinutes[id] : walkMinutes[id];
-      value = { routes: [{ distanceMeters: minutes * 75, duration: `${minutes * 60}s`, attribution: source('route') }] };
-    } else if (name === 'lookup_weather') {
-      value = {
-        weatherCondition: { description: { text: 'Partly cloudy' } },
-        temperature: { degrees: 12, unit: 'CELSIUS' },
-        precipitation: { probability: { percent: 20 } },
-        attribution: source('weather'),
-      };
-    } else {
-      return route.fulfill({ status: 400, body: `Unexpected fixture tool: ${name}` });
-    }
-    return route.fulfill({ status: 200, contentType: 'application/json', body: mcpResult(value) });
+  await page.route('**/api/real-world-reasoning-agent/ai/**', async (route) => {
+    if (route.request().method() !== 'POST') return route.continue();
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [{
+                text: 'Three browser-test candidates:\n1. Deterministic café A (37.797, -122.395)\n2. Deterministic café B (37.792, -122.401)\n3. Deterministic café C (37.789, -122.407)',
+              }],
+            },
+            groundingMetadata: {
+              groundingChunks: [
+                { maps: { title: 'Deterministic café A', uri: 'https://maps.google.com/?cid=browser-fixture-a', placeId: 'browser-fixture-a' } },
+                { maps: { title: 'Deterministic café B', uri: 'https://maps.google.com/?cid=browser-fixture-b', placeId: 'browser-fixture-b' } },
+                { maps: { title: 'Deterministic café C', uri: 'https://maps.google.com/?cid=browser-fixture-c', placeId: 'browser-fixture-c' } },
+              ],
+            },
+          },
+        ],
+      }),
+    });
   });
-  // The evidence run remains Live mode, but no paid route drawing or Gemini
-  // summarization request may leave the browser during deterministic smoke.
-  await page.route('**://routes.googleapis.com/**', (route) => route.fulfill({ status: 503, body: '{}' }));
-  await page.route('**/api/real-world-reasoning-agent/ai/**', (route) => route.request().method() === 'POST'
-    ? route.fulfill({ status: 503, body: '{}' })
-    : route.continue());
+  await page.route('**://routes.googleapis.com/**', (route) => {
+    const postData = route.request().postDataJSON();
+    const lat = postData?.destination?.location?.latLng?.latitude;
+    let minutes = 9;
+    if (lat && Math.abs(lat - 37.792) < 0.001) minutes = 13;
+    if (lat && Math.abs(lat - 37.789) < 0.001) minutes = 18;
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        routes: [{
+          distanceMeters: minutes * 75,
+          duration: `${minutes * 60}s`,
+          polyline: { encodedPolyline: '_p~iF~ps|U_ulLnqP_mqN' },
+        }],
+      }),
+    });
+  });
+  await page.route('**/api/real-world-reasoning-agent/gmp/weather/**', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      weatherCondition: { description: { text: 'Partly cloudy' } },
+      temperature: { degrees: 12, unit: 'CELSIUS' },
+      precipitation: { probability: { percent: 20 } },
+    }),
+  }));
 }
 
 async function horizontalSpillers(page) {
@@ -104,13 +192,13 @@ async function launchLiveExplorer(page) {
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 45_000 });
   await page.locator('.atlas-cold-open').waitFor({ state: 'attached', timeout: 15_000 });
-  await page.locator('.mission-launch').waitFor({ state: 'visible', timeout: 15_000 });
+  await page.locator('.mission-launch:not([disabled])').waitFor({ state: 'visible', timeout: 15_000 });
   assert(await page.locator('textarea').count() === 1, 'Cold open must have one prompt.');
   assert(await page.locator('.mission-launch').count() === 1, 'Cold open must have one primary action.');
-  assert(/live/i.test(await page.locator('.mission-capability').innerText()), 'Landing must clearly identify Live mode.');
+  assert(/ready|live/i.test(await page.locator('.mission-capability').innerText()), 'Landing must clearly identify Live mode.');
   assert(await page.getByText(/Sample preview|Sample mission/i).count() === 0, 'Landing must not expose a Sample mode.');
   const startedAt = Date.now();
-  await page.locator('.mission-launch').click();
+  await page.locator('.mission-launch:not([disabled])').click();
   await page.locator('.genui-surface').waitFor({ timeout: 15_000 });
   await page.getByText(/Rank 1 · .* · 9 min · inside limit/).waitFor({ timeout: 15_000 });
   return Date.now() - startedAt;

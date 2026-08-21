@@ -9,7 +9,6 @@ import {
   REAL_WORLD_REASONING_PREFIX,
   validateRealWorldReasoningMetadata,
 } from '../lib/realWorldReasoning.js';
-import { validateGroundingLiteCall } from '../lib/realWorldReasoningGate.js';
 import {
   clientIp,
   createCircularBucketRateLimiter,
@@ -105,26 +104,6 @@ async function invoke({
   return { handled, request, response };
 }
 
-const validGroundingCall = {
-  jsonrpc: '2.0',
-  id: 1,
-  method: 'tools/call',
-  params: {
-    name: 'search_places',
-    arguments: {
-      text_query: 'coffee',
-      location_bias: {
-        circle: {
-          center: { latitude: 37.7, longitude: -122.4 },
-          radius_meters: 8_000,
-        },
-      },
-      language_code: 'en',
-      region_code: 'US',
-    },
-  },
-};
-
 test('handler claims only its namespaced prefix and reports configured capabilities', async () => {
   const handler = createRealWorldReasoningHandler({ logger: () => {} });
   const request = mockRequest();
@@ -158,6 +137,7 @@ test('handler claims only its namespaced prefix and reports configured capabilit
     maps: true,
     gemini: true,
     hostedGemini: true,
+    mapsGrounding: true,
     groundingLite: true,
   });
 });
@@ -193,66 +173,6 @@ test('rate buckets use the trusted Cloud Run client hop and ignore lone spoofabl
     headers: { ...options.headers, 'x-forwarded-for': 'different-attacker-value' },
   });
   assert.equal(second.response.statusCode, 429);
-});
-
-test('Grounding Lite gate allows only the bounded read-only tool shapes', () => {
-  assert.equal(validateGroundingLiteCall(validGroundingCall), true);
-  assert.equal(validateGroundingLiteCall({
-    ...validGroundingCall,
-    params: { name: 'delete_everything', arguments: {} },
-  }), false);
-  assert.equal(validateGroundingLiteCall({
-    ...validGroundingCall,
-    params: {
-      name: 'compute_routes',
-      arguments: {
-        origin: { lat_lng: { latitude: 91, longitude: 2 } },
-        destination: { place_id: 'p1' },
-        travel_mode: 'TRANSIT',
-      },
-    },
-  }), false);
-});
-
-test('Grounding Lite uses server-only key auth and preserves attribution payload bytes', async () => {
-  let upstream;
-  const payload = JSON.stringify({
-    jsonrpc: '2.0',
-    id: 1,
-    result: {
-      content: [{ type: 'text', text: 'Grounded answer' }],
-      attribution: [{ source: 'Google Maps', uri: 'https://maps.google.com/example' }],
-    },
-  });
-  const result = await invoke({
-    path: 'gmp/grounding-lite/mcp',
-    method: 'POST',
-    headers: {
-      origin: 'https://fieldwork.test',
-      referer: 'https://fieldwork.test/?prompt=private',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(validGroundingCall),
-    env: {
-      ...BASE_ENV,
-      GMP_MCP_KEY: 'mcp-test-key',
-      RWR_GROUNDING_LITE_ENABLED: 'true',
-    },
-    fetchImpl: async (url, init) => {
-      upstream = { url: String(url), init };
-      return new Response(payload, {
-        status: 200,
-        headers: { 'content-type': 'application/json' },
-      });
-    },
-  });
-
-  assert.equal(result.response.statusCode, 200);
-  assert.equal(result.response.text, payload);
-  assert.equal(upstream.url, 'https://mapstools.googleapis.com/mcp');
-  assert.equal(upstream.init.headers['X-Goog-Api-Key'], 'mcp-test-key');
-  assert.equal(Object.hasOwn(upstream.init.headers, 'referer'), false);
-  assert.equal(Object.hasOwn(upstream.init.headers, 'origin'), false);
 });
 
 test('all supported GMP product proxies add fixed Solution ID attribution', async (t) => {
@@ -768,6 +688,7 @@ test('hosted Gemini health changes capabilities and blocks hosted requests with 
     maps: true,
     gemini: true,
     hostedGemini: true,
+    mapsGrounding: true,
     groundingLite: true,
   });
 
@@ -780,7 +701,8 @@ test('hosted Gemini health changes capabilities and blocks hosted requests with 
     maps: true,
     gemini: false,
     hostedGemini: false,
-    groundingLite: true,
+    mapsGrounding: false,
+    groundingLite: false,
   });
 
   // When unhealthy but BYOK key is provided: gemini is true, hostedGemini is false
@@ -793,6 +715,7 @@ test('hosted Gemini health changes capabilities and blocks hosted requests with 
     maps: true,
     gemini: true,
     hostedGemini: false,
+    mapsGrounding: true,
     groundingLite: true,
   });
 

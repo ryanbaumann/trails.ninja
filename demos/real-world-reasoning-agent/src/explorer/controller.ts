@@ -3,7 +3,7 @@ import { CITIES } from '@/lib/cities';
 import { atlas } from '@/state/store';
 import { genui } from '@/genui/store';
 import { applyAtlasEffects } from '@/capabilities/atlasAdapter';
-import { groundingLiteProvider } from '@/services/groundingLite';
+import { mapsGroundingProvider } from '@/services/mapsGrounding';
 import { routesProvider } from '@/services/routes';
 import { createFixtureWorld } from '@/world/fixtures';
 import { createExplorerFixture } from './fixtures';
@@ -97,7 +97,7 @@ export function startExplorerJourney(input: {
     signal,
   };
   const dependencies: ExplorerDependencies = input.mode === 'live'
-    ? { grounding: groundingLiteProvider, displayRoutes: routesProvider }
+    ? { grounding: mapsGroundingProvider, displayRoutes: routesProvider }
     : { grounding: createExplorerFixture(), displayRoutes: demoDisplayRoutes() };
   activeInput = runInput;
   activeDependencies = dependencies;
