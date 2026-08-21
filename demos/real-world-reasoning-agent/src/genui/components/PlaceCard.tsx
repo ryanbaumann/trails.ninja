@@ -77,7 +77,6 @@ function PlaceUiKitDetails({ placeId }: { placeId: string }) {
 
       element = new (ctor as CustomElementConstructor)();
       element.className = 'genui-placecard__ui-kit';
-      (element as any).place = cleanPlaceId;
       element.setAttribute('place', cleanPlaceId);
       element.setAttribute('orientation', 'vertical');
       element.setAttribute('truncation-preferred', '');
@@ -89,7 +88,6 @@ function PlaceUiKitDetails({ placeId }: { placeId: string }) {
       ];
 
       const requestEl = document.createElement('gmp-place-details-place-request');
-      (requestEl as any).place = cleanPlaceId;
       requestEl.setAttribute('place', cleanPlaceId);
       element.appendChild(requestEl);
 

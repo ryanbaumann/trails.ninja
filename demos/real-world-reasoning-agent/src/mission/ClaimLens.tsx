@@ -149,11 +149,9 @@ function PlaceUiKitMount({ placeId }: { placeId: string }) {
       element = new (ctor as CustomElementConstructor)();
       element.className = 'claim-lens__ui-kit';
       element.setAttribute('orientation', 'horizontal');
-      (element as any).place = cleanPlaceId;
       element.setAttribute('place', cleanPlaceId);
 
       const requestEl = document.createElement('gmp-place-details-place-request');
-      (requestEl as any).place = cleanPlaceId;
       requestEl.setAttribute('place', cleanPlaceId);
       element.appendChild(requestEl);
 

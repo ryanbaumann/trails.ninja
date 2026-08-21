@@ -49,6 +49,7 @@ export interface MapsGroundingProvider {
   computeRoute(input: {
     origin: { lat: number; lng: number };
     destinationPlaceId: string;
+    destinationLocation?: { lat: number; lng: number };
     travelMode: ExplorerTravelMode;
   }, signal?: AbortSignal): Promise<GroundingResult<GroundedRoute>>;
   lookupWeather(input: {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Component, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 import {
   Map,
@@ -25,16 +25,67 @@ import { intentRequiresMode, resolveCamera } from './cameraDirector';
 import { AtlasMarker } from './AtlasMarker';
 import { MarkerPlaceCard } from './MarkerPlaceCard';
 
+export class MapErrorBoundary extends Component<{ children: ReactNode; fallback?: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: unknown) {
+    console.warn('[MapCanvas ErrorBoundary caught]', error);
+  }
+  componentDidUpdate(prevProps: { children: ReactNode }) {
+    if (this.state.hasError && prevProps.children !== this.props.children) {
+      this.setState({ hasError: false });
+    }
+  }
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback ?? null;
+    }
+    return this.props.children;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  const patchMarker = () => {
+    try {
+      const g = (window as any).google?.maps?.marker?.AdvancedMarkerElement;
+      if (g && !g.__mapSetterPatched) {
+        g.__mapSetterPatched = true;
+        const desc = Object.getOwnPropertyDescriptor(g.prototype, 'map');
+        if (desc?.set) {
+          const originalSet = desc.set;
+          Object.defineProperty(g.prototype, 'map', {
+            ...desc,
+            set(val) {
+              try {
+                originalSet.call(this, val);
+              } catch {
+                // Swallow internal Maps JS unmount error under raster fallback
+              }
+            },
+          });
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  };
+  patchMarker();
+  window.addEventListener('load', patchMarker);
+  setInterval(patchMarker, 500);
+}
+
 export function MapCanvas() {
   const scenarioId = useAtlas((s) => s.activeScenario);
   const mode = useAtlas((s) => s.mapMode);
   const Overlay = SCENARIOS[scenarioId].Overlay;
   return (
-    <>
+    <MapErrorBoundary>
       <MapLoadingSkeleton />
       {mode === '3d' ? <Scene3D /> : <Scene2D />}
       {Overlay && <Overlay />}
-    </>
+    </MapErrorBoundary>
   );
 }
 
@@ -105,7 +156,9 @@ function Scene2D() {
       clickableIcons={false}
       internalUsageAttributionIds={[USAGE_ATTRIBUTION_ID]}
     >
-      <Markers2D />
+      <MapErrorBoundary>
+        <Markers2D />
+      </MapErrorBoundary>
       <Routes2D />
       <Polygons2D />
       <MissionGeometry2D />
@@ -151,7 +204,7 @@ function Markers2D() {
     <>
       {markers.map((m) => (
         <AdvancedMarker
-          key={m.id}
+          key={`${m.id}-${m.position?.lat}-${m.position?.lng}-${m.glyph ?? ''}`}
           position={m.position}
           title={m.title}
           zIndex={m.id === selectedId ? 12 : m.kind === 'dot' ? 1 : 5}
@@ -452,7 +505,7 @@ function Markers3D() {
     <>
       {markers.map((m: MarkerSpec) => (
         <Marker3D
-          key={m.id}
+          key={`${m.id}-${m.position?.lat}-${m.position?.lng}-${m.glyph ?? ''}`}
           position={{ ...m.position, altitude: 40 }}
           label={m.title ?? m.glyph}
           title={m.title}

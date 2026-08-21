@@ -6,7 +6,7 @@
 import { chromium } from 'playwright-core';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 
-const BASE = process.env.SMOKE_URL || 'http://localhost:8080';
+const BASE = process.env.SMOKE_URL || 'http://localhost:8080/real-world-reasoning-agent/';
 const OUT = (process.env.AUDIT_OUT || '/tmp/atlas-audit').replace(/\/$/, '');
 if (process.env.ALLOW_LIVE_MAPS_BROWSER !== '1') {
   throw new Error('Set ALLOW_LIVE_MAPS_BROWSER=1 to acknowledge that the configured Maps JavaScript renderer may incur costs.');

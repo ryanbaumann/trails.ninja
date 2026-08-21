@@ -128,7 +128,15 @@ export const mapsGroundingProvider: MapsGroundingProvider = {
   async computeRoute(input, signal) {
     if (signal?.aborted) return { status: 'cancelled' };
     try {
-      const destination = input.destinationPlaceId;
+      const hasRealPlaceId = typeof input.destinationPlaceId === 'string' && (
+        input.destinationPlaceId.startsWith('ChIJ') ||
+        input.destinationPlaceId.startsWith('placeId:') ||
+        input.destinationPlaceId.startsWith('places/')
+      );
+      const destination = hasRealPlaceId
+        ? input.destinationPlaceId
+        : (input.destinationLocation ?? input.destinationPlaceId);
+
       const result = await routesProvider.computeRoute(
         { origin: input.origin, destination, travelMode: input.travelMode },
         {

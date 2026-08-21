@@ -156,7 +156,7 @@ describe('Gemini Maps Grounding provider', () => {
   });
 
   it('computes verified routes via routesProvider and formats attribution', async () => {
-    vi.spyOn(routesProvider, 'computeRoute').mockResolvedValueOnce({
+    const computeRouteSpy = vi.spyOn(routesProvider, 'computeRoute').mockResolvedValueOnce({
       status: 'success',
       value: {
         distanceMeters: 800,
@@ -169,15 +169,62 @@ describe('Gemini Maps Grounding provider', () => {
 
     const result = await mapsGroundingProvider.computeRoute({
       origin: { lat: 1, lng: 2 },
-      destinationPlaceId: 'place-abc',
+      destinationPlaceId: 'ChIJ11111',
+      destinationLocation: { lat: 3, lng: 4 },
       travelMode: 'WALK',
     });
+
+    expect(computeRouteSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        destination: 'ChIJ11111',
+      }),
+      expect.anything(),
+    );
 
     expect(result).toEqual({
       status: 'success',
       value: {
         distanceMeters: 800,
         durationSeconds: 600,
+        attribution: {
+          title: 'Google Maps Routes',
+          url: 'https://maps.google.com',
+        },
+      },
+    });
+  });
+
+  it('falls back to destinationLocation when destinationPlaceId is a synthetic id', async () => {
+    const computeRouteSpy = vi.spyOn(routesProvider, 'computeRoute').mockResolvedValueOnce({
+      status: 'success',
+      value: {
+        distanceMeters: 500,
+        durationSeconds: 300,
+        path: [{ lat: 1, lng: 2 }, { lat: 5, lng: 6 }],
+        legs: [],
+      },
+      evidence: { source: 'Google Maps Routes' } as never,
+    });
+
+    const result = await mapsGroundingProvider.computeRoute({
+      origin: { lat: 1, lng: 2 },
+      destinationPlaceId: 'grounded-place-1',
+      destinationLocation: { lat: 5, lng: 6 },
+      travelMode: 'DRIVE',
+    });
+
+    expect(computeRouteSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        destination: { lat: 5, lng: 6 },
+      }),
+      expect.anything(),
+    );
+
+    expect(result).toEqual({
+      status: 'success',
+      value: {
+        distanceMeters: 500,
+        durationSeconds: 300,
         attribution: {
           title: 'Google Maps Routes',
           url: 'https://maps.google.com',
