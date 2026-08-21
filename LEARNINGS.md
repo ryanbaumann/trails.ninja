@@ -11,8 +11,10 @@ Learning:
 3. Maps Grounding returns candidate titles, web URIs, and place IDs within `groundingMetadata.groundingChunks`.
 4. Browser end-to-end testing requires intercepting Maps JS SDK `Route.computeRoutes` dynamically when live billing keys are absent.
 5. Hooking `window.google.maps` via property getters and setters ensures reliable mocking across all browser viewports.
-Evidence: All 70 demo tests (575 unit assertions) and 167 gateway tests passed. Browser smoke and UI/UX responsive DOM audits passed across all 5 viewports with zero blocking defects.
-Use next time: Use native Gemini Maps Grounding tools with coordinate retrieval config instead of external MCP proxy bridges for Maps-grounded LLM workflows.
+6. Google Maps Places UI Kit web components (`<gmp-place-details-compact>`, `<gmp-place-details>`) only expose a property getter on `.place`. Assigning directly (`element.place = id`) throws `TypeError: Cannot set property place of #<...> which has only a getter`. Always use `element.setAttribute('place', id)`.
+7. `@vis.gl/react-google-maps` `AdvancedMarker` unmount in raster fallback mode (e.g. headless Playwright without hardware WebGL) can throw internal Maps JS errors during `marker.map = null`. Intercepting the `AdvancedMarkerElement.prototype.map` setter and wrapping map layers in a React `ErrorBoundary` prevents unmount errors from destabilizing the React component tree.
+Evidence: All 70 demo tests (576 unit assertions), 167 gateway tests, root smoke suite (21 assertions), and Playwright end-to-end mission smoke passed cleanly.
+Use next time: Use native Gemini Maps Grounding tools with coordinate retrieval config instead of external MCP proxy bridges; use `.setAttribute('place', ...)` on Places UI Kit elements; and protect map layers with Error Boundaries.
 
 ## 2026-08-18 - Independent subagent reviewer teams (maker/checker loop) filter and contextualize dense model editorial critiques
 

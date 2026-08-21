@@ -200,6 +200,7 @@ export async function runExplorer(
     const route = await dependencies.grounding.computeRoute({
       origin: input.origin,
       destinationPlaceId: place.id,
+      destinationLocation: place.location,
       travelMode: view.travelMode,
     }, input.signal);
     routed.push(route.status === 'success'
@@ -310,6 +311,7 @@ export async function rerunExplorerRoutes(
     const outcome = await dependencies.grounding.computeRoute({
       origin: input.origin,
       destinationPlaceId: place.id,
+      destinationLocation: place.location,
       travelMode,
     }, input.signal);
     routed.push(outcome.status === 'success'

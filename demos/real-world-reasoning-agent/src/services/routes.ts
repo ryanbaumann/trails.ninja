@@ -15,8 +15,25 @@ const TRAVEL: Record<TravelMode, google.maps.TravelModeString> = {
 
 type Loc = LatLng | string;
 
-function waypoint(loc: Loc): google.maps.routes.Waypoint | string {
-  return typeof loc === 'string' ? loc : { location: loc };
+function waypoint(loc: Loc): google.maps.routes.Waypoint {
+  if (typeof loc === 'string') {
+    const trimmed = loc.trim();
+    const latLngMatch = trimmed.match(/^(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)$/);
+    if (latLngMatch) {
+      return { location: { lat: parseFloat(latLngMatch[1]), lng: parseFloat(latLngMatch[3]) } };
+    }
+    if (trimmed.startsWith('placeId:')) {
+      return { placeId: trimmed.slice(8) } as unknown as google.maps.routes.Waypoint;
+    }
+    if (trimmed.startsWith('places/')) {
+      return { placeId: trimmed.slice(7) } as unknown as google.maps.routes.Waypoint;
+    }
+    if (trimmed.startsWith('ChIJ') || trimmed.startsWith('E')) {
+      return { placeId: trimmed } as unknown as google.maps.routes.Waypoint;
+    }
+    return { address: trimmed } as unknown as google.maps.routes.Waypoint;
+  }
+  return { location: loc };
 }
 
 function pathOf(pts: google.maps.LatLngAltitude[] | undefined): LatLng[] {

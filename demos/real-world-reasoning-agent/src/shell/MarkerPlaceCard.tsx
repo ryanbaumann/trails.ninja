@@ -122,11 +122,9 @@ function PlaceUiKitMount({ placeId, accent }: { placeId: string; accent: string 
       element.className = 'place-popover__ui-kit';
       element.setAttribute('orientation', 'horizontal');
       element.style.setProperty('--gmp-mat-color-primary', accent);
-      (element as any).place = cleanPlaceId;
       element.setAttribute('place', cleanPlaceId);
 
       const requestEl = document.createElement('gmp-place-details-place-request');
-      (requestEl as any).place = cleanPlaceId;
       requestEl.setAttribute('place', cleanPlaceId);
       element.appendChild(requestEl);
 

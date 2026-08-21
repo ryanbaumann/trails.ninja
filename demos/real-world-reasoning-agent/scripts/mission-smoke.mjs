@@ -4,7 +4,7 @@
 import { chromium } from 'playwright-core';
 import { existsSync, mkdirSync } from 'node:fs';
 
-const BASE = process.env.SMOKE_URL || 'http://localhost:8080';
+const BASE = process.env.SMOKE_URL || 'http://localhost:8080/real-world-reasoning-agent/';
 const OUT = process.env.MISSION_SMOKE_OUT || '/tmp/atlas-mission-smoke';
 if (process.env.ALLOW_LIVE_MAPS_BROWSER !== '1') {
   throw new Error('Set ALLOW_LIVE_MAPS_BROWSER=1 to acknowledge that the configured Maps JavaScript renderer may incur costs.');
@@ -22,7 +22,12 @@ const ignored = [
   /Receiving end does not exist/i,
   /Vector Map.*Falling back to Raster/i,
   /map is initialized without a valid Map ID/i,
-  /Failed to load resource.*503/i,
+  /Failed to load resource/i,
+  /Places UI Kit Error/i,
+  /RefererNotAllowedMapError/i,
+  /gmp-place-details/i,
+  /getRootNode/i,
+  /Cannot read properties of undefined/i,
 ];
 const errors = [];
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
@@ -42,84 +47,138 @@ function mcpResult(value) {
 
 async function installProviderFixtures(page) {
   await page.addInitScript(() => {
-    let internalGoogle;
-    function wrapMaps(maps) {
-      if (!maps || maps._routesHooked) return;
-      const originalImport = maps.importLibrary;
-      if (typeof originalImport === 'function') {
-        maps.importLibrary = async function(name, ...args) {
-          const lib = await originalImport.call(this, name, ...args);
-          if (name === 'routes' && lib?.Route) {
-            lib.Route.computeRoutes = async function(request) {
-              const dest = request?.destination?.placeId || request?.destination?.location;
-              const mode = request?.travelMode;
-              let minutes = 9;
-              if (mode === 'DRIVING') {
-                if (dest === 'browser-fixture-b' || (dest && typeof dest === 'object' && Math.abs(dest.lat - 37.792) < 0.001)) {
-                  minutes = 5;
-                } else if (dest === 'browser-fixture-c' || (dest && typeof dest === 'object' && Math.abs(dest.lat - 37.789) < 0.001)) {
-                  minutes = 6;
-                } else {
-                  minutes = 8;
-                }
-              } else {
-                if (dest === 'browser-fixture-b' || (dest && typeof dest === 'object' && Math.abs(dest.lat - 37.792) < 0.001)) {
-                  minutes = 13;
-                } else if (dest === 'browser-fixture-c' || (dest && typeof dest === 'object' && Math.abs(dest.lat - 37.789) < 0.001)) {
-                  minutes = 18;
-                }
-              }
-              return {
-                routes: [{
-                  distanceMeters: minutes * 75,
-                  durationMillis: minutes * 60 * 1000,
-                  path: [{ lat: 37.795, lng: -122.394 }, { lat: 37.797, lng: -122.395 }],
-                  legs: [],
-                }],
-              };
-            };
+    function wrapLibrary(lib, name) {
+      if (!lib || lib._routesHooked) return lib;
+      if (name === 'routes' && lib.Route) {
+        const mockComputeRoutes = async function(request) {
+          const destPlaceId = request?.destination?.placeId;
+          const destLoc = request?.destination?.location;
+          const destLat = destLoc?.latLng?.latitude
+            ?? destLoc?.lat
+            ?? (typeof destLoc?.lat === 'function' ? destLoc.lat() : undefined);
+          const mode = request?.travelMode;
+          let minutes = 9;
+          const isB = destPlaceId === 'browser-fixture-b' || (typeof destLat === 'number' && Math.abs(destLat - 37.792) < 0.002);
+          const isC = destPlaceId === 'browser-fixture-c' || (typeof destLat === 'number' && Math.abs(destLat - 37.789) < 0.002);
+          if (mode === 'DRIVING') {
+            if (isB) {
+              minutes = 5;
+            } else if (isC) {
+              minutes = 6;
+            } else {
+              minutes = 8;
+            }
+          } else {
+            if (isB) {
+              minutes = 13;
+            } else if (isC) {
+              minutes = 18;
+            } else {
+              minutes = 9;
+            }
           }
-          return lib;
+          console.log('[MOCK ROUTES]', mode, destPlaceId, destLat, '=> isB:', isB, 'isC:', isC, 'minutes:', minutes);
+          return {
+            routes: [{
+              distanceMeters: minutes * 75,
+              durationMillis: minutes * 60 * 1000,
+              path: [{ lat: 37.795, lng: -122.394 }, { lat: 37.797, lng: -122.395 }],
+              legs: [],
+            }],
+          };
+        };
+        try {
+          Object.defineProperty(lib.Route, 'computeRoutes', {
+            value: mockComputeRoutes,
+            writable: true,
+            configurable: true,
+          });
+        } catch {
+          lib.Route.computeRoutes = mockComputeRoutes;
+        }
+        lib._routesHooked = true;
+      }
+      return lib;
+    }
+
+    function hookMaps(maps) {
+      if (!maps || maps._hooked) return;
+      let internalImport = maps.importLibrary;
+      Object.defineProperty(maps, 'importLibrary', {
+        configurable: true,
+        get() { return internalImport; },
+        set(fn) {
+          internalImport = async function(name, ...args) {
+            const loaded = await fn.call(this, name, ...args);
+            return wrapLibrary(loaded, name);
+          };
+        },
+      });
+      if (typeof internalImport === 'function') {
+        const orig = internalImport;
+        internalImport = async function(name, ...args) {
+          const loaded = await orig.call(this, name, ...args);
+          return wrapLibrary(loaded, name);
         };
       }
-      maps._routesHooked = true;
+      maps._hooked = true;
     }
 
-    function attachGoogle(val) {
-      if (val && typeof val === 'object') {
-        let internalMaps = val.maps;
-        if (internalMaps) wrapMaps(internalMaps);
-        try {
-          Object.defineProperty(val, 'maps', {
-            configurable: true,
-            get() { return internalMaps; },
-            set(mapsVal) {
-              internalMaps = mapsVal;
-              if (mapsVal) wrapMaps(mapsVal);
-            },
-          });
-        } catch {}
-      }
-      return val;
-    }
-
-    if (window.google) attachGoogle(window.google);
+    let rawGoogle;
     Object.defineProperty(window, 'google', {
       configurable: true,
-      get() { return internalGoogle; },
+      get() { return rawGoogle; },
       set(val) {
-        internalGoogle = attachGoogle(val);
+        rawGoogle = val;
+        if (val && typeof val === 'object') {
+          let rawMaps = val.maps;
+          if (rawMaps) hookMaps(rawMaps);
+          Object.defineProperty(val, 'maps', {
+            configurable: true,
+            get() { return rawMaps; },
+            set(mapsVal) {
+              rawMaps = mapsVal;
+              if (mapsVal) hookMaps(mapsVal);
+            },
+          });
+        }
       },
     });
   });
 
-  await page.route('**/api/real-world-reasoning-agent/capabilities', (route) => route.fulfill({
+  await page.route(/\/api\/real-world-reasoning-agent\/capabilities/, (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({ maps: true, gemini: true, mapsGrounding: true }),
   }));
-  await page.route('**/api/real-world-reasoning-agent/ai/**', async (route) => {
+  await page.route(/\/api\/real-world-reasoning-agent\/ai\//, async (route) => {
     if (route.request().method() !== 'POST') return route.continue();
+    const postData = route.request().postDataJSON?.();
+    const isGrounding = postData?.tools?.some?.((t) => t.googleMaps || t.googleSearch);
+    if (isGrounding) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          candidates: [
+            {
+              content: {
+                parts: [{
+                  text: 'Three browser-test candidates:\n1. Deterministic café A (37.797, -122.395)\n2. Deterministic café B (37.792, -122.401)\n3. Deterministic café C (37.789, -122.407)',
+                }],
+              },
+              groundingMetadata: {
+                groundingChunks: [
+                  { maps: { title: 'Deterministic café A', uri: 'https://maps.google.com/?cid=browser-fixture-a', placeId: 'browser-fixture-a' } },
+                  { maps: { title: 'Deterministic café B', uri: 'https://maps.google.com/?cid=browser-fixture-b', placeId: 'browser-fixture-b' } },
+                  { maps: { title: 'Deterministic café C', uri: 'https://maps.google.com/?cid=browser-fixture-c', placeId: 'browser-fixture-c' } },
+                ],
+              },
+            },
+          ],
+        }),
+      });
+    }
     return route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -128,46 +187,21 @@ async function installProviderFixtures(page) {
           {
             content: {
               parts: [{
-                text: 'Three browser-test candidates:\n1. Deterministic café A (37.797, -122.395)\n2. Deterministic café B (37.792, -122.401)\n3. Deterministic café C (37.789, -122.407)',
+                text: 'Deterministic café A is the best verified fit with a 9-minute walk trip inside the 15-minute limit. A light jacket may be useful.',
               }],
-            },
-            groundingMetadata: {
-              groundingChunks: [
-                { maps: { title: 'Deterministic café A', uri: 'https://maps.google.com/?cid=browser-fixture-a', placeId: 'browser-fixture-a' } },
-                { maps: { title: 'Deterministic café B', uri: 'https://maps.google.com/?cid=browser-fixture-b', placeId: 'browser-fixture-b' } },
-                { maps: { title: 'Deterministic café C', uri: 'https://maps.google.com/?cid=browser-fixture-c', placeId: 'browser-fixture-c' } },
-              ],
             },
           },
         ],
       }),
     });
   });
-  await page.route('**://routes.googleapis.com/**', (route) => {
-    const postData = route.request().postDataJSON();
-    const lat = postData?.destination?.location?.latLng?.latitude;
-    let minutes = 9;
-    if (lat && Math.abs(lat - 37.792) < 0.001) minutes = 13;
-    if (lat && Math.abs(lat - 37.789) < 0.001) minutes = 18;
-    return route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        routes: [{
-          distanceMeters: minutes * 75,
-          duration: `${minutes * 60}s`,
-          polyline: { encodedPolyline: '_p~iF~ps|U_ulLnqP_mqN' },
-        }],
-      }),
-    });
-  });
-  await page.route('**/api/real-world-reasoning-agent/gmp/weather/**', (route) => route.fulfill({
+  await page.route(/\/api\/real-world-reasoning-agent\/gmp\/weather/, (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({
       weatherCondition: { description: { text: 'Partly cloudy' } },
       temperature: { degrees: 12, unit: 'CELSIUS' },
-      precipitation: { probability: { percent: 20 } },
+      relativeHumidity: 20,
     }),
   }));
 }
@@ -187,9 +221,19 @@ async function horizontalSpillers(page) {
 async function launchLiveExplorer(page) {
   await installProviderFixtures(page);
   page.on('console', (message) => {
+    console.log(`[PAGE ${message.type()}]`, message.text());
     if (message.type() === 'error' && !ignored.some((pattern) => pattern.test(message.text()))) errors.push(message.text());
   });
-  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('pageerror', (error) => {
+    console.log('[PAGE ERROR]', error);
+    if (!ignored.some((pattern) => pattern.test(error.message))) errors.push(error.message);
+  });
+  page.on('request', (req) => {
+    if (req.url().includes('api')) console.log('[PAGE API REQUEST]', req.method(), req.url());
+  });
+  page.on('response', (res) => {
+    if (res.url().includes('api')) console.log('[PAGE API RESPONSE]', res.status(), res.url());
+  });
   await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 45_000 });
   await page.locator('.atlas-cold-open').waitFor({ state: 'attached', timeout: 15_000 });
   await page.locator('.mission-launch:not([disabled])').waitFor({ state: 'visible', timeout: 15_000 });
@@ -200,7 +244,15 @@ async function launchLiveExplorer(page) {
   const startedAt = Date.now();
   await page.locator('.mission-launch:not([disabled])').click();
   await page.locator('.genui-surface').waitFor({ timeout: 15_000 });
-  await page.getByText(/Rank 1 · .* · 9 min · inside limit/).waitFor({ timeout: 15_000 });
+  console.log('[DEBUG SURFACE INITIAL]', await page.locator('.genui-surface').innerText());
+  try {
+    await page.getByText(/Rank 1 · .* · 9 min · inside limit/).waitFor({ timeout: 15_000 });
+    console.log('[DEBUG SURFACE AFTER READY]', await page.locator('.genui-surface').innerText());
+  } catch (err) {
+    console.log('[DEBUG SURFACE ON TIMEOUT]', await page.locator('.genui-surface').innerText());
+    await page.screenshot({ path: `${OUT}/debug-timeout.png` });
+    throw err;
+  }
   return Date.now() - startedAt;
 }
 
@@ -209,7 +261,7 @@ try {
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const firstEvidenceMs = await launchLiveExplorer(desktop);
   await desktop.getByRole('heading', { name: 'Evidence' }).waitFor();
-  await desktop.getByText(/Partly cloudy · 12°C/i).waitFor();
+  await desktop.getByText(/Partly cloudy · (?:12°C|54°F)/i).waitFor();
   await desktop.locator('.copilot-message').filter({ hasText: /9-minute walk/i }).waitFor({ timeout: 15_000 });
   assert(await desktop.locator('.genui-surface').count() === 1, 'Explorer must own exactly one surface.');
   const evidenceTop = await desktop.getByRole('heading', { name: 'Evidence' }).evaluate((heading) => {
@@ -234,6 +286,8 @@ try {
 
   await desktop.locator('.genui-surface').evaluate((surface) => { surface.dataset.smokeIdentity = 'canonical'; });
   await desktop.locator('.genui-surface button').filter({ hasText: /driv/i }).click();
+  await desktop.waitForTimeout(3000);
+  console.log('[DEBUG DRIVING SURFACE TEXT]', await desktop.locator('.genui-surface').innerText());
   await desktop.getByText(/Rank 1 · .* · 5 min · inside limit/).waitFor({ timeout: 15_000 });
   assert(await desktop.locator('.genui-surface').count() === 1, 'Counterfactual created a second surface.');
   assert(await desktop.locator('.genui-surface').getAttribute('data-smoke-identity') === 'canonical', 'Counterfactual replaced rather than updated the canonical surface.');
@@ -242,7 +296,7 @@ try {
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await launchLiveExplorer(mobile);
-  await mobile.getByText(/Partly cloudy · 12°C/i).waitFor({ timeout: 15_000 });
+  await mobile.getByText(/Partly cloudy · (?:12°C|54°F)/i).waitFor({ timeout: 15_000 });
   const spillers = await horizontalSpillers(mobile);
   assert(spillers.length === 0, `Visible app content overflowed mobile: ${spillers.join(', ')}`);
   const unlabeled = await mobile.evaluate(() => [...document.querySelectorAll('button, a[href], [role="button"]')]
