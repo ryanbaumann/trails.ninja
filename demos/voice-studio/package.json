@@ -10,7 +10,7 @@
     "test": "npm run build"
   },
   "dependencies": {
-    "vite": "^8.0.16"
+    "vite": "^8.2.2"
   },
   "engines": {
     "node": ">=20"
