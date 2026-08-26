@@ -1,15 +1,17 @@
 import { defineConfig, loadEnv, type ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
+import { resolve } from 'node:path';
 // @ts-expect-error Shared server-side JavaScript auth helpers intentionally have no declaration file.
 import { GEMINI_BYOK_HEADER, selectGeminiCredential, validateGeminiCredential } from './server/lib.mjs';
 
 const GMP_SOLUTION_ID = 'gmp_git_agentskills_v1';
+const REPO_ROOT = resolve(fileURLToPath(new URL('.', import.meta.url)), '../..');
 
 // Dev-only proxies for CORS-blocked Google REST APIs and Gemini. Production
 // uses server/index.mjs so server-only keys are never bundled into the client.
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
+  const env = { ...loadEnv(mode, REPO_ROOT, ''), ...loadEnv(mode, process.cwd(), '') };
   const gmpKey = env.GMP_SERVER_KEY ?? env.GMP_SERVER_API_KEY ?? '';
   const geminiKey = env.GEMINI_KEY ?? env.GEMINI_API_KEY ?? '';
 
@@ -118,6 +120,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: '/real-world-reasoning-agent/',
+    envDir: REPO_ROOT,
     plugins: [capabilitiesPlugin(), geminiValidationPlugin(), react(), placePhotoProxy()],
     resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
     server: {

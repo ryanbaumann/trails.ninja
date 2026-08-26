@@ -15,7 +15,9 @@ import { List } from './components/List';
 import { ChoicePicker } from './components/ChoicePicker';
 import { StatGrid } from './components/StatGrid';
 import { PlaceCard } from './components/PlaceCard';
+import { PlaceDetailsCompact } from './components/PlaceDetailsCompact';
 import { MapPreview } from './components/MapPreview';
+import { GoogleMap } from './components/GoogleMap';
 import { AdCreative } from './components/AdCreative';
 import { Image } from './components/Image';
 import { Video } from './components/Video';
@@ -42,7 +44,9 @@ export const CATALOG: Record<string, CatalogComponent> = {
   ChoicePicker,
   StatGrid,
   PlaceCard,
+  PlaceDetailsCompact,
   MapPreview,
+  GoogleMap,
   AdCreative,
   Image,
   Video,

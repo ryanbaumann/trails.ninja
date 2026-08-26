@@ -4,6 +4,17 @@ All notable changes to the **Atlas — AI-Native Map** demo project.
 
 ## [Unreleased]
 
+- **Maps Agentic UI Toolkit (MAUI) & A2UI v1.0 Upgrade**: Upgraded GenUI integration to support the official MAUI v1.0 protocol specification (`a2ui://maps-agentic-ui-catalog.json` / `googlemaps/a2ui` v1.0.0):
+  - **Single-Message Surface Instantiation**: Added support for single-message `createSurface` payloads containing embedded `components` and `dataModel` arrays, reducing envelope chatter while maintaining full backward compatibility with incremental multi-message sequences.
+  - **Component Schema Alignment**: Added `GoogleMap` (supporting `center`, `zoom`, `tilt`, `mode`, `heading`, `mapId`, `gestureHandling`, `anchorMarker`, `markers`, `routes`) and `PlaceDetailsCompact` (supporting `placeId`, `orientation`: `"horizontal"` | `"vertical"`) components in catalog and runtime validator.
+  - **Skills & Golden Testing**: Added `.agents/skills/google-maps-a2ui/SKILL.md` skill documentation and comprehensive golden render tests.
+
+- **Agent Thinking & Loading State Overhaul**: Redesigned real-time feedback during Gemini reasoning and tool execution:
+  - **Chronological Message Flow**: Anchored user prompts at the top with the active thinking panel directly beneath it in natural reading order.
+  - **Dynamic Stage & Phase Badges**: Added visual phase labels (`GEMINI REASONING`, `TOOL EXECUTION`, `IMAGERY GENERATION`), animated meter sweeps, and elapsed timer.
+  - **Real-Time Prose Streaming**: Enabled streaming markdown tokens with animated cursor without waiting for turn completion.
+  - **Mobile Layout Polish**: Fixed header clearance to avoid overlap with site navigation on mobile screens, and ensured all touch targets meet or exceed 44×44px.
+
 - **Model upgrade to Gemini 3.7**: Upgraded default model routing across the app and gateway to `gemini-3.7-flash`:
   - **Atlas Copilot Orchestration**: `gemini-3.7-flash` configured with **HIGH** thinking (`ThinkingLevel.HIGH`, tunable to `MEDIUM`/`LOW`) for multi-step map-native reasoning and tool planning.
   - **Task Agents & Fast Workers**: `gemini-3.7-flash` with **LOW** thinking (`ThinkingLevel.LOW`) for latency-critical paths (formatting, followup suggestion chips, grounded briefs, voice STT transcription), eliminating HTTP 400 Bad Request errors caused by unsupported `minimal` thinking on 3.7 Flash.

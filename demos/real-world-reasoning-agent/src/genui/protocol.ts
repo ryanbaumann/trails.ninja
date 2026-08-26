@@ -8,6 +8,7 @@
  */
 
 export const ATLAS_CATALOG_ID = 'atlas://maps-agentic-ui-catalog';
+export const MAUI_CATALOG_ID = 'a2ui://maps-agentic-ui-catalog.json';
 
 /** Data-model binding: read the value at a JSON-pointer-ish path. */
 export interface DataBinding {
@@ -29,19 +30,27 @@ export interface ComponentNode {
 }
 
 export interface CreateSurfaceMsg {
-  version: 'v0.9';
-  createSurface: { surfaceId: string; catalogId: string; theme?: unknown; sendDataModel?: boolean };
+  version: 'v0.9' | 'v1.0';
+  createSurface: {
+    surfaceId: string;
+    catalogId: string;
+    theme?: unknown;
+    surfaceProperties?: unknown;
+    sendDataModel?: boolean;
+    components?: ComponentNode[];
+    dataModel?: unknown;
+  };
 }
 export interface UpdateComponentsMsg {
-  version: 'v0.9';
+  version: 'v0.9' | 'v1.0';
   updateComponents: { surfaceId: string; components: ComponentNode[] };
 }
 export interface UpdateDataModelMsg {
-  version: 'v0.9';
+  version: 'v0.9' | 'v1.0';
   updateDataModel: { surfaceId: string; path?: string; value?: unknown };
 }
 export interface DeleteSurfaceMsg {
-  version: 'v0.9';
+  version: 'v0.9' | 'v1.0';
   deleteSurface: { surfaceId: string };
 }
 
@@ -76,6 +85,9 @@ export const CATALOG_COMPONENT_NAMES = new Set<string>([
   'MapPreview',
   'AdCreative',
   'Video',
+  // Official Maps Agentic UI Toolkit (MAUI) components
+  'GoogleMap',
+  'PlaceDetailsCompact',
   // Journey-proven "Atlas A2UI v0.9 subset" additions (see promptGuide.ts).
   'ProgressStatus',
   'RecoverableError',
@@ -111,12 +123,32 @@ export const COMPONENT_PROP_SPEC: Record<string, Record<string, PropSpec>> = {
   Text: { text: { type: 'string', required: true } },
   Image: { url: { type: 'string', required: true }, alt: { type: 'string' } },
   Video: { url: { type: 'string', required: true } },
-  PlaceCard: { placeId: { type: 'string', required: true } },
+  PlaceCard: {
+    placeId: { type: 'string', required: true },
+    orientation: { type: 'string' },
+  },
+  PlaceDetailsCompact: {
+    placeId: { type: 'string', required: true },
+    orientation: { type: 'string' },
+  },
   MapPreview: {
     lat: { type: 'number', required: true },
     lng: { type: 'number', required: true },
     zoom: { type: 'number' },
     label: { type: 'string' },
+  },
+  GoogleMap: {
+    center: { type: 'object' },
+    zoom: { type: 'number' },
+    tilt: { type: 'number' },
+    mode: { type: 'string' },
+    heading: { type: 'number' },
+    mapId: { type: 'string' },
+    gestureHandling: { type: 'string' },
+    anchorMarker: { type: 'object' },
+    markers: { type: 'array' },
+    routes: { type: 'array' },
+    travelMode: { type: 'string' },
   },
   Button: { child: { type: 'string', required: true } },
   AdCreative: {
@@ -321,7 +353,7 @@ export function validateMessages(raw: unknown, existingSurfaces?: Set<string>): 
   const batchComponents = new Map<string, Record<string, ComponentNode>>();
 
   if (!Array.isArray(raw)) {
-    return { ok: false, errors: ['messages must be a JSON array of A2UI v0.9 messages'], messages: [] };
+    return { ok: false, errors: ['messages must be a JSON array of A2UI messages'], messages: [] };
   }
 
   raw.forEach((m, i) => {
@@ -330,8 +362,8 @@ export function validateMessages(raw: unknown, existingSurfaces?: Set<string>): 
       errors.push(`${at}: must be an object`);
       return;
     }
-    if (m.version !== 'v0.9') {
-      errors.push(`${at}: version must be the literal "v0.9"`);
+    if (m.version !== 'v0.9' && m.version !== 'v1.0') {
+      errors.push(`${at}: version must be "v0.9" or "v1.0"`);
       return;
     }
     const ops = Object.keys(m).filter((k) => ['createSurface', 'updateComponents', 'updateDataModel', 'deleteSurface'].includes(k));
@@ -348,10 +380,41 @@ export function validateMessages(raw: unknown, existingSurfaces?: Set<string>): 
         return;
       }
       if (typeof body.catalogId !== 'string') {
-        errors.push(`${at}.createSurface: needs a string catalogId (use "${ATLAS_CATALOG_ID}")`);
+        errors.push(`${at}.createSurface: needs a string catalogId (use "${ATLAS_CATALOG_ID}" or "${MAUI_CATALOG_ID}")`);
         return;
       }
       known.add(body.surfaceId);
+      if (Array.isArray(body.components)) {
+        body.components.forEach((c, j) => {
+          if (!isRecord(c)) {
+            errors.push(`${at}.createSurface.components[${j}]: must be an object`);
+            return;
+          }
+          if (typeof c.component !== 'string') {
+            errors.push(`${at}.createSurface.components[${j}]: missing "component" name`);
+            return;
+          }
+          if (typeof c.id !== 'string') {
+            errors.push(`${at}.createSurface.components[${j}] (${c.component}): missing string "id"`);
+          }
+          if (!CATALOG_COMPONENT_NAMES.has(c.component)) {
+            errors.push(
+              `${at}.createSurface.components[${j}]: unknown component "${c.component}". Known: ${[...CATALOG_COMPONENT_NAMES].join(', ')}`,
+            );
+          } else {
+            errors.push(...validateComponentProps(c, `${at}.createSurface`, j));
+          }
+          if (c.id === ROOT_ID) rootedSurfaces.add(body.surfaceId as string);
+          if (typeof c.id === 'string' && typeof c.component === 'string') {
+            const components = batchComponents.get(body.surfaceId as string) ?? {};
+            if (components[c.id]) {
+              errors.push(`${at}.createSurface.components[${j}]: duplicate component id "${c.id}" in this batch`);
+            }
+            components[c.id] = c as unknown as ComponentNode;
+            batchComponents.set(body.surfaceId as string, components);
+          }
+        });
+      }
       messages.push(m as unknown as CreateSurfaceMsg);
       return;
     }

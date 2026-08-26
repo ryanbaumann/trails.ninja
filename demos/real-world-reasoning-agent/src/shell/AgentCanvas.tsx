@@ -176,6 +176,10 @@ export function AgentCanvas() {
         onWheel={onUserScrollIntent}
         onTouchStart={onUserScrollIntent}
       >
+        {msgs.map((m, i) => (
+          <Message key={m.id} msg={m} nextMsg={msgs[i + 1]} scenario={scenario} />
+        ))}
+
         {active && (
           <ActiveWorkPanel
             telemetry={telemetry}
@@ -195,10 +199,6 @@ export function AgentCanvas() {
             }
           />
         )}
-
-        {msgs.map((m, i) => (
-          <Message key={m.id} msg={m} nextMsg={msgs[i + 1]} scenario={scenario} active={active} />
-        ))}
 
         {!hasResult && !active && (
           <div className="agent-canvas__starters">
@@ -344,44 +344,56 @@ function ActiveWorkPanel({
     ? labelForTool(current.name)
     : adStudio?.generating
       ? 'Generating ad creatives'
-      : 'Atlas is working';
+      : adStudio?.gatheringFacts
+        ? 'Gathering grounded facts'
+        : 'Reasoning through spatial constraints';
+
+  const phaseBadge = current
+    ? 'TOOL EXECUTION'
+    : adStudio?.generating
+      ? 'IMAGERY GENERATION'
+      : 'GEMINI REASONING';
+
   // The WHY behind the running tool, shown in place of the static subtitle so the
   // user sees the agent's reasoning live. Falls back gracefully when absent.
-  const rationale = current ? rationaleForTool(current.name) : undefined;
-  const recentDone = telemetry.filter((t) => t.status !== 'running').slice(-3);
-  const adStatus = adStudio
-    ? adStudio.generating > 0
+  const rationale = current
+    ? (rationaleForTool(current.name) ?? 'Querying Google Maps Platform APIs to ground recommendations')
+    : adStudio?.generating
       ? `${adStudio.generating} generating · ${adStudio.ready}/${MAX_CREATIVES_PER_SESSION} ready · ${adStudio.remaining} left`
-      : adStudio.gatheringFacts
-        ? 'Collecting grounded facts before image generation'
-        : `${adStudio.ready}/${MAX_CREATIVES_PER_SESSION} creatives ready`
-    : undefined;
+      : adStudio?.gatheringFacts
+        ? 'Collecting verified place facts before creative generation'
+        : 'Analyzing spatial parameters, travel constraints, and planning next actions';
+
+  const recentDone = telemetry.filter((t) => t.status !== 'running').slice(-3);
 
   return (
     <div className="copilot-progress" role="status" aria-live="polite" aria-label="Atlas work in progress">
       <div className="copilot-progress__top">
         <span className="copilot-progress__spinner" aria-hidden="true" />
         <div className="copilot-progress__copy">
-          <div className="copilot-progress__title">{label}</div>
+          <div className="copilot-progress__header">
+            <span className="copilot-progress__title">{label}</span>
+            <span className="copilot-progress__badge">{phaseBadge}</span>
+            {elapsed ? <span className="copilot-progress__timer">⏱ {elapsed}</span> : null}
+          </div>
           <div className="copilot-progress__detail">
-            {adStatus ?? rationale ?? 'Atlas is checking the configured tools and sources.'}
-            {elapsed ? ` · ${elapsed}` : ''}
+            {rationale}
           </div>
         </div>
       </div>
       <div className="copilot-progress__meter" aria-hidden="true">
         <span />
       </div>
-      {(runningTools.length > 1 || recentDone.length > 0) && (
+      {(runningTools.length > 0 || recentDone.length > 0) && (
         <div className="copilot-progress__steps">
-          {runningTools.slice(-2).map((tool) => (
+          {runningTools.map((tool) => (
             <span key={tool.id} className="copilot-progress__step is-running">
-              {labelForTool(tool.name)}
+              <span className="copilot-progress__step-dot" /> {labelForTool(tool.name)}
             </span>
           ))}
           {recentDone.map((tool) => (
             <span key={tool.id} className={`copilot-progress__step is-${tool.status}`}>
-              {labelForTool(tool.name)}
+              <span className="copilot-progress__step-icon">{tool.status === 'ok' ? '✓' : '✕'}</span> {labelForTool(tool.name)}
             </span>
           ))}
         </div>
@@ -435,12 +447,10 @@ function Message({
   msg,
   nextMsg,
   scenario,
-  active = false,
 }: {
   msg: ChatMsg;
   nextMsg?: ChatMsg;
   scenario: string;
-  active?: boolean;
 }) {
   if (msg.role === 'user') {
     return (
@@ -473,9 +483,7 @@ function Message({
     return null;
   }
   // model
-  // Provisional prose belongs to the compact work indicator. Reveal it only
-  // when it becomes the final answer so "thinking" never looks authoritative.
-  if (msg.streaming && active) {
+  if (msg.streaming && !msg.text) {
     return null;
   }
   return (

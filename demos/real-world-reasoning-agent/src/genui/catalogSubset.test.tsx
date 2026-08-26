@@ -111,6 +111,43 @@ const CASES: Case[] = [
     // The follow-up updateDataModel replaced the running status with the final one.
     contains: ['Creatives ready', '2/2'],
   },
+  {
+    name: 'maui-official (GoogleMap + PlaceDetailsCompact with a2ui catalogId)',
+    scenario: 'concierge',
+    surfaceId: 'maui-official-1',
+    messages: [
+      {
+        version: 'v0.9',
+        createSurface: {
+          surfaceId: 'maui-official-1',
+          catalogId: 'a2ui://maps-agentic-ui-catalog.json',
+        },
+      },
+      {
+        version: 'v0.9',
+        updateComponents: {
+          surfaceId: 'maui-official-1',
+          components: [
+            { id: 'root', component: 'Column', children: ['map', 'place'] },
+            {
+              id: 'map',
+              component: 'GoogleMap',
+              center: { lat: 37.7955, lng: -122.3937 },
+              zoom: 15,
+              label: 'Ferry Building Map',
+            },
+            {
+              id: 'place',
+              component: 'PlaceDetailsCompact',
+              placeId: 'ChIJp2PqN4GAhYARJ_q2VvMvh14',
+              orientation: 'horizontal',
+            },
+          ],
+        },
+      },
+    ],
+    contains: ['Ferry Building Map', 'genui-placecard--horizontal'],
+  },
 ];
 
 describe('Atlas A2UI v0.9 subset — golden render fixtures', () => {

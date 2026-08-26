@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Google Maps Agentic UI (MAUI / A2UI v1.0) Catalog Upgrade & Skill (`.agents/skills/google-maps-a2ui/SKILL.md`)**:
+  - Integrated official Google Maps Agentic UI (`googlemaps/a2ui` v1.0.0) specifications and catalog schema identifier `a2ui://maps-agentic-ui-catalog.json`.
+  - Added support for A2UI v1.0 single-message `createSurface` payloads with embedded initial `components` and `dataModel` arrays.
+  - Added MAUI component implementations and catalog bindings for `GoogleMap` (with `mapId`, `gestureHandling`) and `PlaceDetailsCompact` with dynamic orientation support (`horizontal` vs `vertical`) and attribution forwarding.
+  - Added golden render fixture tests in `demos/real-world-reasoning-agent/src/genui/catalogSubset.test.tsx` verifying schema compliance and clean rendering.
+- **Real World Reasoning Agent: Rich Thinking & Loading Experience (`demos/real-world-reasoning-agent`)**:
+  - Reordered message list and active work indicator to render in true chronological order with the user prompt on top and the loading card directly beneath.
+  - Dynamic thinking phases: replaced generic loading copy with live reasoning phase badges (`GEMINI REASONING`, `TOOL EXECUTION`, `IMAGERY GENERATION`), tool rationale descriptions, live elapsed timer (`⏱ 4s`), and running/completed tool checklists with animated pulsing dots and checkmarks.
+  - Real-time provisional prose streaming: unsuppressed streaming model text to render smoothly with animated pulsing cursor (`▋`) as tokens arrive.
+  - Mobile layout & collision fix: adjusted mobile `@media (max-width: 760px)` statusbar clearance to `right: max(136px, calc(env(safe-area-inset-right) + 128px))` to eliminate visual collision with `.fieldwork-home-link` (`ryanbaumann.dev`).
+  - Validated responsive layout and touch targets (≥44×44px) across Desktop (1440×900), Tablet (768×1024), and Mobile (390×844) viewports with Playwright visual testing.
+
+### Changed
 - **Local Copywriter Web App & Live Preview Studio (`scripts/writer_app.mjs`, `npm run writer`)**:
   - Zero-dependency local Node server and split-pane web studio running at `http://localhost:8090/`.
   - Dual-pane layout featuring real-time Markdown editing synchronized with live sandboxed article preview using exact portfolio `style.css` and `markdownToHtml()`.
