@@ -924,6 +924,13 @@ function sectionHeader(eyebrow, title, moreHref, moreLabel) {
 </div>`;
 }
 
+function articleDisclosure(isWriting) {
+  if (!isWriting) return '';
+  return `<div class="article-colophon">
+  <p class="article-disclosure">Written by Ryan Baumann. Fine-tuned local language models assist with copyediting and voice consistency; all ideas, analysis, and code are my own.</p>
+</div>`;
+}
+
 function shareLinks(pageUrl, title) {
   const encodedUrl = encodeURIComponent(pageUrl);
   const encodedTitle = encodeURIComponent(title);
@@ -1143,6 +1150,7 @@ function detailPage(collection, entry, activeKey) {
   ${linkChips(meta.links)}
   ${heroImage(meta, collection.name)}
   ${markdownToHtml(entry.body)}
+  ${articleDisclosure(isWriting)}
   ${shareLinks(pageUrl, meta.title)}
   <p class="back"><a href="${BASE}${collection.name}/">← All ${collection.label.toLowerCase()}</a></p>
 </article>${isWriting ? `\n${subscribeSection()}\n${commentsSection()}` : ''}`;

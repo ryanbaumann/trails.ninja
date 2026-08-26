@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Local Copywriter Web App & Live Preview Studio (`scripts/writer_app.mjs`, `npm run writer`)**:
+  - Zero-dependency local Node server and split-pane web studio running at `http://localhost:8090/`.
+  - Dual-pane layout featuring real-time Markdown editing synchronized with live sandboxed article preview using exact portfolio `style.css` and `markdownToHtml()`.
+  - Google Docs-style inline suggestions: text selection triggers local Gemma 4 rewrite on Apple Silicon Metal via MLX with inline `<del>` / `<ins>` diff cards and 1-click keyboard shortcuts (`Cmd+K` to suggest, `Cmd+Enter` to accept, `Esc` to dismiss).
+  - Draft voice review drawer, thesis-driven headline generator, and instant deterministic regex linter for em-dashes and banned hype phrases.
+  - Device frame switcher (Desktop, Tablet, Mobile) and bidirectional click-to-edit jumping from rendered preview elements back to source editor lines.
+  - Direct local file persistence to `portfolio/content/writing/*.md` and `portfolio/content/work/*.md`.
+- **Tasteful AI Editorial Disclosure for Articles (`portfolio/build.mjs`, `portfolio/style.css`)**:
+  - Added a dedicated `.article-colophon` and `.article-disclosure` block to the bottom of all Field Notes articles: `"Written by Ryan Baumann. Fine-tuned local language models assist with copyediting and voice consistency; all ideas, analysis, and code are my own."`
+- **Multi-Model Design of Experiments (DoE) for Local Voice Fine-Tuning (`scripts/run_doe_experiment.py`)**:
+  - Benchmark suite and fine-tuning harness evaluating top Hugging Face 24B–31B foundation models against Gemma 4 baselines on Apple Silicon Metal: **Qwen 3.8 27B Dense**, **Qwen 3 30B-A3B MoE**, and **Devstral Small 2 24B**.
+  - **Qwen 3.8 27B Dense (`mlx-community/Qwen3.8-27B-4bit`)**: LoRA fine-tuning yielded a +13 percentage point gain (27% base -> **40% clean pass rate**, 19/48 items), cutting total errors from 62 down to 37 and fixing 11 failing items across critique, edit, and presentation tasks.
+  - **Qwen 3 30B-A3B MoE (`mlx-community/Qwen3-30B-A3B-Instruct-2507-4bit`)**: Blazing fast training throughput (**~162 tokens/sec**, 3.93 minutes total), lifting clean pass rate from 2% to **38% clean pass rate** (+36% gain; 17 items fixed, 0 broken) and completely eliminating base model em-dashes (44 -> 0 failures).
+  - **Devstral Small 2 24B (`mlx-community/Devstral-Small-2-24B-Instruct-2512-4bit`)**: Zero-shot baseline evaluated at 8% clean; demonstrated vulnerability to mode collapse under standard LoRA learning rates, establishing the requirement for architecture-tailored learning rate schedules.
+  - Confirmed **Gemma 4 31B Dense (54% clean)** as the overall quality champion across complex stylistic constraints and 100% fact retention.
 - **Full-Corpus Editorial Review via Local Gemma 4 31B Dense R8 (`scripts/review_all_published.py`)**:
   - Automated editorial peer review across all 6 published articles using fine-tuned Gemma 4 31B Dense Round 8 (`adapters/gemma-4-31b-ryan-voice-v8`).
   - Implemented an independent subagent reviewer team (maker/checker loop) to evaluate each model critique against `.agents/skills/portfolio-writing/SKILL.md`, filtering out false antithesis flips, stripping buzzwords and em-dashes, strengthening first-person active voice, and preserving technical metrics and URLs.
@@ -113,7 +128,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Applied Round 6 Gemma 4 31B Dense local copyeditor reviews in Ryan's voice across all 5 published public Field Notes (`builder-platforms-grow-by-owning-the-agent-loop.md`, `devex-is-a-growth-discipline.md`, `fine-tuning-was-the-easy-part.md`, `loop-engineering-coding-agent.md`, `the-model-that-picks-your-platform-doesnt-write-the-code.md`), tightening active first-person phrasing, replacing corporate abstraction with concrete developer tasks, removing em-dashes, and sharpening community discussion endings.
-- Refined and updated [`portfolio/content/writing/can-i-build-an-ai-agent-that-doesnt-write-slop.md`](file:///Users/ryanbaumann/projects/portfolio/portfolio/content/writing/can-i-build-an-ai-agent-that-doesnt-write-slop.md) with empirical findings, architectural design insights, and local workflow routing:
+- Refined and updated `portfolio/content/writing/can-i-build-an-ai-agent-that-doesnt-write-slop.md` with empirical findings, architectural design insights, and local workflow routing:
   - Synthesized system design principles (masked prompt loss, 100–250 word micro-pairs, surgical edit pairs, multi-dimensional grader bounds, offline arithmetic citation checks).
   - Contrasted Gemma 4 31B Dense (35% clean pass rate, 100% fact retention, zero repetition loops, 55% fewer echoes) against Gemma 4 26B-A4B MoE (~2.5s latency, 3.2x faster on Apple Silicon Metal).
   - Articulated the core divide: stylistic register transferred cleanly, but editorial judgment remains human-owned.

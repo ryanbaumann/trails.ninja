@@ -29,6 +29,8 @@
     "eval:citations": "python3 scripts/voice_eval.py citations",
     "eval:leakage": "python3 scripts/voice_eval.py leakage",
     "review:data": "node scripts/review_app.mjs",
+    "writer": "node scripts/writer_app.mjs",
+    "voice:writer": "node scripts/writer_app.mjs",
     "new:demo": "node scripts/new-demo.mjs",
     "new:post": "node scripts/new-post.mjs",
     "previews": "node scripts/previews.mjs"
