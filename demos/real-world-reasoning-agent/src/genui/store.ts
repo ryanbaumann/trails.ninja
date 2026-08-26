@@ -56,14 +56,30 @@ export const useGenui = create<GenuiState>((set, get) => ({
 
       for (const msg of msgs) {
         if ('createSurface' in msg) {
-          const { surfaceId, catalogId } = msg.createSurface;
+          const { surfaceId, catalogId, components: initialComponents, dataModel: initialDataModel } = msg.createSurface;
           if (!surfaces[surfaceId]) created.push(surfaceId);
+          const componentsMap: Record<string, ComponentNode> = surfaces[surfaceId]?.components
+            ? { ...surfaces[surfaceId].components }
+            : {};
+          if (Array.isArray(initialComponents)) {
+            for (const c of initialComponents) {
+              if (c && typeof c === 'object' && 'id' in c) {
+                componentsMap[c.id] = c;
+              }
+            }
+          }
+          const dataModelObj: Record<string, unknown> = surfaces[surfaceId]?.dataModel
+            ? { ...surfaces[surfaceId].dataModel }
+            : {};
+          if (initialDataModel && typeof initialDataModel === 'object') {
+            Object.assign(dataModelObj, initialDataModel);
+          }
           surfaces[surfaceId] = {
             id: surfaceId,
             catalogId,
             scenario,
-            components: surfaces[surfaceId]?.components ?? {},
-            dataModel: surfaces[surfaceId]?.dataModel ?? {},
+            components: componentsMap,
+            dataModel: dataModelObj,
             rootId: 'root',
             rev: (surfaces[surfaceId]?.rev ?? 0) + 1,
           };

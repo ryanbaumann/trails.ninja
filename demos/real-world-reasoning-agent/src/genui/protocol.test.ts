@@ -159,13 +159,29 @@ describe('validateMessages', () => {
   it('rejects a non-array payload', () => {
     const result = validateMessages({ not: 'an array' });
     expect(result.ok).toBe(false);
-    expect(result.errors).toEqual(['messages must be a JSON array of A2UI v0.9 messages']);
+    expect(result.errors).toEqual(['messages must be a JSON array of A2UI messages']);
   });
 
   it('rejects a bad version literal', () => {
-    const result = validateMessages([{ version: 'v1.0', createSurface: { surfaceId: 's1', catalogId: 'x' } }]);
+    const result = validateMessages([{ version: 'v2.0', createSurface: { surfaceId: 's1', catalogId: 'atlas://maps-agentic-ui-catalog' } }]);
     expect(result.ok).toBe(false);
-    expect(result.errors[0]).toMatch(/version must be the literal "v0\.9"/);
+    expect(result.errors[0]).toMatch(/version must be "v0\.9" or "v1\.0"/);
+  });
+
+  it('accepts v1.0 single-message createSurface with embedded components and dataModel', () => {
+    const result = validateMessages([
+      {
+        version: 'v1.0',
+        createSurface: {
+          surfaceId: 's1',
+          catalogId: 'atlas://maps-agentic-ui-catalog',
+          components: [{ id: 'root', component: 'Text', text: 'Hello v1.0' }],
+          dataModel: { key: 'value' },
+        },
+      },
+    ]);
+    expect(result.ok).toBe(true);
+    expect(result.messages).toHaveLength(1);
   });
 
   it('rejects an unknown component name', () => {

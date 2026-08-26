@@ -2,6 +2,18 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-26 - Agentic UI Thinking UX & MAUI A2UI Integration ensures clear hierarchy and official GMP component parity
+
+Context: Improving Real World Reasoning Agent thinking and loading UI/UX across desktop and mobile, and upgrading to the latest Google Maps Agentic UI (MAUI / A2UI) components and skill patterns.
+Learning:
+1. **Chat UI Hierarchy Inversion**: Rendering the loading indicator before the message list inverted temporal chronology when the user sent a message (the loading card appeared above the prompt). Moving `{msgs.map(...)}` before `{active && <ActiveWorkPanel />}` anchors the user prompt at top and flows the live thinking card directly underneath.
+2. **Dynamic Phase Disclosure & Timer**: Static "Atlas is working" fails to convey agent activity during spatial multi-step tool calls. Exposing phase badges (`GEMINI REASONING`, `TOOL EXECUTION`, `IMAGERY GENERATION`), specific tool rationale strings, live elapsed timer (`⏱ 4s`), and running/completed step checklists gives users immediate confidence in execution progress.
+3. **Provisional Prose Streaming Unsuppression**: Hiding streaming text completely until completion creates perceived lag; allowing provisional text tokens to render with a pulsing cursor (`▋`) once text arrives produces an immediate, responsive feel without sacrificing structure.
+4. **Mobile Statusbar Clearance**: Floating global nav elements (`.fieldwork-home-link` at `top: 12px; right: 12px;`) can collide with edge-to-edge statusbars on mobile if right margins are too small (`right: 56px`). Setting `right: max(136px, calc(env(safe-area-inset-right) + 128px))` cleanly clears fixed pills on narrow viewports while preserving ≥44×44px touch targets.
+5. **MAUI A2UI v1.0 Compatibility**: Upgraded to the official Maps Agentic UI Toolkit v1.0 (`a2ui://maps-agentic-ui-catalog.json` / `googlemaps/a2ui` v1.0.0). Supporting single-message `createSurface` (with embedded `components` and `dataModel`), dynamic `orientation` (`horizontal` vs `vertical`), `mapId`, and proper HTML attributes on `<gmp-place-details-compact>` guarantees compatibility with official upstream schemas while preserving full backward compatibility with incremental multi-message envelopes.
+Evidence: 70 test suites passing (579 unit tests), golden render fixture in `catalogSubset.test.tsx`, visual verification across Desktop (1440×900) and Mobile (390×844) viewports via Playwright, and 21/21 passed smoke tests on root gateway.
+Use next time: Place active loading panels beneath the active prompt in chat views; show explicit reasoning phases and elapsed timers; and align GenUI schemas with official MAUI A2UI v1.0 catalog identifiers.
+
 ## 2026-08-25 - Local Zero-Dependency Copywriter Web Studio combines live preview rendering with local Apple Silicon Metal voice edits
 
 Context: Building a local copywriting and live preview web app (`scripts/writer_app.mjs`) enabling side-by-side editing, exact portfolio CSS rendering, and inline Google Docs-style suggestions powered by fine-tuned local Gemma 4 models running on Apple Silicon Metal via MLX.

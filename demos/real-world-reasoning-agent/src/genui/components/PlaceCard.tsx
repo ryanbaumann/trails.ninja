@@ -17,12 +17,14 @@ export const PlaceCard: FC<{ node: ComponentNode; surface: SurfaceState; scope?:
   scope,
 }) => {
   const placeId = resolveDynamic(node.placeId as Dynamic<string> | undefined, surface.dataModel, scope);
+  const orientationRaw = resolveDynamic(node.orientation as Dynamic<string> | undefined, surface.dataModel, scope);
+  const orientation = orientationRaw === 'horizontal' ? 'horizontal' : 'vertical';
 
   if (typeof placeId !== 'string') return null;
 
   return (
-    <div className="genui-placecard">
-      <PlaceUiKitDetails placeId={placeId} />
+    <div className={`genui-placecard genui-placecard--${orientation}`}>
+      <PlaceUiKitDetails placeId={placeId} orientation={orientation} />
       <div className="genui-placecard__actions">
         <button
           type="button"
@@ -47,7 +49,7 @@ export const PlaceCard: FC<{ node: ComponentNode; surface: SurfaceState; scope?:
   );
 };
 
-function PlaceUiKitDetails({ placeId }: { placeId: string }) {
+function PlaceUiKitDetails({ placeId, orientation = 'vertical' }: { placeId: string; orientation?: 'horizontal' | 'vertical' }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [unsupported, setUnsupported] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -78,13 +80,15 @@ function PlaceUiKitDetails({ placeId }: { placeId: string }) {
       element = new (ctor as CustomElementConstructor)();
       element.className = 'genui-placecard__ui-kit';
       element.setAttribute('place', cleanPlaceId);
-      element.setAttribute('orientation', 'vertical');
+      element.setAttribute('orientation', orientation);
       element.setAttribute('truncation-preferred', '');
       // Attribute the Places calls this element makes to the agent-skills program
       // WITHOUT removing Google's own attribution (the gmp-place-attribution child
       // below is Google's and stays).
+      const attributionId = (typeof window !== 'undefined' && (window as unknown as { A2UI_ATTRIBUTION_ID?: string }).A2UI_ATTRIBUTION_ID) || USAGE_ATTRIBUTION_ID;
+      element.setAttribute('internal-usage-attribution-ids', attributionId);
       (element as unknown as { internalUsageAttributionIds?: string[] }).internalUsageAttributionIds = [
-        USAGE_ATTRIBUTION_ID,
+        attributionId,
       ];
 
       const requestEl = document.createElement('gmp-place-details-place-request');
@@ -110,7 +114,7 @@ function PlaceUiKitDetails({ placeId }: { placeId: string }) {
       element?.remove();
       hostRef.current?.replaceChildren();
     };
-  }, [placeId]);
+  }, [placeId, orientation]);
 
   // States render as siblings of the host (never as React children of hostRef,
   // whose children are owned directly by the effect via replaceChildren).
