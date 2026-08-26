@@ -19,7 +19,7 @@ shareImageAlt: "A share card illustrating the evaluation gap between automated c
 
 "It's not slop - it's AI-Assisted writing". We've all seen it. And yes, I use AI to help copyright and edit all the time. But is the result good, and any faster than just writing it by hand? Raw model copy is cheerful, generic, and predictable, and fixing an agent's generic prose seems like it takes longer than writing from scratch.
 
-I wanted an AI agent for editing copy that style, challenged weak structure, and left narrative judgment to me. Here is what I experimented with and learned.
+I wanted an AI agent for editing copy that matched my style, challenged weak structure, and left narrative judgment to me. Here is what I experimented with and learned.
 
 ## Step 1: How far can I push context engineering?
 
@@ -37,14 +37,14 @@ I used a QLoRA fine-tuning approach on my Macbook to test whether fine-tuning co
 
 The setup had four components:
 
-1. **Curated dataset**: A ~100 editing training dataset generated from real git diffs of my editing, case studies, and other writing.
+1. **Curated dataset**: A ~100-example editing training dataset generated from real git diffs of my editing, case studies, and other writing.
 2. **LoRA training config**: Configured for MLX LoRA with rank 16, alpha 32, 16 adapter layers, and masked prompt loss.
 3. **Evals**: A set of held-out test cases spanning Draft, Edit, Critique, Headline, Present, and Out-of-Distribution tasks, evaluated across deterministic rules.
 4. **Scorecard**: A report tracking exact pass rates, confidence intervals, and failure mode categorizations across every check.
 
 ## Evaluation Results
 
-Across the tests, the fine-tuned Gemma 4 31B Dense model worked best. I compared three approaches on live writing tasks to see what it's edits look like side-by-side with other context engineering approaches.
+Across the tests, the fine-tuned Gemma 4 31B Dense model worked best. I compared three approaches on live writing tasks to see what its edits look like side-by-side with other context engineering approaches.
 
 ## Side-by-Side Experiments
 
@@ -63,7 +63,7 @@ I asked each pipeline to rewrite this into a direct builder voice without extra 
 |---|---|---|
 | "Led the deployment of a caching layer to enhance fleet reliability. This initiative reduced P99 latency by 62% (from 840ms to 310ms) across 14 services. The change significantly improved system performance and resource efficiency." | "To make our fleet reliable, I deployed a caching layer across 14 services. We cut P99 latency by 62%, dropping it from 840ms to 310ms: our systems don't bottleneck under load anymore." | "I deployed a caching layer across 14 services to improve fleet reliability. P99 latency dropped 62%, from 840ms to 310ms." |
 
-**The difference**: The base model sounds bureaucratic phrasing and added claims it couldn't back ("improved resource efficiency"). The prompted model added active phra in my opinion
+**The difference**: The base model used bureaucratic phrasing and added claims it couldn't back ("improved resource efficiency"). The prompted model added active phrasing, but still introduced unnecessary filler.
 
 ### Task 2: Voice Memo
 
@@ -88,9 +88,9 @@ The instructions: critique this draft against our editorial and voice standards.
 |---|---|---|
 | "This is a strong, highly relatable opening hook that immediately engages the reader. The rubber duck metaphor works perfectly to explain your collaborative vision. Consider expanding slightly on how this 'rubber ducking' looks in practice to build on this great setup." | "To hook busy developers, we must skip the 'AI is bland' cliché. Let's lead with negative space: define what the rubber duck does and what it doesn't do. Swap the general claim for a concrete draft trace so we don't sound like another marketing page." | "Cut 'We all know'. It's a consensus tell. The second sentence is a false antithesis flip. State what you actually did instead." |
 
-**The difference**: The base model gave conversational praise without diagnosing any issues. The prompted model suggested better framing. The fine-tuned model actually said it wasn't good for reasons, but didn't tell me exactly how to do it (love that - that's on me).
+**The difference**: The base model gave conversational praise without diagnosing any issues. The prompted model suggested better framing. The fine-tuned model diagnosed the specific issues directly without telling me how to rewrite it (I like that; that's on me).
 
-![AI Editor Process: Mechanical gates in CI catch em-dashes and banned hype quickly. Structural flow with prompted models polishes grammer and style. Human judgment remains essential to decide real developer friction, honest credit, verifiable citations, and editorial taste.](/img/writing/can-i-build-an-ai-agent-that-doesnt-write-slop-gates.svg)
+![AI Editor Process: Mechanical gates in CI catch em-dashes and banned hype quickly. Structural flow with prompted models polishes grammar and style. Human judgment remains essential to decide real developer friction, honest credit, verifiable citations, and editorial taste.](/img/writing/can-i-build-an-ai-agent-that-doesnt-write-slop-gates.svg)
 
 ## What I learned
 
