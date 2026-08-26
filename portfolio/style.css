@@ -456,6 +456,22 @@ main > section { margin-bottom: clamp(3rem, 6vw, 5.5rem); }
 .back a { text-decoration: none; color: var(--muted); }
 .back a:hover { color: var(--accent-ink); }
 
+/* ---- article colophon / AI disclosure ---- */
+
+.article-colophon {
+  margin: 2.5rem 0 1rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: var(--surface);
+}
+.article-disclosure {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 /* ---- share links ---- */
 
 .share-links {

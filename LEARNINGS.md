@@ -2,6 +2,29 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-25 - Local Zero-Dependency Copywriter Web Studio combines live preview rendering with local Apple Silicon Metal voice edits
+
+Context: Building a local copywriting and live preview web app (`scripts/writer_app.mjs`) enabling side-by-side editing, exact portfolio CSS rendering, and inline Google Docs-style suggestions powered by fine-tuned local Gemma 4 models running on Apple Silicon Metal via MLX.
+Learning:
+1. **Zero-dependency local Node architecture**: Using native `node:http`, `node:fs`, and child processes for MLX inference eliminates external SaaS or extension dependencies, avoiding Google Docs cross-origin tunnel latency and format conversion friction.
+2. **Direct markdownToHtml mirror**: Reusing the exact `portfolio/build.mjs` markdown parser and CSS stylesheet in the sandboxed preview iframe achieves < 30ms render latency with 100% visual fidelity to production output.
+3. **Google Docs-style inline diff ergonomics**: Text selection with `Cmd+K` calls `scripts/gemma-local.sh edit`, parses out ML banner headers, and presents a clean `<del>` / `<ins>` diff card with `Cmd+Enter` to accept or `Esc` to dismiss, preserving surrounding front matter and markdown formatting.
+4. **Transparent AI editorial disclosure**: Adding `.article-colophon` and `.article-disclosure` to the detail page template provides clear, professional attribution ("Written by Ryan Baumann. Fine-tuned local language models assist with copyediting and voice consistency; all ideas, analysis, and code are my own.") across all Field Notes.
+Evidence: `scripts/writer_app.mjs` running on port 8090; verified live selection edit on Apple Silicon Metal; `node portfolio/build.mjs` successfully validated all 32 pages with colophon styling.
+Use next time: Run `npm run writer` for focused article drafting and voice editing; use the inline diff card to review model suggestions before accepting them into markdown source.
+
+## 2026-08-24 - Multi-Model Design of Experiments (DoE) validates Gemma 4 31B Dense quality leadership and Qwen 3 MoE learning velocity
+
+Context: Running a full Design of Experiments (DoE) benchmarking top Hugging Face 24B–31B open-weight models (Qwen 3.8 27B Dense, Devstral Small 2 24B, Qwen 3 30B-A3B MoE) against baseline Gemma 4 (31B Dense and 26B-A4B MoE) for local stylistic voice fine-tuning on Apple Silicon Metal.
+Learning:
+1. **Gemma 4 31B Dense remains the overall quality champion**: Achieving **54% clean pass rate** (26/48 items) with zero fact drops (100% `G-FACT-KEEP`), 100% headline compliance (`G-HEADLINE-*`), and 98% hype/AI-tell suppression.
+2. **Qwen 3 30B-A3B MoE demonstrates phenomenal fine-tuning speed and loss convergence**: Training completed in **3.93 minutes** on Metal (~162 tokens/sec, ~0.76 iters/sec), dropping training loss from 3.65 -> 0.43, completely eliminating base model em-dashes (44 -> 0 failures), and lifting clean pass rate from 2% to 38% (+36 percentage point gain; 17 items fixed, 0 broken).
+3. **Qwen 3.8 27B Dense demonstrates robust stylistic transfer**: Improved clean pass rate from 27% to 40% (+13 percentage points), cutting errors from 62 down to 37 and fixing 11 failing items across critique, edit, and presentation tasks, though MLX VJP autodiff fallback limits training throughput to ~14 tokens/sec.
+4. **Devstral Small 2 24B requires architecture-specific hyperparameters**: Suffered mode collapse during standard LoRA fine-tuning (loss plateau at 7.7), highlighting the necessity of model-specific learning rate scaling and tokenizer regex fixes (`fix_mistral_regex=True`).
+5. **Sequential GPU execution invariant on Apple Silicon**: Strictly serializing all training and evaluation jobs with pre-flight process locks (`pgrep -f "mlx_lm.lora|voice_eval"`) guarantees zero Metal context resets, predictable memory ceilings (17–25 GB on 48GB unified memory), and clean completion.
+Evidence: Completed 5 zero-shot baselines, 3 full LoRA training runs, and 5 evaluation suites across `heldout.jsonl` with scorecards in `experiment/voice-ft/eval/results/`.
+Use next time: For final production voice agents where accuracy is paramount, use Gemma 4 31B Dense; for ultra-fast local iteration and interactive drafting, Qwen 3 30B-A3B MoE provides the best fine-tuning velocity and zero em-dash compliance; always run training sequentially on Apple Silicon.
+
 ## 2026-08-21 - Native Gemini Maps Grounding simplifies tool architecture and replaces custom MCP proxies
 
 Context: Migrating the Real World Reasoning Agent demo from Grounding Lite MCP to official Gemini Maps Grounding (`tools: [{ googleMaps: {} }]`).
