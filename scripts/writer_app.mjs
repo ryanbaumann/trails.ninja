@@ -378,17 +378,17 @@ function runLocalGemma(command, args = [], stdinText = '') {
 
     if (stdinText) {
       proc.stdin.write(stdinText);
-      proc.stdin.end();
     }
+    proc.stdin.end();
 
     proc.stdout.on('data', (d) => { stdout += d.toString('utf8'); });
     proc.stderr.on('data', (d) => { stderr += d.toString('utf8'); });
 
-    // Timeout after 60s for local Metal execution
+    // Timeout after 120s for local Metal execution (cold load + generation)
     const timer = setTimeout(() => {
       proc.kill('SIGKILL');
-      reject(new Error(`Local Gemma execution timed out after 60s: ${stderr}`));
-    }, 60000);
+      reject(new Error(`Local Gemma execution timed out after 120s: ${stderr}`));
+    }, 120000);
 
     proc.on('close', (code) => {
       clearTimeout(timer);
@@ -598,7 +598,7 @@ function extractModelOutput(stdout) {
       if (!text) return sendJson(res, 400, { error: 'No text provided for suggestion' });
 
       try {
-        const rawOutput = await runLocalGemma('edit', [text]);
+        const rawOutput = await runLocalGemma('edit', ['-'], text);
         const cleanSuggestion = extractModelOutput(rawOutput);
         return sendJson(res, 200, {
           original: text,
@@ -618,7 +618,7 @@ function extractModelOutput(stdout) {
       if (!text) return sendJson(res, 400, { error: 'No text provided for review' });
 
       try {
-        const rawOutput = await runLocalGemma('review', [text]);
+        const rawOutput = await runLocalGemma('review', ['-'], text);
         const cleanReview = extractModelOutput(rawOutput);
         return sendJson(res, 200, { reviewText: cleanReview });
       } catch (err) {
