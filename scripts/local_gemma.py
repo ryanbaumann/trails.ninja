@@ -156,12 +156,23 @@ def generate_text(model, tokenizer, prompt: str, max_tokens: int = 4096, temp: f
     )
     return response.strip()
 
+def resolve_target_text(target_path_or_text: str) -> str:
+    """Safely resolve target either from stdin ('-'), file path, or direct text string."""
+    if target_path_or_text == "-" or not target_path_or_text:
+        return sys.stdin.read()
+    if "\n" in target_path_or_text or len(target_path_or_text) > 400:
+        return target_path_or_text
+    try:
+        p = Path(target_path_or_text)
+        if p.is_file():
+            return p.read_text(encoding="utf-8")
+    except (OSError, ValueError):
+        pass
+    return target_path_or_text
+
 def review_copy(model, tokenizer, target_path_or_text: str, max_tokens: int = 4096) -> str:
     """Perform editorial critique on copy."""
-    text = target_path_or_text
-    p = Path(target_path_or_text)
-    if p.exists() and p.is_file():
-        text = p.read_text(encoding="utf-8")
+    text = resolve_target_text(target_path_or_text)
 
     prompt = (
         "Perform a thorough editorial review and critique of this copy against Ryan Baumann's voice standards.\n\n"
@@ -176,10 +187,7 @@ def review_copy(model, tokenizer, target_path_or_text: str, max_tokens: int = 40
 
 def edit_copy(model, tokenizer, target_path_or_text: str, max_tokens: int = 4096) -> str:
     """Rewrite text into Ryan's voice with strict factual preservation."""
-    text = target_path_or_text
-    p = Path(target_path_or_text)
-    if p.exists() and p.is_file():
-        text = p.read_text(encoding="utf-8")
+    text = resolve_target_text(target_path_or_text)
     prompt = (
         "Rewrite the following text in Ryan's voice. Strip corporate boilerplate, passive voice, and hype. "
         "Preserve all specific metrics, numbers, and technical entity names intact:\n\n"
@@ -197,10 +205,7 @@ def generate_headlines(model, tokenizer, topic_or_summary: str, max_tokens: int 
 
 def generate_social(model, tokenizer, target_path_or_text: str, max_tokens: int = 1024) -> str:
     """Generate concise, developer-focused social copy (< 120 words)."""
-    text = target_path_or_text
-    p = Path(target_path_or_text)
-    if p.exists() and p.is_file():
-        text = p.read_text(encoding="utf-8")
+    text = resolve_target_text(target_path_or_text)
     prompt = (
         f"Write a concise developer social post (< 120 words) summarizing this work. "
         f"Lead with the binding constraint or metric shipped, avoid hashtags and launch hype:\n\n{text}"
