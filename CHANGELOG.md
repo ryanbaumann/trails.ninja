@@ -12,7 +12,6 @@ All notable changes to this project will be documented in this file.
   - Fixed literal backslash escaping in JSX text nodes (`MapErrorNotice.tsx`).
   - Consolidated `.copilot-toolchip-details__body` CSS definitions and added text truncation for long tool call summaries.
   - Added `flexWrap: 'wrap'` to `.mission-actions` in `Landing.tsx` for clean responsive mobile button wrapping.
-
 - **Google Maps Agentic UI (MAUI / A2UI v1.0) Catalog Upgrade & Skill (`.agents/skills/google-maps-a2ui/SKILL.md`)**:
   - Integrated official Google Maps Agentic UI (`googlemaps/a2ui` v1.0.0) specifications and catalog schema identifier `a2ui://maps-agentic-ui-catalog.json`.
   - Added support for A2UI v1.0 single-message `createSurface` payloads with embedded initial `components` and `dataModel` arrays.
