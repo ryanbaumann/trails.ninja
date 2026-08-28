@@ -1171,6 +1171,12 @@ const server = createServer(async (request, response) => {
   }
 });
 
+// Keep-alive timeout must comfortably exceed Cloud Run and load balancer's
+// 60-second idle connection timeout to prevent 502 Bad Gateway / ECONNRESET on
+// reused connections.
+server.keepAliveTimeout = 65_000;
+server.headersTimeout = 66_000;
+
 // Never start listening under the node:test runner: a listening socket keeps
 // the process alive after the tests pass, which hangs `node --test` (and hung
 // CI for up to 6 hours per run before this guard). NODE_TEST_CONTEXT is set

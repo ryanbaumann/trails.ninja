@@ -173,7 +173,7 @@ export function Landing() {
             </button>
           </div>
 
-          <div className="mission-actions" style={{ display: 'flex', gap: '12px', marginTop: '12px', width: '100%' }}>
+          <div className="mission-actions" style={{ display: 'flex', gap: '12px', marginTop: '12px', width: '100%', flexWrap: 'wrap' }}>
             <button
               type="button"
               className="mission-launch"

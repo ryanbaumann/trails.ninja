@@ -17,12 +17,18 @@ const isOmniModel = (m) => typeof m === 'string' && (/omni/i.test(m) || m.includ
 
 const BASE_GEMINI_MODELS = Object.freeze([
   'gemini-3.7-flash',
+  'gemini-3.7-pro',
   'gemini-3.6-flash',
   'gemini-3.5-flash-lite',
   'gemini-3.5-flash',
   'gemini-3.1-flash-lite',
   'gemini-3.1-flash-tts-preview',
   'gemini-3.1-flash-lite-image',
+  'gemini-3.1-flash-image',
+  'gemini-3.1-pro-preview',
+  'gemini-3.1-pro',
+  'gemini-3-flash-preview',
+  'gemini-3-pro-preview',
   'gemini-omni-flash-preview',
 ]);
 const REQUIRED_GEMINI_MODELS = Object.freeze([
@@ -62,6 +68,7 @@ const SAFE_UPSTREAM_RESPONSE_HEADERS = [
   'content-type',
   'etag',
   'last-modified',
+  'x-accel-buffering',
 ];
 
 const headerValue = (headers, name) => {
