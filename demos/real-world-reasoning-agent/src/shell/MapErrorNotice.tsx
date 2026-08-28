@@ -85,7 +85,7 @@ export function MapErrorNotice() {
           Map unavailable
         </div>
         <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10, color: 'var(--text)' }}>
-          Map couldn\'t load
+          Map couldn't load
         </h2>
         <p style={{ color: 'var(--text-dim)', fontSize: 14, lineHeight: 1.6, marginBottom: 14 }}>
           Google Maps refused to initialize in this browser. Everything else in the demo still
@@ -104,8 +104,8 @@ export function MapErrorNotice() {
             <code style={{ color: 'var(--text)' }}>VITE_GMP_API_KEY</code> is missing from your
             environment
           </li>
-          <li>the browser key\'s HTTP-referrer restriction doesn\'t allow this origin</li>
-          <li>one of the required Maps APIs isn\'t enabled on the project</li>
+          <li>the browser key's HTTP-referrer restriction doesn't allow this origin</li>
+          <li>one of the required Maps APIs isn't enabled on the project</li>
         </ul>
         <p style={{ color: 'var(--text-dim)', fontSize: 13, margin: 0 }}>
           Check the local development section in the README for setup details.

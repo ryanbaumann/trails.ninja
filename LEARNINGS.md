@@ -2,6 +2,17 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-08-28 - Gateway HTTP Keep-Alive & SSE Proxy Configuration eliminates Cloud Run 502s and buffering delays
+
+Context: Optimizing Real World Reasoning Agent end-to-end response latency, streaming SSE unbuffering, and Cloud Run proxy resilience.
+Learning:
+1. **Node Server Keep-Alive vs Cloud Run Load Balancer**: Cloud Run infrastructure uses a 60-second idle connection timeout for keep-alive TCP connections. By default, Node's `http.Server` has `keepAliveTimeout = 5000` (5s). Under concurrency, if Node closes the socket right as Cloud Run routes a new request onto it, the client encounters an intermittent `502 Bad Gateway` / `ECONNRESET`. Explicitly setting `server.keepAliveTimeout = 65_000` and `server.headersTimeout = 66_000` guarantees Node's keepalive window comfortably exceeds Cloud Run's idle timeout.
+2. **Reverse Proxy SSE Buffering Mitigation**: Forwarding `x-accel-buffering: no` in `SAFE_UPSTREAM_RESPONSE_HEADERS` ensures intermediate reverse proxies (Nginx/Cloudflare) immediately flush SSE token chunks to the client rather than accumulating them in transport buffers.
+3. **Comprehensive Gemini 3.x Model Allowlisting**: Expanding `BASE_GEMINI_MODELS` to include `gemini-3.7-pro`, `gemini-3.1-flash-image`, and preview IDs ensures zero 403 authorization failures across multimodal image generation and deep-dive agent workflows.
+4. **JSX String Literal Backslash Bug**: Escaping apostrophes in JSX string child nodes (`Map couldn\'t load`) renders the literal backslash in the DOM. Always use unescaped standard apostrophes (`Map couldn't load`) in React JSX text nodes.
+Evidence: 167 gateway tests passing, 70 real-world-reasoning-agent test suites (579 unit tests) passing, 21/21 passed gateway smoke tests.
+Use next time: Always configure Node server keep-alive timeouts > 65s when deploying behind Cloud Run or Google Cloud Load Balancer; whitelist `x-accel-buffering` for streaming endpoints.
+
 ## 2026-08-26 - Agentic UI Thinking UX & MAUI A2UI Integration ensures clear hierarchy and official GMP component parity
 
 Context: Improving Real World Reasoning Agent thinking and loading UI/UX across desktop and mobile, and upgrading to the latest Google Maps Agentic UI (MAUI / A2UI) components and skill patterns.

@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Real World Reasoning Agent: Gateway Latency Optimization & Cloud Run Keep-Alive (`gateway/`, `demos/real-world-reasoning-agent`)**:
+  - Configured explicit HTTP `server.keepAliveTimeout = 65_000` and `server.headersTimeout = 66_000` on the root Node gateway to comfortably exceed Cloud Run and load balancer 60-second idle connection timeouts, eliminating transient 502 Bad Gateway / ECONNRESET errors on reused TCP sockets.
+  - Added `x-accel-buffering` to `SAFE_UPSTREAM_RESPONSE_HEADERS` to prevent downstream reverse proxies from buffering SSE streaming tokens.
+  - Expanded `BASE_GEMINI_MODELS` in both gateway and demo server allowlists to include `gemini-3.7-pro`, `gemini-3.1-flash-image`, `gemini-3.1-pro-preview`, `gemini-3.1-pro`, `gemini-3-flash-preview`, and `gemini-3-pro-preview`.
+  - Fixed literal backslash escaping in JSX text nodes (`MapErrorNotice.tsx`).
+  - Consolidated `.copilot-toolchip-details__body` CSS definitions and added text truncation for long tool call summaries.
+  - Added `flexWrap: 'wrap'` to `.mission-actions` in `Landing.tsx` for clean responsive mobile button wrapping.
+
 - **Google Maps Agentic UI (MAUI / A2UI v1.0) Catalog Upgrade & Skill (`.agents/skills/google-maps-a2ui/SKILL.md`)**:
   - Integrated official Google Maps Agentic UI (`googlemaps/a2ui` v1.0.0) specifications and catalog schema identifier `a2ui://maps-agentic-ui-catalog.json`.
   - Added support for A2UI v1.0 single-message `createSurface` payloads with embedded initial `components` and `dataModel` arrays.
