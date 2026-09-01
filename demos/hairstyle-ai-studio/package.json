@@ -15,16 +15,16 @@
     "check": "npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
-    "lucide-react": "^1.33.0",
+    "lucide-react": "^1.37.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.4.0",
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "@vitejs/plugin-react": "^6.1.0",
+    "@types/react-dom": "^19.2.5",
+    "@vitejs/plugin-react": "^6.1.1",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.5.26",
     "tailwindcss": "^4.3.3",
