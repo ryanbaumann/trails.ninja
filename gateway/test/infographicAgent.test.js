@@ -89,7 +89,7 @@ test('handleInfographicAgentApi /prepare formats Interactions API request correc
   assert.equal(upstreamInit.headers['Api-Revision'], '2026-05-20');
   assert.equal(upstreamInit.headers['x-goog-api-key'], 'AIzaSyValidGeminiKey123');
   const payload = JSON.parse(upstreamInit.body);
-  assert.equal(payload.model, 'gemini-3.7-flash');
+  assert.equal(payload.model, 'gemini-3.8-flash');
   assert.equal(payload.store, false);
   assert.deepEqual(payload.generation_config, { thinking_level: 'low' });
   assert.equal(result.json.analysis.title, 'Solar Boom');

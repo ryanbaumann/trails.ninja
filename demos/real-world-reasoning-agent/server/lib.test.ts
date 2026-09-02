@@ -20,9 +20,11 @@ import {
 describe('Gemini credential routing', () => {
   it('allowlists the orchestrator and worker defaults', () => {
     const models = allowedGeminiModels();
+    expect(models.has('gemini-3.8-flash')).toBe(true);
     expect(models.has('gemini-3.7-flash')).toBe(true);
     expect(models.has('gemini-3.6-flash')).toBe(true);
     expect(models.has('gemini-3.5-flash-lite')).toBe(true);
+    expect(models.has('gemini-omni-1.1-flash-preview')).toBe(true);
   });
 
   it('prefers a plausible personal key and otherwise uses hosted auth', () => {

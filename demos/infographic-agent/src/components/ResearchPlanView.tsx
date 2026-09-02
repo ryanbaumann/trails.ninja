@@ -20,7 +20,7 @@ export const ResearchPlanView: React.FC<ResearchPlanViewProps> = ({ analysis, pr
     <div className="analysis-box">
       <div className="analysis-header">
         <FileText size={14} style={{ display: 'inline', marginRight: '0.35rem', verticalAlign: 'middle' }} />
-        <span>Stage 1: Gemini 3.7 Flash Research & Architecture</span>
+        <span>Stage 1: Gemini 3.8 Flash Research & Architecture</span>
       </div>
 
       {analysis.title && (

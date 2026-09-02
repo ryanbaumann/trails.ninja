@@ -1,7 +1,7 @@
 /**
  * Gemini "omni" video generation — image→video.
  *
- * `gemini-omni-flash-preview` (MODELS.omni) is a VIDEO generation model driven
+ * `gemini-omni-1.1-flash-preview` (MODELS.omni) is a VIDEO generation model driven
  * through the @google/genai Interactions API (`ai.interactions.create`), NOT the
  * `generateContent` path the rest of the app uses, and NOT an image-grounding
  * model. It powers the Cinema "generate a video of this tour" and Scout

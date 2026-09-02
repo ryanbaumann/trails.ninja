@@ -25,6 +25,15 @@ All notable changes to this project will be documented in this file.
   - Validated responsive layout and touch targets (≥44×44px) across Desktop (1440×900), Tablet (768×1024), and Mobile (390×844) viewports with Playwright visual testing.
 
 ### Changed
+- **Gemini Model Upgrades: Gemini 3.8 Flash & Gemini Omni 1.1 Flash Preview**:
+  - Upgraded all Flash model usage across the repository to `gemini-3.8-flash`:
+    - `demos/real-world-reasoning-agent`: Updated default orchestrator, worker, vision, and STT routing to `gemini-3.8-flash` (`src/lib/config.ts`); updated server and gateway allowlists (`server/lib.mjs`, `gateway/lib/realWorldReasoning.js`), admin panel (`AdminPanel.tsx`), and tests.
+    - `demos/hairstyle-ai-studio`: Upgraded opt-in hairstyle recommendation analysis in gateway (`gateway/lib/hairstyleAi.js`) to `gemini-3.8-flash` with LOW thinking; updated tests and documentation.
+    - `demos/infographic-agent`: Upgraded research orchestrator to `gemini-3.8-flash` across web app, UI components, gateway service (`gateway/lib/infographicAgent.js`), and skill (`.agents/skills/infographic-agent/`).
+  - Upgraded all Gemini Omni Flash video generation references and model routing to `gemini-omni-1.1-flash-preview`:
+    - `demos/real-world-reasoning-agent`: Updated default omni model to `gemini-omni-1.1-flash-preview` in `src/lib/config.ts`, `src/ai/video.ts`, `server/lib.mjs`, allowlists, and tests.
+    - `gateway/`: Updated `BASE_GEMINI_MODELS` and test suites in `gateway/lib/realWorldReasoning.js` and `gateway/test/realWorldReasoning.test.js`.
+  - Upgraded all globally installed Gemini skills (`gemini-api-dev`, `gemini-live-api-dev`, `gemini-agents-api`, `gemini-omni-flash-api`, `google-antigravity-sdk`, `google-cloud-solution-build-deploy-agents`, `infographic-agent`, etc.) to their latest versions.
 - **Local Copywriter Web App & Live Preview Studio (`scripts/writer_app.mjs`, `npm run writer`)**:
   - Zero-dependency local Node server and split-pane web studio running at `http://localhost:8090/`.
   - Dual-pane layout featuring real-time Markdown editing synchronized with live sandboxed article preview using exact portfolio `style.css` and `markdownToHtml()`.

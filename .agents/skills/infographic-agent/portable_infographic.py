@@ -5,8 +5,8 @@ Infographic Agent — portable skill (direct Gemini image generation)
 Turns any topic, note, or file of text into a polished infographic PNG using the
 exact same two-agent pipeline as the web demo:
 
-  1. Research orchestrator  (gemini-3.7-flash) — grounds the topic with Google
-     Search, then engineers a precise, text-accurate image-generation prompt.
+  1. Research orchestrator  (gemini-3.8-flash) — grounds the topic with Google
+      Search, then engineers a precise, text-accurate image-generation prompt.
   2. Image generator        (gemini-3.1-flash-lite-image) — renders the prompt
      directly into a PNG.
 
@@ -66,7 +66,7 @@ def ensure_genai() -> None:
 # Constants — keep the default model IDs in lockstep with the web demo (src/types.ts)
 # --------------------------------------------------------------------------- #
 
-ORCHESTRATOR_MODEL = "gemini-3.7-flash"          # research + prompt engineering
+ORCHESTRATOR_MODEL = "gemini-3.8-flash"          # research + prompt engineering
 IMAGE_MODEL = "gemini-3.1-flash-image"           # direct infographic rendering
 QUALITY_IMAGE_MODEL = "gemini-3.1-flash-image"   # skill-only quality option
 SUPPORTED_IMAGE_MODELS = (IMAGE_MODEL, QUALITY_IMAGE_MODEL)
@@ -521,7 +521,7 @@ def build_client(api_key: str) -> "genai.Client":
 
 
 # --------------------------------------------------------------------------- #
-# Agent 1 — research orchestrator (gemini-3.7-flash + Google Search grounding)
+# Agent 1 — research orchestrator (gemini-3.8-flash + Google Search grounding)
 # --------------------------------------------------------------------------- #
 
 def research_prompt(client, content: str, mode: str, aspect: str, extra: str) -> dict:
@@ -548,7 +548,7 @@ def research_prompt(client, content: str, mode: str, aspect: str, extra: str) ->
         http_options=types.HttpOptions(timeout=180_000),
     )
 
-    info("🔎 Researching and planning the infographic (gemini-3.7-flash)...")
+    info("🔎 Researching and planning the infographic (gemini-3.8-flash)...")
     last_error = None
     for attempt in range(3):
         try:

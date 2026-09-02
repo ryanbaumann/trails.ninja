@@ -39,7 +39,7 @@ npx infographic-agent "Top 5 programming languages in 2026"
 
 The skill runs a fast, browser-less two-agent pipeline powered by Gemini:
 
-1. **Research & Plan (`gemini-3.7-flash`)**: Grounds the topic with Google Search and returns the same Prepare contract as the web app: analysis metadata, exact text strings, and a precise renderer prompt.
+1. **Research & Plan (`gemini-3.8-flash`)**: Grounds the topic with Google Search and returns the same Prepare contract as the web app: analysis metadata, exact text strings, and a precise renderer prompt.
 2. **Eval**: Runs deterministic checks for schema, explicit image prompt prefix, quoted text strings, source attribution, accessibility guidance, and prompt length before rendering.
 3. **Render (`gemini-3.1-flash-lite-image` by default)**: Renders the validated prompt directly into a high-quality, text-accurate infographic PNG. The portable skill can opt into `gemini-3.1-flash-image` via `--image-model` for quality-focused runs.
 

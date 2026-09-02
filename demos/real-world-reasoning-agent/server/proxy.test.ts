@@ -19,7 +19,7 @@ import { dirname, join } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVER = join(here, 'index.mjs');
 const DISALLOWED = '/ai/v1beta/models/not-a-real-model:generateContent';
-const ALLOWED = '/ai/v1beta/models/gemini-3.7-flash:generateContent';
+const ALLOWED = '/ai/v1beta/models/gemini-3.8-flash:generateContent';
 
 let child: ChildProcess | null = null;
 // Cumulative stdout+stderr of the most recently started child, so tests can
@@ -167,7 +167,7 @@ describe('/ai proxy quality gates', () => {
     const hosted = await fetch(`http://127.0.0.1:${port}${path}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ model: 'gemini-omni-flash-preview' }),
+      body: JSON.stringify({ model: 'gemini-omni-1.1-flash-preview' }),
     });
     expect(hosted.status).toBe(429);
     expect(await hosted.text()).toMatch(/personal gemini api key/i);

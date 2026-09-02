@@ -84,7 +84,7 @@ if (showHelp) {
 infographic-agent v${pkg.version}
 
 Generate a professional infographic PNG directly with Gemini: a research
-agent (gemini-3.7-flash) prepares and validates the prompt, then the image
+agent (gemini-3.8-flash) prepares and validates the prompt, then the image
 model (gemini-3.1-flash-lite-image) renders it. No browser or Playwright needed.
 
 Usage:

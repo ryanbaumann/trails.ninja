@@ -2,7 +2,7 @@ import { recordHostedGeminiFailure, recordHostedGeminiSuccess } from './rateLimi
 
 const INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 const MODELS_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
-const ORCHESTRATOR_MODEL = 'gemini-3.7-flash';
+const ORCHESTRATOR_MODEL = 'gemini-3.8-flash';
 const DEFAULT_IMAGE_MODEL = 'gemini-3.1-flash-lite-image';
 const QUALITY_IMAGE_MODEL = 'gemini-3.1-flash-image';
 const ALLOWED_IMAGE_MODELS = new Set([DEFAULT_IMAGE_MODEL, QUALITY_IMAGE_MODEL]);
