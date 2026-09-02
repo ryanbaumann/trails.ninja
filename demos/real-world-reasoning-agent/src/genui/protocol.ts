@@ -526,7 +526,7 @@ export function validateMessages(raw: unknown, existingSurfaces?: Set<string>): 
 /* ------------------------------------------------------------------ *
  * Lenient input normalization                                          *
  *                                                                      *
- * `gemini-3.7-flash` routinely emits A2UI that is a near-miss for the *
+ * `gemini-3.8-flash` routinely emits A2UI that is a near-miss for the *
  * strict validator — which turned into a "Rendering the response" error *
  * chip and no card. These deterministic repairs turn the common        *
  * near-misses into valid input so the surface renders instead of failing: *

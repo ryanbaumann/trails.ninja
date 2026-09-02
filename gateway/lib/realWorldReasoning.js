@@ -16,6 +16,7 @@ export const GEMINI_BYOK_HEADER = 'x-atlas-gemini-key';
 const isOmniModel = (m) => typeof m === 'string' && (/omni/i.test(m) || m.includes('gemini-omni'));
 
 const BASE_GEMINI_MODELS = Object.freeze([
+  'gemini-3.8-flash',
   'gemini-3.7-flash',
   'gemini-3.7-pro',
   'gemini-3.6-flash',
@@ -29,10 +30,11 @@ const BASE_GEMINI_MODELS = Object.freeze([
   'gemini-3.1-pro',
   'gemini-3-flash-preview',
   'gemini-3-pro-preview',
+  'gemini-omni-1.1-flash-preview',
   'gemini-omni-flash-preview',
 ]);
 const REQUIRED_GEMINI_MODELS = Object.freeze([
-  'gemini-3.7-flash',
+  'gemini-3.8-flash',
 ]);
 const METADATA_MAX_RECORDS = 500;
 const MAX_RATE_BUCKETS = 10_000;

@@ -444,7 +444,7 @@ test('Interactions API permits only allowlisted body models and keeps hosted vid
     path: 'ai/v1beta/interactions',
     method: 'POST',
     headers: { origin: 'https://fieldwork.test', 'content-type': 'application/json' },
-    body: JSON.stringify({ model: 'gemini-omni-flash-preview', input: 'hello' }),
+    body: JSON.stringify({ model: 'gemini-omni-1.1-flash-preview', input: 'hello' }),
     env: { ...BASE_ENV, GEMINI_API_KEY: HOSTED_KEY },
     fetchImpl: async () => {
       calls += 1;
@@ -478,7 +478,7 @@ test('Interactions API permits only allowlisted body models and keeps hosted vid
       'content-type': 'application/json',
       'x-atlas-gemini-key': PERSONAL_KEY,
     },
-    body: JSON.stringify({ model: 'gemini-omni-flash-preview', input: 'hello' }),
+    body: JSON.stringify({ model: 'gemini-omni-1.1-flash-preview', input: 'hello' }),
     env: BASE_ENV,
     fetchImpl: async (_url, init) => {
       calls += 1;
@@ -614,7 +614,7 @@ test('Omni model requests enforce the 2 calls/day Omni rate limiter on hosted cr
   // Call 1: success
   const call1 = await invoke({
     handler,
-    path: 'ai/v1beta/models/gemini-omni-flash-preview:generateContent',
+    path: 'ai/v1beta/models/gemini-omni-1.1-flash-preview:generateContent',
     method: 'POST',
     headers: { origin: 'https://fieldwork.test', 'content-type': 'application/json' },
     body: JSON.stringify({ contents: [{ parts: [{ text: 'test 1' }] }] }),
@@ -627,7 +627,7 @@ test('Omni model requests enforce the 2 calls/day Omni rate limiter on hosted cr
   // Call 2: success
   const call2 = await invoke({
     handler,
-    path: 'ai/v1beta/models/gemini-omni-flash-preview:generateContent',
+    path: 'ai/v1beta/models/gemini-omni-1.1-flash-preview:generateContent',
     method: 'POST',
     headers: { origin: 'https://fieldwork.test', 'content-type': 'application/json' },
     body: JSON.stringify({ contents: [{ parts: [{ text: 'test 2' }] }] }),
@@ -640,7 +640,7 @@ test('Omni model requests enforce the 2 calls/day Omni rate limiter on hosted cr
   // Call 3: 429 blocked by Omni limiter
   const call3 = await invoke({
     handler,
-    path: 'ai/v1beta/models/gemini-omni-flash-preview:generateContent',
+    path: 'ai/v1beta/models/gemini-omni-1.1-flash-preview:generateContent',
     method: 'POST',
     headers: { origin: 'https://fieldwork.test', 'content-type': 'application/json' },
     body: JSON.stringify({ contents: [{ parts: [{ text: 'test 3' }] }] }),
@@ -654,7 +654,7 @@ test('Omni model requests enforce the 2 calls/day Omni rate limiter on hosted cr
   // Personal key bypasses the hosted Omni limit
   const personalCall = await invoke({
     handler,
-    path: 'ai/v1beta/models/gemini-omni-flash-preview:generateContent',
+    path: 'ai/v1beta/models/gemini-omni-1.1-flash-preview:generateContent',
     method: 'POST',
     headers: {
       origin: 'https://fieldwork.test',
@@ -728,7 +728,7 @@ test('hosted Gemini health changes capabilities and blocks hosted requests with 
   const unhealthyHandler = createRealWorldReasoningHandler({ env, fetchImpl: mockFetch });
   const hostedCall = await invoke({
     handler: unhealthyHandler,
-    path: 'ai/v1beta/models/gemini-3.7-flash:generateContent',
+    path: 'ai/v1beta/models/gemini-3.8-flash:generateContent',
     method: 'POST',
     headers: { origin: 'https://fieldwork.test', 'content-type': 'application/json' },
     body: JSON.stringify({ contents: [{ parts: [{ text: 'hello' }] }] }),
@@ -742,7 +742,7 @@ test('hosted Gemini health changes capabilities and blocks hosted requests with 
   // BYOK request still succeeds
   const personalCall = await invoke({
     handler: unhealthyHandler,
-    path: 'ai/v1beta/models/gemini-3.7-flash:generateContent',
+    path: 'ai/v1beta/models/gemini-3.8-flash:generateContent',
     method: 'POST',
     headers: {
       origin: 'https://fieldwork.test',

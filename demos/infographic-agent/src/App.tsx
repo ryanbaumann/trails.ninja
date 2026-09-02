@@ -47,7 +47,7 @@ export const App: React.FC = () => {
     setStep(2);
 
     try {
-      // Step 1: Research & Plan with Gemini 3.7 Flash
+      // Step 1: Research & Plan with Gemini 3.8 Flash
       const planRes = await prepareInfographic({
         topic: topic.trim(),
         mode,
@@ -212,7 +212,7 @@ export const App: React.FC = () => {
           </div>
           <div className={`step-item ${step >= 2 ? (step === 2 ? 'active' : 'complete') : ''}`}>
             <span className="step-number">2</span>
-            <span>Gemini 3.7 Flash Research</span>
+            <span>Gemini 3.8 Flash Research</span>
           </div>
           <div className={`step-item ${step === 3 ? 'complete' : ''}`}>
             <span className="step-number">3</span>
@@ -269,7 +269,7 @@ export const App: React.FC = () => {
                   Synthesizing Visual Knowledge
                 </h3>
                 <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '0.35rem', maxWidth: '380px' }}>
-                  Gemini 3.7 Flash is analyzing data points, structuring layout hierarchy, and crafting the exact spatial prompt...
+                  Gemini 3.8 Flash is analyzing data points, structuring layout hierarchy, and crafting the exact spatial prompt...
                 </p>
               </div>
             )}
@@ -313,7 +313,7 @@ export const App: React.FC = () => {
                   Ready to Architect Your Infographic
                 </h3>
                 <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', maxWidth: '420px', margin: '0 auto' }}>
-                  Enter any complex research topic or raw text on the left. The agent pairs Gemini 3.7 Flash research intelligence with Gemini 3.1 Flash image rendering to generate publication-grade visual posters.
+                  Enter any complex research topic or raw text on the left. The agent pairs Gemini 3.8 Flash research intelligence with Gemini 3.1 Flash image rendering to generate publication-grade visual posters.
                 </p>
               </div>
             )}

@@ -32,8 +32,8 @@ export const USAGE_ATTRIBUTION_ID = 'gmp_git_agentskills_v1';
  * GENAI_EXTRA_MODELS) or the /ai proxy will reject it with 403. 
  *
  * Default routing: the main copilot is the orchestration agent and uses
- * `gemini-3.7-flash` at HIGH thinking. Bounded task agents use
- * `gemini-3.7-flash` at LOW thinking for classification, formatting, suggestions,
+ * `gemini-3.8-flash` at HIGH thinking. Bounded task agents use
+ * `gemini-3.8-flash` at LOW thinking for classification, formatting, suggestions,
  * voice STT transcription, and multimodal evidence analysis. Where task agents emit JSON
  * (e.g. follow-up suggestions), we constrain them with a Gemini structured-output
  * `responseJsonSchema` so the model stays reliable without paying for a
@@ -54,11 +54,11 @@ export const USAGE_ATTRIBUTION_ID = 'gmp_git_agentskills_v1';
 const ORCHESTRATOR_MODEL =
   import.meta.env.VITE_GEMINI_ORCHESTRATOR_MODEL ||
   import.meta.env.VITE_GEMINI_CHAT_MODEL ||
-  'gemini-3.7-flash';
+  'gemini-3.8-flash';
 const WORKER_MODEL =
   import.meta.env.VITE_GEMINI_WORKER_MODEL ||
   import.meta.env.VITE_GEMINI_UTILITY_MODEL ||
-  'gemini-3.7-flash';
+  'gemini-3.8-flash';
 const VISION_MODEL =
   import.meta.env.VITE_GEMINI_VISION_MODEL ||
   WORKER_MODEL;
@@ -67,7 +67,7 @@ const STT_MODEL =
   WORKER_MODEL;
 
 export const MODELS = {
-  /** Main orchestrator (copilot chat in every journey). Defaults to gemini-3.7-flash. */
+  /** Main orchestrator (copilot chat in every journey). Defaults to gemini-3.8-flash. */
   orchestrator: ORCHESTRATOR_MODEL,
   /** Legacy alias for {@link MODELS.orchestrator}. */
   chat: ORCHESTRATOR_MODEL,
@@ -84,7 +84,7 @@ export const MODELS = {
   /** Image generation model used for Ad Studio assets and visuals. */
   image: import.meta.env.VITE_GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-lite-image',
   /** Video generation model (Interactions API) powering Cinema and Scout video. */
-  omni: import.meta.env.VITE_GEMINI_OMNI_MODEL || 'gemini-omni-flash-preview',
+  omni: import.meta.env.VITE_GEMINI_OMNI_MODEL || 'gemini-omni-1.1-flash-preview',
 } as const;
 
 /**
@@ -150,7 +150,7 @@ export function getThinkingConfig(
     return undefined;
   }
 
-  // Gemini 3.x models (gemini-3.7, gemini-3.6, gemini-3.5, gemini-3.1)
+  // Gemini 3.x models (gemini-3.8, gemini-3.7, gemini-3.6, gemini-3.5, gemini-3.1)
   if (/^gemini-3/i.test(model)) {
     if (level === 'orchestration') {
       return { thinkingLevel: ThinkingLevel.HIGH };

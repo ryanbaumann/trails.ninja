@@ -44,7 +44,7 @@ Every journey's copilot can render interactive surfaces in the chat dock (place 
 
 ## Voice input
 
-Tap the microphone in the copilot composer to **speak your request** instead of typing. Audio is transcribed by the low-latency task-agent model (`gemini-3.7-flash` by default, override with `VITE_GEMINI_STT_MODEL`) running with **LOW thinking** for the fastest turnaround, and the transcript drops into the input box for you to review before sending. Recording starts only on an explicit tap, audio is sent once through the same-origin `/ai` proxy, and the mic is released as soon as you stop. Real-time bidirectional voice via the Gemini [Live API](https://ai.google.dev/gemini-api/docs/live-api) is tracked in [docs/FUTURE_WORK.md](docs/FUTURE_WORK.md).
+Tap the microphone in the copilot composer to **speak your request** instead of typing. Audio is transcribed by the low-latency task-agent model (`gemini-3.8-flash` by default, override with `VITE_GEMINI_STT_MODEL`) running with **LOW thinking** for the fastest turnaround, and the transcript drops into the input box for you to review before sending. Recording starts only on an explicit tap, audio is sent once through the same-origin `/ai` proxy, and the mic is released as soon as you stop. Real-time bidirectional voice via the Gemini [Live API](https://ai.google.dev/gemini-api/docs/live-api) is tracked in [docs/FUTURE_WORK.md](docs/FUTURE_WORK.md).
 
 ## Architecture
 
@@ -60,7 +60,7 @@ Only the restricted browser Maps key is bundled into the app. Server-side Google
 
 ### Model configuration
 
-Atlas uses `gemini-3.7-flash` at high thinking as the orchestration model. Bounded task agents also use `gemini-3.7-flash`: low thinking for formatting, suggestions, voice STT transcription, and multimodal evidence analysis. Image, TTS, and optional video keep their purpose-built models. Model IDs remain overridable through the environment variables documented below.
+Atlas uses `gemini-3.8-flash` at high thinking as the orchestration model. Bounded task agents also use `gemini-3.8-flash`: low thinking for formatting, suggestions, voice STT transcription, and multimodal evidence analysis. Image, TTS, and optional video keep their purpose-built models. Model IDs remain overridable through the environment variables documented below.
 
 ### Bring your own Gemini key
 

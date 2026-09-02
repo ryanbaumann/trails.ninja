@@ -19,7 +19,7 @@ Hairstyle AI Studio is a React + Vite + TypeScript web app for AI hairstyle visu
 - `npm run check`: typecheck, tests, and build.
 
 ## Gemini model policy
-Model IDs are server-owned in the repository root's `gateway/lib/hairstyleAi.js`; do not expose or duplicate them in browser code. Use `gemini-3.7-flash` (with low thinking) for the explicit opt-in style recommendation and `gemini-3.1-flash-lite-image` for image generation and refinement. Verify model changes against current official Gemini API documentation.
+Model IDs are server-owned in the repository root's `gateway/lib/hairstyleAi.js`; do not expose or duplicate them in browser code. Use `gemini-3.8-flash` (with low thinking) for the explicit opt-in style recommendation and `gemini-3.1-flash-lite-image` for image generation and refinement. Verify model changes against current official Gemini API documentation.
 
 ## Secret handling
 - Never add `VITE_GEMINI_API_KEY`; Vite would publish it in the browser bundle.

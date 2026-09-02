@@ -14,8 +14,8 @@ function jsonResponse(body, { ok = true, status = 200 } = {}) {
   };
 }
 
-test('current model routing uses gemini-3.7-flash for opt-in analysis and the image-capable model for edits', () => {
-  assert.equal(HAIRSTYLE_MODELS.vision, 'gemini-3.7-flash');
+test('current model routing uses gemini-3.8-flash for opt-in analysis and the image-capable model for edits', () => {
+  assert.equal(HAIRSTYLE_MODELS.vision, 'gemini-3.8-flash');
   assert.equal(HAIRSTYLE_MODELS.image, 'gemini-3.1-flash-lite-image');
 });
 

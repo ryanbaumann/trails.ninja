@@ -6,7 +6,7 @@ import { validateSanitized } from '@/diagnostics/telemetry';
 type SendState = { kind: 'idle' | 'sending' | 'ok' | 'error'; msg?: string };
 
 /** Production orchestrator models known to be on the server allowlist. */
-const CHAT_MODELS = ['gemini-3.7-flash'];
+const CHAT_MODELS = ['gemini-3.8-flash'];
 const THINKING: ThinkingChoice[] = ['default', 'low', 'medium', 'high'];
 
 /**
@@ -137,7 +137,7 @@ export function AdminPanel() {
 
       <p className="admin-panel__hint">
         Applies to your next message. <code>default</code> = high. Task agents use
-        <code>gemini-3.7-flash</code> at low thinking. Switching
+        <code>gemini-3.8-flash</code> at low thinking. Switching
         starts fresh model context.
       </p>
 

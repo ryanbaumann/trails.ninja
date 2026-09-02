@@ -10,16 +10,17 @@ import {
 } from './config';
 
 describe('default Gemini routing', () => {
-  it('routes orchestration and task agents to gemini-3.7-flash with tuned thinking levels', () => {
-    expect(MODELS.orchestrator).toBe('gemini-3.7-flash');
+  it('routes orchestration and task agents to gemini-3.8-flash with tuned thinking levels', () => {
+    expect(MODELS.orchestrator).toBe('gemini-3.8-flash');
     expect(MODELS.chat).toBe(MODELS.orchestrator);
-    expect(MODELS.worker).toBe('gemini-3.7-flash');
+    expect(MODELS.worker).toBe('gemini-3.8-flash');
     expect(MODELS.utility).toBe(MODELS.worker);
     expect(MODELS.vision).toBe(MODELS.worker);
+    expect(MODELS.omni).toBe('gemini-omni-1.1-flash-preview');
     expect(AGENT_PROFILES).toEqual({
-      orchestrator: { model: 'gemini-3.7-flash', thinking: 'high' },
-      fastWorker: { model: 'gemini-3.7-flash', thinking: 'low' },
-      analysisWorker: { model: 'gemini-3.7-flash', thinking: 'low' },
+      orchestrator: { model: 'gemini-3.8-flash', thinking: 'high' },
+      fastWorker: { model: 'gemini-3.8-flash', thinking: 'low' },
+      analysisWorker: { model: 'gemini-3.8-flash', thinking: 'low' },
     });
   });
 
@@ -32,13 +33,13 @@ describe('default Gemini routing', () => {
     });
   });
 
-  it('uses low thinking for gemini-3.7-flash simpleUi tasks to prevent 400 errors', () => {
+  it('uses low thinking for gemini-3.8-flash simpleUi tasks to prevent 400 errors', () => {
     expect(getThinkingConfig(MODELS.utility, 'simpleUi')).toEqual({
       thinkingLevel: ThinkingLevel.LOW,
     });
   });
 
-  it('allows the orchestrator to be tuned down to low or medium, guarding against minimal on 3.7', () => {
+  it('allows the orchestrator to be tuned down to low or medium, guarding against minimal on 3.8', () => {
     expect(getChatThinkingConfig(MODELS.orchestrator, 'orchestration', 'low')).toEqual({
       thinkingLevel: ThinkingLevel.LOW,
     });

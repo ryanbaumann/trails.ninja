@@ -62,7 +62,7 @@ from **9.8s (whole-clip) to 1.2s (first streamed frame)**. Remaining follow-up:
   A2UI surface via the new `Video` catalog component). The `/ai` proxy forwards the
   Interactions endpoint with the model allowlist enforced from the request body and
   a longer `VIDEO_UPSTREAM_TIMEOUT_MS`. Still off by default and requires
-  `gemini-omni-flash-preview` in `GENAI_EXTRA_MODELS`. **Not yet keyed-verified**
+  `gemini-omni-1.1-flash-preview` in `GENAI_EXTRA_MODELS`. **Not yet keyed-verified**
   end-to-end (no live omni access in the sandbox) — belongs in the §1 keyed pass.
 - Scout is now an explicit **site-selection** journey: inspection grounds each
   candidate in Street View **plus an overhead satellite frame**, and a

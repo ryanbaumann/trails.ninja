@@ -2,6 +2,16 @@
 
 This log captures durable lessons discovered while building and maintaining the portfolio and demo lab, keeping the root instructions lean.
 
+## 2026-09-02 - Upgrading to Gemini 3.8 Flash & Gemini Omni 1.1 Flash Preview across workspaces and global skills
+
+Context: Upgrading demo agent architectures and model configurations across the repository from `gemini-3.7-flash` to `gemini-3.8-flash`, upgrading Gemini Omni video generation to `gemini-omni-1.1-flash-preview`, and updating globally installed Gemini skills.
+Learning:
+1. **Model ID Centralization**: Model defaults in `real-world-reasoning-agent` are centralized in `src/lib/config.ts` and mirrored in `server/lib.mjs`, while gateway proxy allowlists in `gateway/lib/realWorldReasoning.js` must be synchronized. Preserving previous minor versions (`gemini-3.7-flash`, `gemini-3.6-flash`, `gemini-omni-flash-preview`) in the allowlists ensures backward compatibility if clients supply custom env overrides.
+2. **Omni Model Naming & Transport**: The Gemini Omni video generation model is invoked via the `@google/genai` Interactions API (`ai.interactions.create` / `models/gemini-omni-1.1-flash-preview`), requiring separate rate limiting and allowlist rules from standard text generation models.
+3. **Global Skill Sync**: Global skills installed under `~/.agents/skills/` via `npx skills update -g` and `google-gemini/gemini-skills` / `google/skills` can be seamlessly linked into AGY's global skill directory (`~/.gemini/config/skills/`), including new capabilities like `gemini-omni-flash-api`.
+Evidence: 167 gateway tests passing, 70 real-world-reasoning-agent test suites (579 unit tests) passing, 4 infographic-agent tests passing, 21/21 gateway smoke tests passing.
+Use next time: When performing model fleet upgrades, verify server proxy allowlists, client defaults, test suites, and documentation simultaneously.
+
 ## 2026-08-28 - Gateway HTTP Keep-Alive & SSE Proxy Configuration eliminates Cloud Run 502s and buffering delays
 
 Context: Optimizing Real World Reasoning Agent end-to-end response latency, streaming SSE unbuffering, and Cloud Run proxy resilience.
